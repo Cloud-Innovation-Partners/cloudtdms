@@ -1,0 +1,10 @@
+.env
+.idea
+scratchpad.py
+system/airflow.db
+system/unittests.cfg
+system/logs/
+system/dags/__pycache__/
+system/__pycache__/
+system/cloudtdms/__pycache__/
+__pycache__/
