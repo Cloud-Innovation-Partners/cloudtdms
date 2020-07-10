@@ -5,6 +5,7 @@ TEMPLATE = """
 import sys
 import os
 import importlib
+import random
 import pandas as pd
 from datetime import datetime, timedelta
 from airflow import DAG
@@ -37,21 +38,30 @@ dag_id={{ "'"~data.dag_id|string~"'" }},
 
 
 def generate_iterator(data_frame, methods):
+    number = dag.params.get('stream').get('number')
     for fcn, name in methods:
-        result = fcn()
-        data_frame[name] = result
+        result = fcn(number)
+        data_frame[name] = pd.Series(result)
 
 
 def data_generator():
     meta_data = providers.get_active_meta_data()
     stream = dag.params.get('stream')
     attributes = dag.params.get('attributes')
-    data_frame = pd.DataFrame()    
+    nrows = stream['number']
+    ncols = sum([len(f) for f in attributes.values()])
+    columns = []
+    labels = [columns.extend(f) for f in attributes.values()]
+    data_frame = pd.DataFrame(pd.np.zeros((nrows, ncols))*pd.np.nan, columns=columns)    
     
     for attrib in attributes:
         if attrib in meta_data['data_files']:
             df = pd.read_csv(f"{get_providers_home()}/{attrib}.csv", usecols=attributes[attrib])
-            data_frame[attributes[attrib]] = df[attributes[attrib]]
+            df_temp = pd.DataFrame(index=range(nrows), columns=attributes[attrib])
+            for i in range(nrows):
+                df_temp.iloc[i] = df.iloc[random.randrange(len(df))]
+                            
+            data_frame[attributes[attrib]] = df_temp[attributes[attrib]]
         elif attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
             methods = [(getattr(mod, m), m) for m in attributes[attrib]]
