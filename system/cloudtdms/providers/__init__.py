@@ -2,6 +2,9 @@
 #  CloudTDMS - Test Data Management Service
 
 import os
+import sys
+import importlib
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 def get_columns(filename):
@@ -11,11 +14,21 @@ def get_columns(filename):
     return columns.split(',')
 
 
+def get_functions(module):
+    try:
+        mod = importlib.import_module(f'system.cloudtdms.providers.{module}')
+        return [f for f in dir(mod) if not f.startswith('__')]
+    except ImportError:
+        LoggingMixin().log.info(f"ImportError: Unable to import `{module}` code-file!")
+
+
 def get_active_meta_data():
 
     meta_data = {
+        'code_files': [f[:-3] for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.py') and not f == '__init__.py'],
         'data_files': [f[:-4] for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'],
-        'meta-headers': {f[:-4]: get_columns(f) for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'}
+        'meta-headers': {f[:-4]: get_columns(f) for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'},
+        'meta-functions': {f[:-3]: get_functions(f[:-3]) for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.py') and not f == '__init__.py'},
         }
 
     return meta_data

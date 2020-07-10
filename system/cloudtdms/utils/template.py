@@ -4,6 +4,7 @@
 TEMPLATE = """
 import sys
 import os
+import importlib
 import pandas as pd
 from datetime import datetime, timedelta
 from airflow import DAG
@@ -35,22 +36,33 @@ dag_id={{ "'"~data.dag_id|string~"'" }},
 )
 
 
+def generate_iterator(data_frame, methods):
+    for fcn, name in methods:
+        result = fcn()
+        data_frame[name] = result
+
+
 def data_generator():
     meta_data = providers.get_active_meta_data()
     stream = dag.params.get('stream')
     attributes = dag.params.get('attributes')
-    data_frame = pd.DataFrame()
+    data_frame = pd.DataFrame()    
+    
     for attrib in attributes:
-        df = pd.read_csv(f"{get_providers_home()}/{attrib}.csv", usecols=attributes[attrib])
-        data_frame[attributes[attrib]] = df[attributes[attrib]]
+        if attrib in meta_data['data_files']:
+            df = pd.read_csv(f"{get_providers_home()}/{attrib}.csv", usecols=attributes[attrib])
+            data_frame[attributes[attrib]] = df[attributes[attrib]]
+        elif attrib in meta_data['code_files']:
+            mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
+            methods = [(getattr(mod, m), m) for m in attributes[attrib]]
+            generate_iterator(data_frame, methods)     
     
     schema = stream['schema']
-
     for scheme in schema:
         field_name = scheme['field_name']
         column_name = scheme['type'].split('.')[1]
         data_frame.rename(columns={column_name:field_name}, inplace=True)
-    
+
     data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}.csv", index=False)
     
 start = DummyOperator(task_id="start", dag=dag)

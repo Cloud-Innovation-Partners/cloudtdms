@@ -97,6 +97,14 @@ for (module, name) in modules:
                         attributes[data].append(column)
                 else:
                     raise AirflowException(f"TypeError: no data available for type {column} ")
+            elif data in meta_data['code_files']:
+                if column in meta_data['meta-functions'][data]:
+                    if data not in attributes:
+                        attributes[data] = [column]
+                    else:
+                        attributes[data].append(column)
+                else:
+                    raise AirflowException(f"TypeError: no data available for type {column} ")
             else:
                 raise AirflowException(f"IOError: no data file found {data}.csv ")
 
