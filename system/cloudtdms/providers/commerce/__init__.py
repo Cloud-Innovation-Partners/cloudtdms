@@ -236,16 +236,18 @@ def expiry_date(nummber):
     return expiry_dates
 
 def currency(number):
-    currencies=[]
+    currencies_list=[]
     for code, country in currencies:
         currency=code + ' (' + country + ')'
-        currencies.append(currency)
+        currencies_list.append(currency)
 
-    currencies_length=len(currencies)
+    print(currencies_list)
+    currencies_length=len(currencies_list)
     if currencies_length<number:
         diff=number-currencies_length
-        extra=currencies*diff
+        extra=currencies_list*diff
         extra=extra[:number]
-        currencies.extend(extra)
+        currencies_list.extend(extra)
 
-    return  currencies
+    return  currencies_list
+
