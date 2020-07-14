@@ -33,10 +33,12 @@ generation process.
     {"field_name" :  "freq", "type" :  "basics.frequency"}
     ```
 3. **color :** Generates a random color value based on the format specified. By `default` the format is `hex-color`, and it
-    will generate hex color codes such as : `#1423ab`. Other formats available are `name` and `short-hex`.
-        
-    + *`name`* : will generate color names such as, `Red, Blue, Green ...` etc.
-    + *`short-hex`* : will generate hex color codes in short form such as `#14b, #876 ...` etc.
+    will generate hex color codes such as : `#1423ab`. Formats available are `name`, `short-hex`, `hex-color`.
+    
+    + *format* : used to specify the format of generated color value, Takes a value out of the following three values:
+        + *`name`* : will generate color names such as, `Red, Blue, Green ...` etc.
+        + *`short-hex`* : will generate hex color codes in short form such as `#14b, #876 ...` etc.
+        + *`hex-color`* : will generate hex color codes such as `#1423ab`, This is default format
         
     *syntax*:
     ```json
@@ -91,9 +93,10 @@ generation process.
 9. **auto_increment :** This generates a sequence of numbers with a common difference equal to the value of `increment` attribute.
     The `default` value of `increment` is `1`. Other attributes provided are:
     
-    + *`prefix`* : used to append a `prefix` value before the number such as `INC2000`
+    + *`prefix`* : used to append a `prefix` value before the number such as `INC2000`.
     + *`suffix`* : used to append a `suffix` value after the number such as `2000PR`
     + *`start`* : used to specify the starting integer value for the sequence, the `default` start value is `1`
+    + *`increment`* : used to specify the increment value `default` is 1
     
     *syntax*:
     ```json
@@ -109,13 +112,23 @@ generation process.
     {"field_name" :  "random_id", "type" :  "basics.random_number", "start" :  20, "end" :  200}
     ```
     
-### Personal
+11. **number_range :** This generates a sequence of numbers within a specified range, the range is set using attributes
+    `start` and `end`.
+    
+    + *`start`* : used to specify the starting value for the sequence, no number generated will be less then this value
+    + *`end`* : used to specify the end value for the sequence, no number generated will be greater then this value
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200}
+    ```
+### Company
 
 1. **company_name :** Generates a random company name.
     
     *syntax*:
     ```json
-    {"field_name" :  "cname", "type" :  "personal.company_name"}
+    {"field_name" :  "cname", "type" :  "company.company_name"}
     ```
     
 2. **department :** Generates a department type such as `Human Resource, Accounting, Engineering, Grocery, Books ...` etc
@@ -127,16 +140,18 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name" :  "dept", "type" :  "personal.department", "category" :  "corporate"}
+    {"field_name" :  "dept", "type" :  "company.department", "category" :  "corporate"}
     ```  
  3. **duns_number :** Generates random 9 digit Data Universal Numbering System (DUNS) number such as `31-300-8468, 34-230-3150...` etc.
  
     *syntax*:
     ```json
-    {"field_name":  "duns_id", "type" :  "personal.duns_number"}
+    {"field_name":  "duns_id", "type" :  "company.duns_number"}
     ```
 
-4. **first_name :** Generates random First Names.
+### Personal
+
+1. **first_name :** Generates random First Names.
     
     + *category* : takes two values `male` and `female`, when category is set names specific to particular gender are generated.
     
@@ -145,14 +160,14 @@ generation process.
     {"field_name":  "fname", "type" :  "personal.first_name", "category" :  "male"}
     ```
    
-5. **last_name :** Generates random Last Names.
+2. **last_name :** Generates random Last Names.
     
     *syntax*:
     ```json
     {"field_name":  "lname", "type" :  "personal.last_name"}
     ```
    
-6. **full_name :** Generates a Full Name having format `{first_name} {last_name}` such as `John Sarcozy` etc.
+3. **full_name :** Generates a Full Name having format `{first_name} {last_name}` such as `John Sarcozy` etc.
     
     + *category* : takes two values `male` and `female`, when category is set full names specific to particular gender are generated.
     
@@ -160,7 +175,7 @@ generation process.
     ```json
     {"field_name":  "name", "type" :  "personal.full_name", "category" :  "female"}
     ```
-7. **gender :** Generates a random value from a set `['Male', 'Female']`, you can provide custom values instead of `default` value using
+4. **gender :** Generates a random value from a set `['Male', 'Female']`, you can provide custom values instead of `default` value using
     `set_val` attribute.
     
     + *set_val* : takes a pair of words delimited by `/` as a value, word left of the `/` will be used as a value for `Male` and word right
@@ -171,19 +186,33 @@ generation process.
     {"field_name":  "gender", "type" :  "personal.gender", "set_val" :  "M/F"}
     ```
    
-8. **language :** Generates a random language name. such as `German, Spanish...` etc
+5. **username :** Generates a random username such as `dvicary3, dpomeroya...` etc.
+
+    *syntax*:
+    ```json
+    {"field_name" :  "username", "type" :  "personal.username"}
+    ```
+
+6. **email_address  :** Generates an email address. such as `jslivia01@gmail.com, kwills89@yahoo.com ...` etc
+
+    *syntax*:
+    ```json
+    {"field_name" :  "email", "type" :  "personal.email_address"}
+    ```
+   
+7. **language :** Generates a random language name. such as `German, Spanish...` etc
     
     *syntax*:
     ```json
     {"field_name":  "lang", "type" :  "personal.language"}
    ```
-9. **university :** Generates a random university name such as `University of Texas, Luxemborough Univeristy...` etc
+8. **university :** Generates a random university name such as `University of Texas, Luxemborough Univeristy...` etc
 
     *syntax*:
     ```json
     {"field_name":  "university_name", "type" :  "personal.university"}
    ```
-10. **title :** Generates a title value. such as `Mr, Ms, Dr ...` etc
+9. **title :** Generates a title value. such as `Mr, Ms, Dr ...` etc
 
     *syntax*:
     ```json
@@ -324,40 +353,28 @@ generation process.
     ```json
     {"field_name" :  "ip", "type" :  "it.ip_address", "category" :  "v6"}
     ```
-2. **email_address  :** Generates an email address. such as `jslivia01@gmail.com, kwills89@yahoo.com ...` etc
 
-    *syntax*:
-    ```json
-    {"field_name" :  "email", "type" :  "it.email_address"}
-    ```
-3. **mac_address :** Generates a random `MAC address` such as `69:9b:fd:f0:c8:38, f4:d0:0c:d6:b8:b4 ...` etc
+2. **mac_address :** Generates a random `MAC address` such as `69:9b:fd:f0:c8:38, f4:d0:0c:d6:b8:b4 ...` etc
 
     *syntax*:
     ```json
     {"field_name" :  "mac", "type" :  "it.mac_address"}
     ```
 
-4. **username :** Generates a random username such as `dvicary3, dpomeroya...` etc.
-
-    *syntax*:
-    ```json
-    {"field_name" :  "username", "type" :  "it.username"}
-    ```
-
-5. **sha1 :** Generates a random `SHA1` hex code string such as `f4fead60f28167de02e53c68d5fc3689a8d648ea`
+3. **sha1 :** Generates a random `SHA1` hex code string such as `f4fead60f28167de02e53c68d5fc3689a8d648ea`
 
     *syntax*:
     ```json
     {"field_name" :  "sha1", "type" :  "it.sha1"}
     ```
 
-6. **sha256 :** Generates a random `SHA256` hex code string such as `ca7adf64d8112bddcb0c55ff6e92a5b553c0fc92117e494230b27afddb048ebe`
+4. **sha256 :** Generates a random `SHA256` hex code string such as `ca7adf64d8112bddcb0c55ff6e92a5b553c0fc92117e494230b27afddb048ebe`
 
     *syntax*:
     ```json
     {"field_name" :  "sha256", "type" :  "it.sha256"}
     ```
-7. **domain_name :** Generates a random domain name such as `apache.org, google.com ...` etc
+5. **domain_name :** Generates a random domain name such as `apache.org, google.com ...` etc
 
     *syntax*:
     ```json
@@ -381,28 +398,29 @@ generation process.
 
 2. **concatenate :** Concatenates values from multiple columns into one.
     
-    + *fields* : take delimited values, delimiter will be used as concatenating element 
+    + *template* : take a template string as a value, A template string has `field_names` to be concatenated enclosed in `{}` braces.
+    Besides `field_names` you can also use static strings and symbols like `$,#@..` etc
+    
     *syntax*:
     ```json
-    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "id, teams"}
+    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{id}-{teams}"}
     ```
    
    *example* :
    ```python
+   {"field_name" :  "row", "type" :  "basics.auto_increment", "start" :  5000}
    {"field_name" :  "id", "type" :  "basics.random_number", "start" :  2000, "end" :  3000}
    {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport"}
-   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "id-teams"}
+   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "{id}-{teams}#{row}"}
    ```
    The Above `schema` will generate data something like this
    
-   |id   |teams       |mixed            |
-   |-----|------------|-----------------|
-   |2000 |HR          |2000-HR          |
-   |2222 |Account     |2222-Account     |
-   |2431 |Development |2431-Development | 
+   |row    |id   |teams       |mixed                 |
+   |-------|-----|------------|----------------------|
+   |5000   |2000 |HR          |2000-HR#5000          |
+   |5001   |2222 |Account     |2222-Account#5001     |
+   |5002   |2431 |Development |2431-Development#5002 | 
    
-     
-- user_function
 
 **statistics:**
 - normal
