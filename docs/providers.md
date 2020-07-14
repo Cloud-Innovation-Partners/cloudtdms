@@ -313,15 +313,56 @@ generation process.
     {"field_name" :  "ccode", "type" :  "commerce.currency_code"}
     ```
 
-**it:**
-- ip_address_v4
-- ip_address_v6
-- email_address
-- mac_address
-- username
-- sha1
-- sha256
-- domain_name
+### IT
+
+1. **ip_address :** Generates an IP address. such as `192.168.0.1, 251.150.202.132... `etc for `v4` category, 
+    `43de:c4ea:7529:ebbc:754b:81a:be18:d2a1, 10d0:c44:63d:401a:440b:538f:8afc:fb0f...` etc for `v6` category
+    
+    + *category* : takes value either `v4` or `v6`
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "ip", "type" :  "it.ip_address", "category" :  "v6"}
+    ```
+2. **email_address  :** Generates an email address. such as `jslivia01@gmail.com, kwills89@yahoo.com ...` etc
+
+    *syntax*:
+    ```json
+    {"field_name" :  "email", "type" :  "it.email_address"}
+    ```
+3. **mac_address :** Generates a random `MAC address` such as `69:9b:fd:f0:c8:38, f4:d0:0c:d6:b8:b4 ...` etc
+
+    *syntax*:
+    ```json
+    {"field_name" :  "mac", "type" :  "it.mac_address"}
+    ```
+
+4. **username :** Generates a random username such as `dvicary3, dpomeroya...` etc.
+
+    *syntax*:
+    ```json
+    {"field_name" :  "username", "type" :  "it.username"}
+    ```
+
+5. **sha1 :** Generates a random `SHA1` hex code string such as `f4fead60f28167de02e53c68d5fc3689a8d648ea`
+
+    *syntax*:
+    ```json
+    {"field_name" :  "sha1", "type" :  "it.sha1"}
+    ```
+
+6. **sha256 :** Generates a random `SHA256` hex code string such as `ca7adf64d8112bddcb0c55ff6e92a5b553c0fc92117e494230b27afddb048ebe`
+
+    *syntax*:
+    ```json
+    {"field_name" :  "sha256", "type" :  "it.sha256"}
+    ```
+7. **domain_name :** Generates a random domain name such as `apache.org, google.com ...` etc
+
+    *syntax*:
+    ```json
+    {"field_name" :  "domain", "type" :  "it.domain_name"}
+    ```
 
 **advanced:**
 - custom_list
