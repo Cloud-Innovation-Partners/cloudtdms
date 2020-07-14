@@ -17,6 +17,9 @@ generation process.
 1. **boolean :** Generates a `boolean` value `true/false`, you can provide custom values instead of `default` value using
     `set_val` attribute.
     
+    + *set_val* : takes a pair of words delimited by `/` as a value, word left of the `/` will be used as a value for true and word right
+    of the `/` will be used as a false value 
+    
     *syntax*:
     ```json
     {"field_name" : "status", "type" : "basics.boolean", "set_val": "1/0"}
@@ -126,15 +129,67 @@ generation process.
     ```json
     {"field_name" :  "dept", "type" :  "personal.department", "category" :  "corporate"}
     ```  
+ 3. **duns_number :** Generates random 9 digit Data Universal Numbering System (DUNS) number such as `31-300-8468, 34-230-3150...` etc.
  
-- duns_number
-- first_name
-- last_name
-- full_name
-- gender
-- language
-- university
-- title
+    *syntax*:
+    ```json
+    {"field_name":  "duns_id", "type" :  "personal.duns_number"}
+    ```
+
+4. **first_name :** Generates random First Names.
+    
+    + *category* : takes two values `male` and `female`, when category is set names specific to particular gender are generated.
+    
+    *syntax*:
+    ```json
+    {"field_name":  "fname", "type" :  "personal.first_name", "category" :  "male"}
+    ```
+   
+5. **last_name :** Generates random Last Names.
+    
+    *syntax*:
+    ```json
+    {"field_name":  "lname", "type" :  "personal.last_name"}
+    ```
+   
+6. **full_name :** Generates a Full Name having format `{first_name} {last_name}` such as `John Sarcozy` etc.
+    
+    + *category* : takes two values `male` and `female`, when category is set full names specific to particular gender are generated.
+    
+     *syntax*:
+    ```json
+    {"field_name":  "name", "type" :  "personal.full_name", "category" :  "female"}
+    ```
+7. **gender :** Generates a random value from a set `['Male', 'Female']`, you can provide custom values instead of `default` value using
+    `set_val` attribute.
+    
+    + *set_val* : takes a pair of words delimited by `/` as a value, word left of the `/` will be used as a value for `Male` and word right
+    of the `/` will be used as a `Female` value. With this you can map a value to default `Male` and `Female` words.
+    
+    *syntax*:
+    ```json
+    {"field_name":  "gender", "type" :  "personal.gender", "set_val" :  "M/F"}
+    ```
+   
+8. **language :** Generates a random language name. such as `German, Spanish...` etc
+    
+    *syntax*:
+    ```json
+    {"field_name":  "lang", "type" :  "personal.language"}
+   ```
+9. **university :** Generates a random university name such as `University of Texas, Luxemborough Univeristy...` etc
+
+    *syntax*:
+    ```json
+    {"field_name":  "university_name", "type" :  "personal.university"}
+   ```
+10. **title :** Generates a title value. such as `Mr, Ms, Dr ...` etc
+
+    *syntax*:
+    ```json
+    {"field_name":  "title", "type" :  "personal.title"}
+   
+    ```
     
 **location:**
 - country
