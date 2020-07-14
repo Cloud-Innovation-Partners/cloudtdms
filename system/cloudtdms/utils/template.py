@@ -37,16 +37,46 @@ dag_id={{ "'"~data.dag_id|string~"'" }},
 )
 
 
-def generate_iterator(data_frame, methods):
+def generate_iterator(data_frame, methods,args_array):
     number = dag.params.get('stream').get('number')
     for fcn, name in methods:
-        result = fcn(number)
+        func_name = fcn.__name__
+        arg = args_array.get(func_name)
+        if arg is None:
+            result = fcn(number)
+        else:
+            result = fcn(number,arg)
         data_frame[name] = pd.Series(result)
+
+def args_dict(scheme, default_keys):
+    args={}
+    for key, value in scheme.items():
+        if key =='type':
+            func_name=scheme['type'].split('.')[1]
+        if key not in default_keys:
+            args[key]=value
+    return func_name,args
+            
+def get_method_args(schema):
+    args_array={}
+    default_keys=['field_name','type']
+    for scheme in schema:
+        keys = list(scheme.keys())
+        nkeys=len(list(scheme.keys()))
+        
+        if nkeys >2 and keys not in default_keys:
+            (func_name,args)=args_dict(scheme, default_keys)
+            args_array[func_name]=args
+    
+    return args_array
+        
+        
 
 
 def data_generator():
     meta_data = providers.get_active_meta_data()
     stream = dag.params.get('stream')
+    schema = stream['schema']
     attributes = dag.params.get('attributes')
     nrows = stream['number']
     ncols = sum([len(f) for f in attributes.values()])
@@ -65,9 +95,11 @@ def data_generator():
         elif attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
             methods = [(getattr(mod, m), m) for m in attributes[attrib]]
-            generate_iterator(data_frame, methods)     
+            args_array=get_method_args(schema)
+            print(args_array)
+            generate_iterator(data_frame, methods,args_array)     
     
-    schema = stream['schema']
+    
     for scheme in schema:
         field_name = scheme['field_name']
         column_name = scheme['type'].split('.')[1]
