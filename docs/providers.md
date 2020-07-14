@@ -364,8 +364,21 @@ generation process.
     {"field_name" :  "domain", "type" :  "it.domain_name"}
     ```
 
-**advanced:**
-- custom_list
+### Advanced
+
+1. **custom_list :** Generates a random value from a user specified list. With `custom_list` you can simulate generation of
+    any finite set as per your needs.
+         
+    + *set_val* : here `set_val` takes a comma separated string, which will be used as a domain set for data generation
+     
+    *syntax*:
+    ```json
+    {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport"}
+    ```
+   
+    Based on the value provided in the `set_val` attribute function can generate any specific finite data e.q
+    the schema notation above will generate data such as `HR, Field, Transport, Development, HR, Accounts ...` etc
+
 - concatenate
 - user_function
 
