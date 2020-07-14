@@ -193,6 +193,11 @@ currency_symbols = {
 
 
 def card_number(number):
+    """
+      Generator function for credit card number
+     :param number: Number of records to generate
+     :type int
+     """
     credit_card_number_list=[]
     digits = list(string.digits * 3)
 
@@ -204,6 +209,11 @@ def card_number(number):
     return  credit_card_number_list
 
 def cvv(number):
+    """
+    Generator function for cvv number
+    :param number: Number of records to generate
+    :type int
+    """
     cvv_list = []
     digits = list(string.digits * 3)
 
@@ -216,11 +226,21 @@ def cvv(number):
 
 
 def network(number):
+    """
+    Generator function for network
+    :param number: Number of records to generate
+    :type int
+     """
     networks=['Master Card','Visa','American Express','Maestro','Visa Electron']
 
     return random.choices(population=networks, k=number)
 
 def expiry_date(nummber):
+    """
+    Generator function for expiry date
+    :param number: Number of records to generate
+    :type int
+    """
     expiry_dates=[]
     days = list(range(1, 31))
     months = list(range(1, 13))
@@ -236,6 +256,11 @@ def expiry_date(nummber):
     return expiry_dates
 
 def currency(number):
+    """
+    Generator function for currency
+    :param number: Number of records to generate
+    :type int
+     """
     currencies_list=[]
     for code, country in currencies:
         currency=code + ' (' + country + ')'
