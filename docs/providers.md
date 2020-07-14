@@ -195,27 +195,27 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name":  "country", "type" :  "personal.country"}
+    {"field_name":  "country", "type" :  "location.country"}
     ```
    
 2. **city :** Generates a random `city` name such as `New York, Berlin, London...` etc.
 
     *syntax*:
     ```json
-    {"field_name":  "city", "type" :  "personal.city"}
+    {"field_name":  "city", "type" :  "location.city"}
     ```
    
 3. **latitude :** Generates a random `latitude` value such as `48.52469361225269, 72.26886762838888, -12.592370752117404...` etc
 
     *syntax*:
     ```json
-    {"field_name":  "lat", "type" :  "personal.latitude"}
+    {"field_name":  "lat", "type" :  "location.latitude"}
     ```    
 4. **longitude :** Generates a random `longitude` value such as `-45.15259533671917, 115.70563293321999, 81.9426325226724...` etc
     
     *syntax*:
     ```json
-    {"field_name":  "long", "type" :  "personal.longitude"}
+    {"field_name":  "long", "type" :  "location.longitude"}
     ```
 5. **phone :** Generates a random `phone` number, based on the format value specified. phone numbers generated can be atmost 15 digit
     long. you can specify the format value using `#` (hashs) few format options are listed below for your reference. 
@@ -233,14 +233,14 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name" :  "mobile", "type" :  "personal.phone", "format" :  "###-###-####"}
+    {"field_name" :  "mobile", "type" :  "location.phone", "format" :  "###-###-####"}
     ```
     
 6. **state :** Generates a random state or province name such as `Stockholm, Quebec, New York...` etc
 
     *syntax*:
     ```json
-    {"field_name" :  "state", "type" :  "personal.state"}
+    {"field_name" :  "state", "type" :  "location.state"}
     ```
 7. **country_code :** Generates a random country code, by `default` it will generate `2-DIGIT-ISO-CODES` such as `AF, AQ, IN...` etc.
     But you can generate `3-DIGIT-ISO-CODES` such as `AFG, ATA, IND..` etc or numeric country codes such as `93, 672, 91...` etc.
@@ -250,27 +250,27 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name" :  "code", "type" :  "personal.country_code", "category" :  "numeric"}
+    {"field_name" :  "code", "type" :  "location.country_code", "category" :  "numeric"}
     ```
     
 8. **postal_code :** Generates a random postal code. such as `56273, 40741...` etc
     
     *syntax*:
     ```json
-    {"field_name" :  "p_code", "type" :  "personal.postal_code"}
+    {"field_name" :  "p_code", "type" :  "location.postal_code"}
     ```
     
 9. **address :** Generates a random address such as `78 Saint Paul Road, 836 Gale Road...` etc
 
     *syntax*:
     ```json
-    {"field_name" :  "address", "type" :  "personal.address"}
+    {"field_name" :  "address", "type" :  "location.address"}
     ```
 10. **timezone :** Generates a timezone value
     
     *syntax*:
     ```json
-    {"field_name" :  "tz", "type" :  "personal.timezone"}
+    {"field_name" :  "tz", "type" :  "location.timezone"}
     ```
 11. **airports :** Generates a random airport name.
 
@@ -282,7 +282,7 @@ generation process.
 
     *syntax*:
     ```json
-    {"field_name" :  "municipality", "type" :  "personal.municipality"}
+    {"field_name" :  "municipality", "type" :  "location.municipality"}
     ```
     
 ### Commerce
