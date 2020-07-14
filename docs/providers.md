@@ -379,7 +379,29 @@ generation process.
     Based on the value provided in the `set_val` attribute function can generate any specific finite data e.q
     the schema notation above will generate data such as `HR, Field, Transport, Development, HR, Accounts ...` etc
 
-- concatenate
+2. **concatenate :** Concatenates values from multiple columns into one.
+    
+    + *fields* : take delimited values, delimiter will be used as concatenating element 
+    *syntax*:
+    ```json
+    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "id, teams"}
+    ```
+   
+   *example* :
+   ```python
+   {"field_name" :  "id", "type" :  "basics.random_number", "start" :  2000, "end" :  3000}
+   {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport"}
+   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "id-teams"}
+   ```
+   The Above `schema` will generate data something like this
+   
+   |id   |teams       |mixed            |
+   |-----|------------|-----------------|
+   |2000 |HR          |2000-HR          |
+   |2222 |Account     |2222-Account     |
+   |2431 |Development |2431-Development | 
+   
+     
 - user_function
 
 **statistics:**
