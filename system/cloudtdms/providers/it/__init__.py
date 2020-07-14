@@ -7,7 +7,7 @@ from faker.providers import misc
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
-def ip_address(number, args):
+def ip_address(number, args=None):
     """
     Generator function for ip address
     :param number: Number of records to generate
@@ -16,7 +16,7 @@ def ip_address(number, args):
     :type dict
     :return: list
     """
-    category = args['category']
+    category = args.get('category', 'v4')
     fake = Faker()
     fake.add_provider(internet)
     if category == 'v4':
@@ -28,7 +28,7 @@ def ip_address(number, args):
         return list([fake.ipv4() for _ in range(int(number))])
 
 
-def mac_address(number, args):
+def mac_address(number, args=None):
     """
     Generator function for MAC Address
     :param number: Number of records to generate
@@ -42,7 +42,7 @@ def mac_address(number, args):
     return list([fake.mac_address() for _ in range(int(number))])
 
 
-def sha1(number, args):
+def sha1(number, args=None):
     """
     Generator function for SHA1 hex string
     :param number: Number of records to generate
@@ -56,7 +56,7 @@ def sha1(number, args):
     return list([fake.sha1() for _ in range(int(number))])
 
 
-def sha256(number, args):
+def sha256(number, args=None):
     """
     Generator function for SHA1 hex string
     :param number: Number of records to generate
@@ -70,7 +70,7 @@ def sha256(number, args):
     return list([fake.sha256() for _ in range(int(number))])
 
 
-def domain_name(number, args):
+def domain_name(number, args=None):
     """
     Generator function for Domain Names
     :param number: Number of records to generate
