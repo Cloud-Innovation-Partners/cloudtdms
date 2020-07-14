@@ -285,11 +285,33 @@ generation process.
     {"field_name" :  "municipality", "type" :  "personal.municipality"}
     ```
     
-**commerce:**
-- credit_card
-- credit_card_type
-- currency
-- currency_code
+### Commerce
+
+1. **credit_card :** Generates a random credit card number.
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "card", "type" :  "commerce.credit_card"}
+    ```
+   
+2. **credit_card_type :** Generates credit card type such as `AmericanExpress, MasterCard...` etc
+
+    *syntax*:
+    ```json
+    {"field_name" :  "ctype", "type" :  "commerce.credit_card_type"}
+    ``` 
+3. **currency :** Generates a random currency name such as `Dollar, Rupee, Euro ...` etc
+
+    *syntax*:
+    ```json
+    {"field_name" :  "money", "type" :  "commerce.currency"}
+    ```
+4. **currency_code :** Generates a random currency code such as `USD, EUR, INR ...` etc.
+
+    *syntax*:
+    ```json
+    {"field_name" :  "ccode", "type" :  "commerce.currency_code"}
+    ```
 
 **it:**
 - ip_address_v4
