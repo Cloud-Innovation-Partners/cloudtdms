@@ -17,7 +17,7 @@ def company_name(number, args=None):
     :return: list
     """
     df = pd.read_csv(f"{os.path.dirname(__file__)}/company.csv", usecols=['company_name'])
-    return [row['company_name'] for (index, row), _ in zip(df.iterrows(), range(int(number)))]
+    return [df.iloc[i % len(df)]['company_name'] for i in range(int(number))]
 
 
 def department(number, args=None):
@@ -104,7 +104,3 @@ def duns_number(number, args=None):
             random.randint(0, 9)
         )
         for _ in range(int(number))]
-
-
-if __name__ == "__main__":
-    print(company_name(10, {}))
