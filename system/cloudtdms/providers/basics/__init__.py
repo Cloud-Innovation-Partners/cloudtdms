@@ -134,17 +134,36 @@ def sentence(number, args=None):
         sentence_list.append(' '.join(sentence))
     return sentence_list
 
-print(sentence(10))
 
 def blank(number):
+    """
+      Generator function for Null values
+      :param number: Number of records to generate
+      :type int
+      :return: list
+    """
     return [None] * number
 
 
 def UUID(number):
+    """
+      Generator function for UUID values
+      :param number: Number of records to generate
+      :type int
+      :return: list
+    """
     return [str(uuid.uuid4()) for _ in range(number)]
 
 
 def password(number, args=None):
+    """
+       Generator function for passwords
+       :param number: Number of records to generate
+       :type int
+       :param args: schema attribute values
+       :type dict
+       :return: list
+    """
     passwords = []
     if args is not None:
         length = int(args.get('length',8))
@@ -163,6 +182,14 @@ def password(number, args=None):
 
 
 def auto_increment(number, args=None):
+    """
+       Generator function for auto increment
+       :param number: Number of records to generate
+       :type int
+       :param args: schema attribute values
+       :type dict
+       :return: list
+    """
     if args is not None:
         start = int(args.get('start', 0))
         inc = int(args.get('inc', 1))
@@ -197,6 +224,14 @@ def auto_increment(number, args=None):
 
 
 def random_number(number, args=None):
+    """
+       Generator function for random numbers
+       :param number: Number of records to generate
+       :type int
+       :param args: schema attribute values
+       :type dict
+       :return: list
+    """
     start = end = 0
     if args is not None:
         start = int(args.get('start',0))
@@ -212,6 +247,14 @@ def random_number(number, args=None):
 
 
 def number_range(number, args=None):
+    """
+       Generator function for number range
+       :param number: Number of records to generate
+       :type int
+       :param args: schema attribute values
+       :type dict
+       :return: list
+    """
     if args is not None:
         start = int(args.get('start', 0))
         end = int(args.get('end', 20))

@@ -266,7 +266,6 @@ def currency(number):
         currency=code + ' (' + country + ')'
         currencies_list.append(currency)
 
-    print(currencies_list)
     currencies_length=len(currencies_list)
     if currencies_length<number:
         diff=number-currencies_length
@@ -275,4 +274,21 @@ def currency(number):
         currencies_list.extend(extra)
 
     return  currencies_list
+
+def currency_code(number):
+    """
+    Generator function for currency codes
+    :param number: Number of records to generate
+    :type int
+    """
+    code_list=[code for code, _ in currency_symbols.items()]
+    length=len(code_list)
+    if length<number:
+        code_list=random.choices(code_list,k=number)
+
+    return code_list
+
+
+
+
 
