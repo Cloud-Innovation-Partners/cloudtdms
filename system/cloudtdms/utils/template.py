@@ -8,6 +8,7 @@ import importlib
 import random
 import pandas as pd
 from datetime import datetime, timedelta
+import pathlib
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
@@ -63,7 +64,7 @@ def data_generator():
     for attrib in attributes:
         if attrib in meta_data['data_files']:
             try:
-                df = pd.read_csv(f"{get_providers_home()}/{attrib}.csv", usecols=attributes[attrib])
+                df = pd.read_csv(list(pathlib.Path(get_providers_home()).rglob(f"{attrib}.csv")).pop(0), usecols=attributes[attrib])
             except FileNotFoundError:
                 df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=attributes[attrib])
 
