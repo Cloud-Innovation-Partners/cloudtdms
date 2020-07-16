@@ -2,8 +2,8 @@
 #  CloudTDMS - Test Data Management Service
 
 import os
-import sys
 import importlib
+import pathlib
 from itertools import chain
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.configuration import get_airflow_home
@@ -27,14 +27,13 @@ def get_functions(module):
 
 def get_active_meta_data():
 
-    data_files = chain([(f[:-4], f"{os.path.dirname(__file__)}/{f}") for f in os.listdir(os.path.dirname(__file__)) if
-                        f.endswith('.csv') and not f == '__init__.py'],
+    data_files = chain([(os.path.basename(f)[:-4], f) for f in list(pathlib.Path(os.path.dirname(__file__)).rglob('*.csv'))],
                        [(f[:-4], f"{os.path.dirname(get_airflow_home())}/user-data/{f}") for f in
                         os.listdir(f"{os.path.dirname(get_airflow_home())}/user-data") if f.endswith('.csv')])
 
     meta_data = {
         'code_files': [f for f in os.listdir(os.path.dirname(__file__)) if os.path.isdir(f'{os.path.dirname(__file__)}/{f}') and not f == '__init__.py' and not f =='__pycache__'],
-        'data_files': [f[:-4] for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'] + [f[:-4] for f in os.listdir(f"{os.path.dirname(get_airflow_home())}/user-data") if f.endswith('.csv')],
+        'data_files': [os.path.basename(f)[:-4] for f in list(pathlib.Path(os.path.dirname(__file__)).rglob('*.csv'))] + [f[:-4] for f in os.listdir(f"{os.path.dirname(get_airflow_home())}/user-data") if f.endswith('.csv')],
         'meta-headers': {data_file_name: get_columns(path) for (data_file_name, path) in data_files},
         'meta-functions': {f: get_functions(f) for f in os.listdir(os.path.dirname(__file__)) if os.path.isdir(f'{os.path.dirname(__file__)}/{f}') and not f == '__init__.py' and not f =='__pycache__'},
         }
