@@ -8,3 +8,6 @@ system/dags/__pycache__/
 system/__pycache__/
 system/cloudtdms/__pycache__/
 __pycache__/
+data/
+!system/dags/__init__.py
+system/dags/*
