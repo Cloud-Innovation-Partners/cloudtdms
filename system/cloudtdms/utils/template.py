@@ -62,7 +62,11 @@ def data_generator():
     
     for attrib in attributes:
         if attrib in meta_data['data_files']:
-            df = pd.read_csv(f"{get_providers_home()}/{attrib}.csv", usecols=attributes[attrib])
+            try:
+                df = pd.read_csv(f"{get_providers_home()}/{attrib}.csv", usecols=attributes[attrib])
+            except FileNotFoundError:
+                df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=attributes[attrib])
+
             df_temp = pd.DataFrame(index=range(nrows), columns=attributes[attrib])
             for i in range(nrows):
                 df_temp.iloc[i] = df.iloc[random.randrange(len(df))]

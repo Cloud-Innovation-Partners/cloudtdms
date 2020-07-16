@@ -88,7 +88,7 @@ for (module, name) in modules:
         schema = stream['schema']
         attributes = {}
         for scheme in schema:
-            (data, column) = tuple(scheme['type'].split('.'))
+            data, column = scheme['type'].split('.')
             if data in meta_data['data_files']:
                 if column in meta_data['meta-headers'][data]:
                     if data not in attributes:
