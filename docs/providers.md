@@ -178,12 +178,12 @@ generation process.
 4. **gender :** Generates a random value from a set `['Male', 'Female']`, you can provide custom values instead of `default` value using
     `set_val` attribute.
     
-    + *set_val* : takes a pair of words delimited by `/` as a value, word left of the `/` will be used as a value for `Male` and word right
-    of the `/` will be used as a `Female` value. With this you can map a value to default `Male` and `Female` words.
+    + *set_val* : takes a pair of words delimited by `,` as a value, word left of the `,` will be used as a value for `Male` and word right
+    of the `,` will be used as a `Female` value. With this you can map a value to default `Male` and `Female` words.
     
     *syntax*:
     ```json
-    {"field_name":  "gender", "type" :  "personal.gender", "set_val" :  "M/F"}
+    {"field_name":  "gender", "type" :  "personal.gender", "set_val" :  "M,F"}
     ```
    
 5. **username :** Generates a random username such as `dvicary3, dpomeroya...` etc.
