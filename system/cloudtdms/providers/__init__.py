@@ -4,12 +4,14 @@
 import os
 import sys
 import importlib
+from itertools import chain
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.configuration import get_airflow_home
 
 
-def get_columns(filename):
+def get_columns(path):
     columns = None
-    with open(f"{os.path.dirname(__file__)}/{filename}", 'r') as f:
+    with open(path, 'r') as f:
         columns = f.readline().replace('\n', '')
     return columns.split(',')
 
@@ -25,10 +27,15 @@ def get_functions(module):
 
 def get_active_meta_data():
 
+    data_files = chain([(f[:-4], f"{os.path.dirname(__file__)}/{f}") for f in os.listdir(os.path.dirname(__file__)) if
+                        f.endswith('.csv') and not f == '__init__.py'],
+                       [(f[:-4], f"{os.path.dirname(get_airflow_home())}/user-data/{f}") for f in
+                        os.listdir(f"{os.path.dirname(get_airflow_home())}/user-data") if f.endswith('.csv')])
+
     meta_data = {
         'code_files': [f for f in os.listdir(os.path.dirname(__file__)) if os.path.isdir(f'{os.path.dirname(__file__)}/{f}') and not f == '__init__.py' and not f =='__pycache__'],
-        'data_files': [f[:-4] for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'],
-        'meta-headers': {f[:-4]: get_columns(f) for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'},
+        'data_files': [f[:-4] for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.csv') and not f == '__init__.py'] + [f[:-4] for f in os.listdir(f"{os.path.dirname(get_airflow_home())}/user-data") if f.endswith('.csv')],
+        'meta-headers': {data_file_name: get_columns(path) for (data_file_name, path) in data_files},
         'meta-functions': {f: get_functions(f) for f in os.listdir(os.path.dirname(__file__)) if os.path.isdir(f'{os.path.dirname(__file__)}/{f}') and not f == '__init__.py' and not f =='__pycache__'},
         }
     return meta_data
