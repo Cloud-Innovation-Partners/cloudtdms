@@ -45,33 +45,9 @@ def generate_iterator(data_frame, methods,args_array):
         if arg is None:
             result = fcn(number)
         else:
-            result = fcn(number,arg)
-        data_frame[name] = pd.Series(result)
-
-def args_dict(scheme, default_keys):
-    args={}
-    for key, value in scheme.items():
-        if key =='type':
-            func_name=scheme['type'].split('.')[1]
-        if key not in default_keys:
-            args[key]=value
-    return func_name,args
-            
-def get_method_args(schema):
-    args_array={}
-    default_keys=['field_name','type']
-    for scheme in schema:
-        keys = list(scheme.keys())
-        nkeys=len(list(scheme.keys()))
+            result = fcn(number, arg)
+        data_frame[name] = pd.Series(result) 
         
-        if nkeys >2 and keys not in default_keys:
-            (func_name,args)=args_dict(scheme, default_keys)
-            args_array[func_name]=args
-    
-    return args_array
-        
-        
-
 
 def data_generator():
     meta_data = providers.get_active_meta_data()
@@ -95,10 +71,8 @@ def data_generator():
         elif attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
             methods = [(getattr(mod, m), m) for m in attributes[attrib]]
-            args_array=get_method_args(schema)
-            print(args_array)
-            generate_iterator(data_frame, methods,args_array)     
-    
+            args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
+            generate_iterator(data_frame, methods,args_array)
     
     for scheme in schema:
         field_name = scheme['field_name']
