@@ -5,7 +5,7 @@ from faker import Faker
 from datetime import  datetime
 import random
 
-def date(number, args=None):
+def dates(number, args=None):
     """
      Generator function for dates
      :param number: Number of records to generate
@@ -31,6 +31,7 @@ def date(number, args=None):
 
     return dates
 
+
 def day(number):
     """
      Generator function for days
@@ -40,6 +41,7 @@ def day(number):
      """
     faker = Faker()
     return [faker.date_between().strftime('%a') for _ in range(number)]
+
 
 def month(number):
     """
@@ -69,4 +71,5 @@ def timestamp(number):
      :return: list
      """
     faker = Faker()
-    return [faker.date_time_between() for _ in range(number)]
+    return [str(faker.date_time_between()) for _ in range(number)]
+print(timestamp(10))

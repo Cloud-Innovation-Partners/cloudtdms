@@ -79,12 +79,9 @@ def replace_hashes(format, cell_number, country_code):
         code=country_code
         code=code.replace(' ','')
         # format=format[2:]
-        print(cell_number)
         cell_number=list(code+cell_number)[1:]
     else:
-        print(cell_number)
         cell_number = list(code + cell_number)
-    print(format)
     for i  in range(len(cell_number)):
         format=format.replace('#',str(cell_number[i]),1)
     formatted_cell_number=format
@@ -118,30 +115,66 @@ def phone_number(number, args=None):
     return  cell_number_list
 
 def post_code(number):
+    """
+    Generator function for post codes
+    :param number: Number of records to generate
+    :type int
+    :return: list
+    """
     faker = Faker()
     return [faker.postcode() for _ in range(number)]
 
 def country_code(number):
+    """
+        Generator function for country codes
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     faker = Faker()
     return [faker.country_code() for _ in range(number)]
 
 def address(number):
+    """
+        Generator function for addresses
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     faker = Faker()
     return [faker.address() for _ in range(number)]
 
 def airport(number):
+    """
+        Generator function for airport names
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     path=os.path.dirname(__file__)+'/airpots.csv'
     df=pd.read_csv(path,usecols=['name'])
     length=len(df)
     return random.choices(df['name'],k=number) if length< number else df['name']
 
 def muncipality(number):
+    """
+        Generator function for muncipality names
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     path = os.path.dirname(__file__) + '/airpots.csv'
     df = pd.read_csv(path, usecols=['Municipality'])
     length = len(df)
     return random.choices(df['Municipality'], k=number) if length < number else df['Municipality']
 
 def timezones(number):
+    """
+        Generator function for timezones
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     faker = Faker()
     return [faker.timezone() for _ in range(number)]
 

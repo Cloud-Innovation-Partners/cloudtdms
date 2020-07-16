@@ -380,6 +380,47 @@ generation process.
     ```json
     {"field_name" :  "domain", "type" :  "it.domain_name"}
     ```
+### Date
+
+1. **dates :** Generates a list of dates. Such as `01/11/2021, 10/13/2021, 08/05/2022... `etc. The arguments it needs
+              for generating the dates are `start_date` and `end_date` 
+    + *start_date* : takes value either `today` as the current date or it takes past date also by putting `-3y, -5y`etc.
+    + *end_date* : takes value upto which we have generate dates, it takes `+3y, +5y`etc.
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "date", "type" :  "date.dates", "start_date" :  "today", "end_date" :  "+3y"}
+    ```
+     ```json
+    {"field_name" :  "date", "type" :  "date.dates", "start_date" :  "-3y", "end_date" :  "+3y"}
+    ```
+2. **day :** Generates a list of weekdays. Such as `Fri, Sat, Thu... `etc.
+   
+    *syntax*:
+    ```json
+    {"field_name" :  "day", "type" :  "date.day"}
+    ```
+3.  **month :** Generates a list of months. Such as `September, November, February... `etc.
+   
+    *syntax*:
+    ```json
+    {"field_name" :  "month", "type" :  "date.month"}
+    ```
+   
+4. **time :** Generates a list of time. Such as `19:30:24, 13:44:13, 20:56:28... `etc.
+   
+    *syntax*:
+    ```json
+    {"field_name" :  "time", "type" :  "date.time"}
+    ```
+   
+ 5. **timestamp :** Generates a list of timestamps. Such as `2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
+   
+    *syntax*:
+    ```json
+    {"field_name" :  "timestamp", "type" :  "date.timestamp"}
+    ```
+
 
 ### Advanced
 
