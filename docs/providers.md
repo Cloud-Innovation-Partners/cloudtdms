@@ -14,15 +14,15 @@ list providers that are available in cloudtdms and there syntax and control attr
 generation process. 
 
 ### Basics
-1. **boolean :** Generates a `boolean` value `true/false`, you can provide custom values instead of `default` value using
+1. **boolean :** Generates a `boolean` value `true,false`, you can provide custom values instead of `default` value using
     `set_val` attribute.
     
-    + *set_val* : takes a pair of words delimited by `/` as a value, word left of the `/` will be used as a value for true and word right
-    of the `/` will be used as a false value 
+    + *set_val* : takes a pair of words delimited by `,` as a value, word left of the `,` will be used as a value for true and word right
+    of the `,` will be used as a false value 
     
     *syntax*:
     ```json
-    {"field_name" : "status", "type" : "basics.boolean", "set_val": "1/0"}
+    {"field_name" : "status", "type" : "basics.boolean", "set_val": "1,0"}
     ```
     This will generate value `1` for true and `0` for false.
 
