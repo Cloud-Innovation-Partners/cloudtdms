@@ -16,7 +16,7 @@ def company_name(number, args=None):
     :type dict
     :return: list
     """
-    df = pd.read_csv(f"{os.path.dirname(__file__)}/company.csv", usecols=['company_name'])
+    df = pd.read_csv(f"{os.path.dirname(__file__)}/d_company.csv", usecols=['company_name'])
     return [df.iloc[i % len(df)]['company_name'] for i in range(int(number))]
 
 
