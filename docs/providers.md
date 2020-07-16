@@ -382,18 +382,26 @@ generation process.
     ```
 ### Date
 
-1. **dates :** Generates a list of dates. Such as `01/11/2021, 10/13/2021, 08/05/2022... `etc. The arguments it needs
-              for generating the dates are `start_date` and `end_date` 
-    + *start_date* : takes value either `today` as the current date or it takes past date also by putting `-3y, -5y`etc.
-    + *end_date* : takes value upto which we have generate dates, it takes `+3y, +5y`etc.
+1. **dates :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
+    Few format options are listed below for your reference. 
+
+    + *format* : takes a format string as a value 
+        
+    example format strings:
+    - `mm/dd/yyyy`
+    - `mm/dd/YYYY`
+    - `YYYY/mm/dd`
+    - `mm-dd-YYYY`
+    - `mm.dd.YYYY`
+  
+    + *start* : used to specify the starting value for date.
+    + *end* :used to specify the starting value for date.
     
     *syntax*:
     ```json
-    {"field_name" :  "date", "type" :  "date.dates", "start_date" :  "today", "end_date" :  "+3y"}
+    {"field_name" :  "date", "type" :  "date.dates","format":"mm-dd-YYYY","start":"12-07-2020","end":"12-08-2023"}
     ```
-     ```json
-    {"field_name" :  "date", "type" :  "date.dates", "start_date" :  "-3y", "end_date" :  "+3y"}
-    ```
+  
 2. **day :** Generates a list of weekdays. Such as `Fri, Sat, Thu... `etc.
    
     *syntax*:

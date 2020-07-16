@@ -1,35 +1,90 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
-
+from airflow import LoggingMixin
 from faker import Faker
-from datetime import  datetime
+import  datetime
 import random
 
-def dates(number, args=None):
+def get_seperator(exp):
+    for i in exp:
+        if not i.isalnum():
+            sep = i
+    return sep
+
+def split(exp):
+    sep=get_seperator(exp)
+    exp = exp.split(sep)
+    return  exp
+
+
+def validate(args):
+    bool=True
+    key, value=list(args.items())[0]
+    if key=='month':
+        if value>12:
+            LoggingMixin().log.warning(f"InvalidFormat: Months must between 1..12")
+            bool=False
+    elif key=='day':
+        if value>31:
+            LoggingMixin().log.warning(f"InvalidFormat: Days must between 1..31")
+            bool=False
+    return bool
+
+
+def dates(number,args=None):
     """
-     Generator function for dates
-     :param number: Number of records to generate
-     :type int
-     :param args: schema attribute values
-     :type dict
-     :return: list
-     """
-    dates=[]
-    faker=Faker()
+        Generator function for dates
+        :param number: Number of records to generate
+        :type int
+        :param args: schema attribute values
+        :type dict
+        :return: list
+    """
+    date_list=[]
+    start_day = start_month = start_year = 0
+    end_day = end_month = end_year = 0
 
     if args is not None:
-        start_date=args.get('start_date','today')
-        end_date=args.get('end_date','+30y')
+        format=args.get('format','dd/mm/YYYY')
+        start=args.get('start','10/10/2019')
+        end=args.get('end','10/10/2020')
+        if get_seperator(format) != get_seperator(start) or get_seperator(format) != get_seperator(end)  \
+                or get_seperator(start) != get_seperator(end):
+            format = 'dd/mm/YYYY'
+            start = '10/10/2019'
+            end = '10/10/2020'
+            LoggingMixin().log.warning(f"InvalidFormat: date format mismatch")
     else:
-        start_date = 'today'
-        end_date ='+30y'
+        format ='dd/mm/YYYY'
+        start = '10/10/2019'
+        end = '10/10/2020'
 
-    for _ in range(number):
-        date=faker.date_between(start_date=start_date, end_date=end_date)
-        date=date.strftime('%m/%d/%Y')
-        dates.append(date)
+    strftime_list=list(map(lambda x: x[0] if len(x)>1 else x , split(format)))
+    strftime=get_seperator(format).join(list(map(lambda x: '%'+x,strftime_list)))
 
-    return dates
+    for f,s,e in zip(split(format), split(start), split(end)):
+        if f=='mm':
+            start_month=int(s)
+            end_month=int(e)
+            start_month= start_month if validate({'month':start_month}) else 10
+            end_month = start_month if validate({'month': end_month}) else 10
+        if f=='dd':
+            start_day=int(s)
+            end_day=int(e)
+            start_day = start_day if validate({'day': start_day}) else 10
+            end_day = end_day if validate({'day': end_day}) else 10
+        if 'y' in f or 'Y' in f:
+            start_year=int(s)
+            end_year=int(e)
+
+        for _  in range(number):
+            if start_year>0:
+                fake = Faker()
+                start = datetime.date(year=start_year, month=start_month, day=start_day)
+                end = datetime.date(year=end_year, month=end_month, day=end_day)
+                date= str(fake.date_between(start_date=start, end_date=end).strftime(strftime))
+                date_list.append(date)
+    return  date_list
 
 
 def day(number):
@@ -72,4 +127,3 @@ def timestamp(number):
      """
     faker = Faker()
     return [str(faker.date_time_between()) for _ in range(number)]
-print(timestamp(10))

@@ -49,6 +49,12 @@ country_calling_codes = [
 ]
 
 def country(number):
+    """
+        Generator function for countries
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     faker = Faker()
     return [faker.country() for _ in range(number)]
 
@@ -64,11 +70,22 @@ def city(number):
     return [faker.city() for _ in range(number)]
 
 def latitude(number):
-
+    """
+        Generator function for latitude
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     faker = Faker()
     return [str(faker.latitude()) for _ in range(number)]
 
 def longitude(number):
+    """
+        Generator function for longitude
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
     faker = Faker()
     return [str(faker.longitude()) for _ in range(number)]
 
