@@ -65,7 +65,7 @@ def data_generator():
         if attrib in meta_data['data_files']:
             try:
                 df = pd.read_csv(list(pathlib.Path(get_providers_home()).rglob(f"{attrib}.csv")).pop(0), usecols=attributes[attrib])
-            except FileNotFoundError:
+            except (FileNotFoundError, IndexError):
                 df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=attributes[attrib])
 
             df_temp = pd.DataFrame(index=range(nrows), columns=attributes[attrib])
