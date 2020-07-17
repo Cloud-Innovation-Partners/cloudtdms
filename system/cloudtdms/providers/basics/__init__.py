@@ -145,7 +145,7 @@ def blank(number):
     return [None] * number
 
 
-def UUID(number):
+def guid(number):
     """
       Generator function for UUID values
       :param number: Number of records to generate
