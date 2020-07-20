@@ -385,7 +385,9 @@ generation process.
 1. **dates :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
     Few format options are listed below for your reference. 
 
-    + *format* : takes a format string as a value 
+    + *format* : takes a format string as a value
+    + *start* : used to specify the starting value for date.
+    + *end* :used to specify the starting value for date.
         
     example format strings:
     - `mm/dd/yyyy`
@@ -393,9 +395,6 @@ generation process.
     - `YYYY/mm/dd`
     - `mm-dd-YYYY`
     - `mm.dd.YYYY`
-  
-    + *start* : used to specify the starting value for date.
-    + *end* :used to specify the starting value for date.
     
     *syntax*:
     ```json
@@ -488,6 +487,63 @@ generation process.
     ```
 
 **statistics:**
-- normal
-- possion
     
+- normal = Generates random numbers in a normal distribution. Such as `0.51984538, -0.01018767, -2.07595922', -0.35596830...`etc.
+
+   *syntax*:
+    ```json
+    {"field_name" :  "normal", "type" :  "statistics.normal", "center" : 5, "std_dev" : 1, "decimals" : 2}
+    ```
+  
+   *where:*
+           
+            `center` is Mean ("centre") of the distribution.
+            
+            `std_dev` is Standard deviation (spread or "width") of the distribution. Must be non-negative.
+   
+            `decimals` is decimal places in each number.
+            
+- poisson = Generates numbers based on a Poisson distribution with a specific mean value.
+       
+    *syntax*:
+    ```json
+    {"field_name" :  "poisson", "type" :  "statistics.poisson", "mean" : 5}
+    ```
+  
+   *where:*
+            
+            `mean` is expectation of interval, must be >= 0. A sequence of expectation intervals must be broadcastable over
+             the requested size.
+             
+ - binomial = Generates numbers based on a binomial distribution with a specific probability of success.
+ 
+    *syntax*:
+    ```json
+    {"field_name" :  "binomial", "type" :  "statistics.binomial", "success_rate" : 0.5}
+    ```
+  
+   *where:*
+            
+            `success_rate` is parameter of the distribution, >= 0 and <=1.
+            
+ - exponential = Generates numbers based on an exponential distribution with a specific λ rate.
+ 
+    *syntax*:
+    ```json
+    {"field_name" :  "exponential", "type" :  "statistics.exponential", "scale" : 4}
+    ```
+  
+   *where:*
+            
+            `scale` must be non-negative.
+            
+ - geometric = Generates numbers based on a geometric distribution with a specific probability of success.
+ 
+    *syntax*:
+    ```json
+    {"field_name" :  "geometric", "type" :  "statistics.geometric", "success_rate" : 0.4}
+    ```
+  
+   *where:*
+            
+            `success_rate`is the probability of success of an individual trial, >= 0 and <=1.   
