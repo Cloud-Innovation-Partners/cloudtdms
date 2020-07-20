@@ -385,7 +385,9 @@ generation process.
 1. **dates :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
     Few format options are listed below for your reference. 
 
-    + *format* : takes a format string as a value 
+    + *format* : takes a format string as a value
+    + *start* : used to specify the starting value for date.
+    + *end* :used to specify the starting value for date.
         
     example format strings:
     - `mm/dd/yyyy`
@@ -393,9 +395,6 @@ generation process.
     - `YYYY/mm/dd`
     - `mm-dd-YYYY`
     - `mm.dd.YYYY`
-  
-    + *start* : used to specify the starting value for date.
-    + *end* :used to specify the starting value for date.
     
     *syntax*:
     ```json
