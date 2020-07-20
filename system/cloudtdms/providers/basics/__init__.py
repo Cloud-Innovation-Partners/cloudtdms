@@ -192,7 +192,7 @@ def auto_increment(number, args=None):
     """
     if args is not None:
         start = int(args.get('start', 0))
-        inc = int(args.get('inc', 1))
+        inc = int(args.get('increment', 1))
         prefix = args.get('prefix', '')
         suffix = args.get('suffix', '')
         # if start == 0:
