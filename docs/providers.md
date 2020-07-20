@@ -486,64 +486,55 @@ generation process.
     {"field_name" :  "custom_column", "type" :  "advanced.custom_file", "name" :  "my_data_set", "column" :  "4", "ignore_headers" :  "yes"}
     ```
 
-**statistics:**
+### Statistics
     
-- normal = Generates random numbers in a normal distribution. Such as `0.51984538, -0.01018767, -2.07595922', -0.35596830...`etc.
+1. **normal :** Generates random numbers from a `normal distribution`. Such as `0.51984538, -0.01018767, -2.07595922', -0.35596830...`etc.
+           
+    + *center* : used to specify the `mean` of the distribution.
+    
+    + *std_dev* : used to specify the `standard deviation` (spread or "width") of the distribution. Must be non-negative.
 
+    + *decimals* : specify the decimal places in each number.
+    
    *syntax*:
     ```json
     {"field_name" :  "normal", "type" :  "statistics.normal", "center" : 5, "std_dev" : 1, "decimals" : 2}
     ```
-  
-   *where:*
-           
-            `center` is Mean ("centre") of the distribution.
             
-            `std_dev` is Standard deviation (spread or "width") of the distribution. Must be non-negative.
-   
-            `decimals` is decimal places in each number.
-            
-- poisson = Generates numbers based on a Poisson distribution with a specific mean value.
-       
+2. **poisson :** Generates random numbers from a `poisson distribution` with a specific mean value.
+                
+    + *mean* : is expectation of interval, must be >= 0. A sequence of expectation intervals must be broadcastable over
+               the requested size.
+    
     *syntax*:
     ```json
     {"field_name" :  "poisson", "type" :  "statistics.poisson", "mean" : 5}
     ```
-  
-   *where:*
-            
-            `mean` is expectation of interval, must be >= 0. A sequence of expectation intervals must be broadcastable over
-             the requested size.
              
- - binomial = Generates numbers based on a binomial distribution with a specific probability of success.
+3. **binomial :** Generates random numbers from a binomial distribution with a specific probability of success.
+    
+    + *success_rate* : is parameter of the distribution, >= 0 and <=1.
  
     *syntax*:
     ```json
     {"field_name" :  "binomial", "type" :  "statistics.binomial", "success_rate" : 0.5}
     ```
-  
-   *where:*
             
-            `success_rate` is parameter of the distribution, >= 0 and <=1.
-            
- - exponential = Generates numbers based on an exponential distribution with a specific λ rate.
- 
+4. **exponential :** Generates random numbers based on an exponential distribution with a specific `λ` rate.        
+    
+    + *scale* : must be non-negative.
+    
     *syntax*:
     ```json
     {"field_name" :  "exponential", "type" :  "statistics.exponential", "scale" : 4}
     ```
-  
-   *where:*
             
-            `scale` must be non-negative.
-            
- - geometric = Generates numbers based on a geometric distribution with a specific probability of success.
- 
+ 5. **geometric :** Generates numbers based from a `geometric distribution` with a specific probability of success.
+    
+    + *success_rate* : is the probability of success of an individual trial, >= 0 and <=1.
+    
     *syntax*:
     ```json
     {"field_name" :  "geometric", "type" :  "statistics.geometric", "success_rate" : 0.4}
     ```
-  
-   *where:*
-            
-            `success_rate`is the probability of success of an individual trial, >= 0 and <=1.   
+   
