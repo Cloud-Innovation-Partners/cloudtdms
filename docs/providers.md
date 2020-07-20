@@ -469,7 +469,23 @@ generation process.
    |5000   |2000 |HR          |2000-HR#5000          |
    |5001   |2222 |Account     |2222-Account#5001     |
    |5002   |2431 |Development |2431-Development#5002 | 
-   
+
+3. **custom_file :** Generates data using user data set. If you want to generate a data for a column using your data set you can use
+    `custom_file` function.
+    
+    + *name* : name of the `csv` file `(the file must be in user-data folder)`. only `csv` is supported currently.
+    
+    + *column* : used to specify which column to use from your data set for data generation. This attribute takes `value` 
+    based on the value of `ignore_headers` attribute. If `ignore_headers` is set to `yes` then it takes integer value which  
+    refers to the index of the column, and if `ignore_headers` is set to `no` it takes a string which refers to a column name in
+    the data set. 
+    
+    + *ignore_headers* : it can be `yes` or `no`, by default it is set to `yes`. Based on this value `column` attribute will change its definition.
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "custom_column", "type" :  "advanced.custom_file", "name" :  "my_data_set", "column" :  "4", "ignore_headers" :  "yes"}
+    ```
 
 **statistics:**
 - normal
