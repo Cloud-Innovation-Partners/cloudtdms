@@ -21,18 +21,29 @@ def personal(data_frame, number, args):
 
     df = pd.read_csv(f"{os.path.dirname(__file__)}/person.csv")
 
+    # {'university': {'univ2': {}}, 'language': {'lang': {}}, 'gender': {'sex': {'set_val': 'M,F'}}, 'first_name': {'first_name': {'category': 'male'}}}
     # gender
-    try:
-        #gender = args.get('first_name',  args.get('full_name').get('category')).get('category')
-        for type in field_names:
-            if type in ('first_name', 'full_name'):
-                gender = [f.get('category') for f in field_names[type].values()]
+    gender = None
+    if 'first_name' in field_names:
+        first_name_columns = field_names.get('first_name')
+        first_name_attribs = list(first_name_columns)
+        for attrib in first_name_attribs:
+            if 'category' in first_name_columns.get(attrib):
+                gender = first_name_columns.get(attrib).get('category')
+                break
 
-        gender = 'Male' if str(gender[0]).startswith('m') else 'Female'
-    except (AttributeError, KeyError):
+    elif 'full_name' in field_names:
+        full_name_columns = field_names.get('full_name')
+        full_name_attribs = list(full_name_columns)
+        for attrib in full_name_attribs:
+            if 'category' in full_name_columns.get(attrib):
+                gender = full_name_columns.get(attrib).get('category')
+                break
+    else:
         gender = None
 
     if gender is not None:
+        gender = 'Male' if str(gender).startswith('m') else 'Female'
         sex = pd.Series(gender)
         mask = df['gender'].isin(sex)
         df = df[mask]
@@ -40,7 +51,7 @@ def personal(data_frame, number, args):
     title = {'Male': ['Mr', 'Dr', 'Honorable', 'Rev'], 'Female': ['Ms', 'Mrs', 'Honorable', 'Dr']}
 
     # first_name
-    data_frame[['first_name', 'gender']] = tuple((df['first_name'].iloc[i%len(df)], df['gender'].iloc[i%len(df)],) for i in range(number))
+    data_frame[['first_name', 'gender']] = pd.DataFrame(tuple((df['first_name'].iloc[i%len(df)], df['gender'].iloc[i%len(df)],) for i in range(number)))
     # last_name
     data_frame['last_name'] = pd.Series([df['last_name'].iloc[random.randint(0, len(df)-1)] for _ in range(number)])
     # full_name
