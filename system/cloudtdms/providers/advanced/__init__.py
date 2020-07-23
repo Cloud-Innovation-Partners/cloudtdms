@@ -18,14 +18,8 @@ def advanced(data_frame, number, args):
     columns = field_names.keys()
 
     for col in columns:
-        if col == 'custom_list':
-            custom_list(data_frame, number, field_names.get('custom_list'))
-
-        if col == 'custom_file':
-            custom_file(data_frame, number, field_names.get('custom_file'))
-
-        if col == 'concatenate':
-            concatenate(data_frame, number, field_names.get('concatenate'))
+        mod = globals()[col]
+        mod(data_frame, number, field_names.get(col))
 
 
 # {'adv2': {'set_val': '1,2,3,4,5'}, 'adv4': {'set_val': '100,200,300,400,500'}}
@@ -92,6 +86,8 @@ def concatenate(data_frame, number, args=None):
 
         text_in_brackets = re.findall('{(.+?)}', template)
         for entry in text_in_brackets:
+            if entry not in data_frame.columns:
+                raise IndexError(f"No column with name `{entry}` found in the schema!")
             template = template.replace(entry, f"x['{entry}']")
         template = "f\"" + template + "\""
         data_frame[data_frame_col_name] = data_frame.agg(lambda x: eval(template), axis=1)
