@@ -85,7 +85,7 @@ def exponential(number,args=None):
 
     exp_list=np.random.exponential(scale=_scale, size=number)
     exp_list = ["%.9f" % item for item in exp_list]
-    return exp_list
+    return sorted(exp_list)
 
 def geometric(number,args=None):
     """
