@@ -7,7 +7,21 @@ import pandas as pd
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
-def company_name(number, args=None):
+def company(data_frame, number, args):
+    field_names = {}
+    for k in args:
+        if k.split('-$-', 2)[1] not in field_names:
+            field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
+        else:
+            field_names[k.split('-$-', 2)[1]][k.split('-$-', 2)[0]] = args.get(k)
+
+    columns = field_names.keys()
+
+    for col in columns:
+        mod = globals()[col]
+        mod(data_frame, number, field_names.get(col))
+
+def company_name(data_frame, number, args=None):
     """
     Generator function for company names
     :param number: Number of records to generate
@@ -17,10 +31,12 @@ def company_name(number, args=None):
     :return: list
     """
     df = pd.read_csv(f"{os.path.dirname(__file__)}/d_company.csv", usecols=['company_name'])
-    return [df.iloc[i % len(df)]['company_name'] for i in range(int(number))]
+    dcols = [f for f in data_frame.columns if f.startswith("company_name")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        data_frame[data_frame_col_name] = [df.iloc[i % len(df)]['company_name'] for i in range(int(number))]
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-
-def department(number, args=None):
+def department(data_frame, number, args=None):
     """
      Generator function for department
     :param number: Number of records to generate
@@ -29,7 +45,7 @@ def department(number, args=None):
     :type dict
     :return: list
     """
-    category = args.get('category', 'corporate')
+
 
     _corporate_ = ('Product Management',
                    'Research and Development',
@@ -69,17 +85,21 @@ def department(number, args=None):
         'Games',
         'Sports'
     )
+    dcols = [f for f in data_frame.columns if f.startswith("department")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        category = args.get(column_name).get('category', 'corporate')
+        if category is 'retail':
+            data_frame[data_frame_col_name] = [_retail_[i % len(_retail_)] for i in range(int(number))]
+        elif category is 'corporate':
+            data_frame[data_frame_col_name] =  [_corporate_[i % len(_corporate_)] for i in range(int(number))]
+        else:
+            LoggingMixin().log.warning(f"InvalidAttribute: Invalid `category` = {category} value found!")
+            data_frame[data_frame_col_name] =  [_corporate_[i % len(_retail_)] for i in range(int(number))]
 
-    if category is 'retail':
-        return [_retail_[i % len(_retail_)] for i in range(int(number))]
-    elif category is 'corporate':
-        return [_corporate_[i % len(_corporate_)] for i in range(int(number))]
-    else:
-        LoggingMixin().log.warning(f"InvalidAttribute: Invalid `category` = {category} value found!")
-        return [_corporate_[i % len(_retail_)] for i in range(int(number))]
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-def duns_number(number, args=None):
+def duns_number(data_frame, number, args=None):
     """
      Generator function for DUNS Number
     :param number: Number of records to generate
@@ -90,9 +110,10 @@ def duns_number(number, args=None):
     """
 
     duns_format = "##-###-####"
-
-    return [
-        duns_format.replace("#", "{}").format(
+    dcols = [f for f in data_frame.columns if f.startswith("duns_number")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        data_frame[data_frame_col_name] = [
+            duns_format.replace("#", "{}").format(
             random.randint(0, 9),
             random.randint(0, 9),
             random.randint(0, 9),
@@ -102,5 +123,6 @@ def duns_number(number, args=None):
             random.randint(0, 9),
             random.randint(0, 9),
             random.randint(0, 9)
-        )
-        for _ in range(int(number))]
+            )
+            for _ in range(int(number))]
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
