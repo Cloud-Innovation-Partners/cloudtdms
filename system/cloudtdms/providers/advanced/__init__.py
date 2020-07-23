@@ -83,14 +83,17 @@ def custom_file(data_frame, number, args=None):
 
 
 def concatenate(data_frame, number, args=None):
-    # i = 0
-    # dcols = [f for f in data_frame.columns if f.startswith("concatenate")]
-    # for column_name, data_frame_col_name in zip(args, dcols):
-    #     template = args.get(column_name).get('template', None)
-    #     if template is None:
-    #         raise AttributeError(f"No value found for attribute `template` in `advanced.concatenate` schema entry!")
-    #
-    #     text_in_brackets = re.findall('{(.+?)}', template)
-    #     # data_frame[data_frame_col_name] =
-    pass
+
+    dcols = [f for f in data_frame.columns if f.startswith("concatenate")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        template = args.get(column_name).get('template', None)
+        if template is None:
+            raise AttributeError(f"No value found for attribute `template` in `advanced.concatenate` schema entry!")
+
+        text_in_brackets = re.findall('{(.+?)}', template)
+        for entry in text_in_brackets:
+            template = template.replace(entry, f"x['{entry}']")
+        template = "f\"" + template + "\""
+        data_frame[data_frame_col_name] = data_frame.agg(lambda x: eval(template), axis=1)
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
