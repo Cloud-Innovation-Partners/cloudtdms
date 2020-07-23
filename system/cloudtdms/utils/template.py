@@ -45,10 +45,10 @@ def generate_iterator(data_frame, methods,args_array):
         func_name = fcn.__name__
         arg = args_array.get(func_name)
         if arg is None:
-            result = fcn(number)
+            result = fcn(data_frame, number)
         else:
-            result = fcn(number, arg)
-        data_frame[name] = pd.Series(result) 
+            result = fcn(data_frame,number, arg)
+        # data_frame[name] = pd.Series(result) 
         
 
 def data_generator():
@@ -76,15 +76,12 @@ def data_generator():
             data_frame[[column for (field_name, column) in attributes[attrib]]] = df_temp[[column for (field_name, column) in attributes[attrib]]]
         elif attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
+            args_array={f"{f['field_name']}-$-{f['type'].split('.')[1]}": {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if f.get('type').startswith(attrib)}
             try:
-                
-                args_array={f"{f['field_name']}-$-{f['type'].split('.')[1]}": {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if f.get('type').startswith(attrib)}
-                # args_array = defaultdict(list)
-                # d = {args_array[f['type'].split('.')[1]].append({k: v for k, v in f.items() if k not in ('field_name', 'type')}) for f in schema if f.get('type').startswith(attrib)}
                 _all = getattr(mod, attrib)                
                 _all(data_frame, nrows, args_array)
             except AttributeError:
-                args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
+                # args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
                 methods = [(getattr(mod, m), m) for m in attributes[attrib]]
                 generate_iterator(data_frame, methods,args_array)
     
