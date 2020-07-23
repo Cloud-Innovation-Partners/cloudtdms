@@ -103,4 +103,3 @@ def geometric(number,args=None):
         success_rate=0.5
 
     return np.random.geometric( p=success_rate, size=number)
-print(geometric(10,{'success_rate':-1}))
