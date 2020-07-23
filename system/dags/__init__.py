@@ -87,6 +87,7 @@ for (module, name) in modules:
         meta_data = get_active_meta_data()
         schema = stream['schema']
         attributes = {}
+        schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
         for scheme in schema:
             data, column = scheme['type'].split('.')
             if data in meta_data['data_files']:
