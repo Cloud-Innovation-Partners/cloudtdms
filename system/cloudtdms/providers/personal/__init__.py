@@ -72,8 +72,7 @@ def personal(data_frame, number, args):
         fake.add_provider(person)
         data_frame['language'] = pd.Series([fake.language_name() for _ in range(number)])
 
-    for col in ['first_name', 'last_name', 'full_name', 'email_address', 'gender', 'title', 'university', 'language',
-                'username']:
+    for col in ['first_name', 'last_name', 'full_name', 'email_address', 'gender', 'title', 'username']:
         if col not in columns:
             data_frame.drop(col, inplace=True, axis=1)
 
