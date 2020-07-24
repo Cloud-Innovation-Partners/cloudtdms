@@ -66,6 +66,7 @@ def custom_file(data_frame, number, args=None):
             if not str(column).isdigit():
                 df = pd.read_csv(file_path, usecols=[column])
                 data_frame[data_frame_col_name] = [df[column].iloc[i%len(df)] for i in range(int(number))]
+                data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
             else:
                 if int(column) < 0:
                     raise AttributeError(f"Invalid value found for `column` attribute in `advanced.custom_file` schema entry, `column` cannot have -ve int value as column index!")
