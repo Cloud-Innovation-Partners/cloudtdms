@@ -2,9 +2,10 @@
 #  CloudTDMS - Test Data Management Service
 
 import re
+import os
 import random
 import pandas as pd
-from system.dags import get_cloudtdms_home
+from airflow.configuration import get_airflow_home
 
 
 def advanced(data_frame, number, args):
@@ -41,7 +42,7 @@ def custom_list(data_frame, number, args=None):
 
 
 def custom_file(data_frame, number, args=None):
-    data_path = f"{get_cloudtdms_home()}/user-data"
+    data_path = f"{os.path.dirname(get_airflow_home())}/user-data"
     dcols = [f for f in data_frame.columns if f.startswith("custom_file")]
     for column_name, data_frame_col_name in zip(args, dcols):
         ignore_headers = str(args.get(column_name).get('ignore_headers', 'yes')).lower()
