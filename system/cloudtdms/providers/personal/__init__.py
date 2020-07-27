@@ -6,7 +6,7 @@ import random
 import os
 from faker import Faker
 from faker.providers import person
-
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 # {'univ-$-university': {}, 'lang-$-gender': {}, 'sex-$-gender': {}, 'first_name-$-first_name': {}, 'email-$-email_address': {}}
 def personal(data_frame, number, args):
@@ -18,8 +18,19 @@ def personal(data_frame, number, args):
             field_names[k.split('-$-',2)[1]][k.split('-$-',2)[0]] = args.get(k)
 
     columns = field_names.keys()
+    # Set locale
+    locale = 'en_GB'
+    for e in args.values():
+        l = e.get('locale')
+        if l is not None:
+            if os.path.exists(f"{os.path.dirname(__file__)}/{l}"):
+                locale = e.get('locale')
+            else:
+               LoggingMixin().log.error(f"InvalidValue found for attribute `locale` in schema.")
+               locale = 'en_GB'
+            break
 
-    df = pd.read_csv(f"{os.path.dirname(__file__)}/person.csv")
+    df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/person.csv")
 
     # {'university': {'univ2': {}}, 'language': {'lang': {}}, 'gender': {'sex': {'set_val': 'M,F'}}, 'first_name': {'first_name': {'category': 'male'}}}
     # gender
@@ -50,22 +61,47 @@ def personal(data_frame, number, args):
 
     title = {'Male': ['Mr', 'Dr', 'Honorable', 'Rev'], 'Female': ['Ms', 'Mrs', 'Honorable', 'Dr']}
 
-    # first_name
-    data_frame[['first_name', 'gender']] = pd.DataFrame(tuple((df['first_name'].iloc[i%len(df)], df['gender'].iloc[i%len(df)],) for i in range(number)))
-    # last_name
-    data_frame['last_name'] = pd.Series([df['last_name'].iloc[random.randint(0, len(df)-1)] for _ in range(number)])
+    if 't_first_name' in df.columns and 't_last_name' in df.columns:
+        # first_name
+        tf_data_frame = pd.DataFrame(tuple(df[['first_name', 't_first_name','gender']].iloc[random.randint(0,len(df)-1)] for _ in range(number)))
+        tf_data_frame.reset_index(drop=True,inplace=True)
+        data_frame[['first_name', 't_first_name', 'gender']] = tf_data_frame
+        # last_name
+        tl_data_frame = pd.DataFrame(tuple(df[['last_name','t_last_name']].iloc[random.randint(0,len(df)-1)] for _ in range(number)))
+        tl_data_frame.reset_index(drop=True, inplace=True)
+        data_frame[['last_name', 't_last_name']] = tl_data_frame
+    else:
+        # first_name
+        tf_data_frame = pd.DataFrame(tuple(df[['first_name', 'gender']].iloc[random.randint(0, len(df)-1)] for _ in range(number)))
+        tf_data_frame.reset_index(drop=True, inplace=True)
+        data_frame[['first_name', 'gender']] = tf_data_frame
+        # last_name
+        tl_data_frame = pd.Series([df['last_name'].iloc[random.randint(0, len(df)-1)] for _ in range(number)])
+        tl_data_frame.reset_index(drop=True, inplace=True)
+        data_frame['last_name'] = tl_data_frame
+
     # full_name
     data_frame['full_name'] = data_frame['first_name'] + " " + data_frame['last_name']
     # email
-    data_frame['email_address'] = data_frame['first_name'].str.lower().astype(str).str[0]+ pd.Series([random.choice(['.', '_', '']) for _ in range(number)])+data_frame['last_name'].apply(lambda x : str(x).lower().strip())+pd.Series([str(random.randint(10,999)) for _ in range(number)])+'@'+pd.Series([random.choice(['gmail.com','yahoo.com','mail.com','ymail.com','outlook.com','yandex.com','rediffmail.com','zoho.com']) for _ in range(number)])
+    if 't_first_name' not in data_frame.columns and 't_last_name' not in data_frame.columns:
+        data_frame['email_address'] = data_frame['first_name'].str.lower().astype(str).str[0]+ pd.Series([random.choice(['.', '_', '']) for _ in range(number)])+data_frame['last_name'].apply(lambda x : str(x).lower().strip().replace(' ','_'))+pd.Series([str(random.randint(10,999)) for _ in range(number)])+'@'+pd.Series([random.choice(['gmail.com','yahoo.com','mail.com','ymail.com','outlook.com','yandex.com','rediffmail.com','zoho.com']) for _ in range(number)])
+    else:
+        data_frame['email_address'] = data_frame['t_first_name'].str.lower().astype(str).str[0]+ pd.Series([random.choice(['.', '_', '']) for _ in range(number)])+data_frame['t_last_name'].apply(lambda x : str(x).lower().strip().replace(' ','_'))+pd.Series([str(random.randint(10,999)) for _ in range(number)])+'@'+pd.Series([random.choice(['gmail.com','yahoo.com','mail.com','ymail.com','outlook.com','yandex.com','rediffmail.com','zoho.com']) for _ in range(number)])
+
     # username
-    data_frame['username'] = data_frame['first_name'].str.lower().astype(str).str[:3]+pd.Series([random.choice(['', '_']) for _ in range(number)])+data_frame['last_name'].apply(lambda x : str(x).lower().strip())+pd.Series([str(random.randint(1,999)) for _ in range(number)])
+    if 't_first_name' not in data_frame.columns and 't_last_name' not in data_frame.columns:
+        data_frame['username'] = data_frame['first_name'].str.lower().astype(str).str[:3]+pd.Series([random.choice(['', '_']) for _ in range(number)])+data_frame['last_name'].apply(lambda x : str(x).lower().strip().replace(' ','_'))+pd.Series([str(random.randint(1,999)) for _ in range(number)])
+    else:
+        data_frame['username'] = data_frame['t_first_name'].str.lower().astype(str).str[:3]+pd.Series([random.choice(['', '_']) for _ in range(number)])+data_frame['t_last_name'].apply(lambda x : str(x).lower().strip().replace(' ','_'))+pd.Series([str(random.randint(1,999)) for _ in range(number)])
     # title
     func = lambda x: random.choice(title['Male']) if x == 'Male' else random.choice(title['Female'])
     data_frame['title'] = data_frame['gender'].apply(func)
 
     if 'university' in columns:
-        univ = pd.read_csv(f'{os.path.dirname(__file__)}/university.csv', usecols=['university'])
+        if os.path.exists(f"{os.path.dirname(__file__)}/{locale}/university.csv"):
+            univ = pd.read_csv(f'{os.path.dirname(__file__)}/{locale}/university.csv', usecols=['university'])
+        else:
+            univ = pd.read_csv(f'{os.path.dirname(__file__)}/university.csv', usecols=['university'])
         data_frame['university'] = pd.Series([univ.iloc[random.randint(0, len(univ)-1)]['university'] for _ in range(number)])
     if 'language' in columns:
         fake = Faker()
@@ -75,6 +111,12 @@ def personal(data_frame, number, args):
     for col in ['first_name', 'last_name', 'full_name', 'email_address', 'gender', 'title', 'username']:
         if col not in columns:
             data_frame.drop(col, inplace=True, axis=1)
+
+    #Remove translated columns if any
+    if 't_first_name' in data_frame.columns:
+        data_frame.drop('t_first_name', inplace=True, axis=1)
+    if 't_last_name' in data_frame.columns:
+        data_frame.drop('t_last_name', inplace=True, axis=1)
 
     #{'gender': {'lang': {'category': 'male'}, 'sex': {'category': 'female'}}, 'first_name': {'fname1': {}, 'fname2':{}}, 'email_address': {'email': {}}, 'university': {'univ': {}}, 'language': {'lang': {}}}
     for item in field_names:
