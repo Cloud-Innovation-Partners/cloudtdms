@@ -25,7 +25,15 @@ def poisson(data_frame, number,args=None):
     Generator function for poisson
     :param number: Number of records to generate
     :type int
-    :param args: schema attribute values
+    :param args: schema attribute valuesl=['network', 'expiry_date', 'cvv', 'currency_code', 'currency_code2',
+       'currency', 'card_number']
+
+for f in l:
+    # if f.startswith('currency') and not 'currency_code' in f:
+    #     print(f)
+
+    if f.startswith('currency_code'):
+        print(f)
     :type dict
     :return: list
     """
@@ -53,6 +61,7 @@ def normal(data_frame, number,args=None):
         center= args.get(column_name).get('center',0) if args is not None else 0
         std_dev = args.get(column_name).get('std_dev', 1) if args is not None else 1
         decimals = args.get(column_name).get('decimals', 8) if args is not None else 8
+        variance = np.square(std_dev)
 
         if decimals>8:
             LoggingMixin().log.warning(f"InvalidValue: decimals value must be less than 9")
@@ -66,8 +75,18 @@ def normal(data_frame, number,args=None):
             LoggingMixin().log.warning(f"InvalidValue: std_dev must be greater than zero")
             std_dev=1
 
-        normal_list=np.random.normal(loc=center, scale=std_dev, size=number)
+        # normal_list=np.random.normal(loc=center, scale=std_dev, size=number)
+        x = np.arange(-5, 5, .01)
+        normal_list = np.exp(-np.square(x - center) / 2 * variance) / (np.sqrt(2 * np.pi * variance))
         normal_list= [f"%.{decimals}f"%item for item in normal_list]
+        normal_list = list(map(float, normal_list))
+
+        if(len(normal_list)<number):
+            diff=number-len(normal_list)
+            normal_list=normal_list*diff
+            normal_list=normal_list[:number]
+
+        normal_list=normal_list[:number]
         data_frame[data_frame_col_name] = normal_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
@@ -112,7 +131,8 @@ def exponential(data_frame, number,args=None):
 
         exp_list=np.random.exponential(scale=_scale, size=number)
         exp_list = ["%.9f" % item for item in exp_list]
-        data_frame[data_frame_col_name] = sorted(exp_list)
+        exp_list=list(map(float, exp_list))
+        data_frame[data_frame_col_name] = sorted(exp_list, key=float)
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
