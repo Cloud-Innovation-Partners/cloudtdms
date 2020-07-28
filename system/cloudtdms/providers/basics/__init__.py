@@ -325,7 +325,7 @@ def number_range(data_frame, number, args=None):
        :type dict
        :return: list
     """
-    dcols = [f for f in data_frame.columns if f.startswith("random_number")]
+    dcols = [f for f in data_frame.columns if f.startswith("number_range")]
     for column_name, data_frame_col_name in zip(args, dcols):
 
         if args is not None:
