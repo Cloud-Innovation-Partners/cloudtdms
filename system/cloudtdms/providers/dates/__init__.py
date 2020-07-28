@@ -5,7 +5,7 @@ from faker import Faker
 import datetime
 import random
 
-def date(data_frame, number, args):
+def dates(data_frame, number, args):
     field_names = {}
     for k in args:
         if k.split('-$-', 2)[1] not in field_names:
@@ -48,7 +48,7 @@ def validate(args):
     return bool
 
 
-def dates(data_frame, number, args=None):
+def date(data_frame, number, args=None):
     """
         Generator function for dates
         :param number: Number of records to generate
@@ -141,7 +141,7 @@ def time(data_frame, number, args=None):
      :type int
      :return: list
      """
-    dcols = [f for f in data_frame.columns if f.startswith("time")]
+    dcols = [f for f in data_frame.columns if f.startswith("time")  and not 'timestamp' in f]
     for column_name, data_frame_col_name in zip(args, dcols):
         faker = Faker()
         data_frame[data_frame_col_name]= [faker.time() for _ in range(number)]
