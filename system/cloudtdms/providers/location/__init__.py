@@ -7,6 +7,49 @@ import string
 import pandas as pd
 import os
 
+
+def location(data_frame, number, args):
+    field_names = {}
+    for k in args:
+        if k.split('-$-', 2)[1] not in field_names:
+            field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
+        else:
+            field_names[k.split('-$-', 2)[1]][k.split('-$-', 2)[0]] = args.get(k)
+
+    columns = field_names.keys()
+
+    df = pd.read_csv(f"{os.path.dirname(__file__)}/airport.csv")
+
+    # {'phone_number': {'phone': {'format': '#-(###)-###-####'}}, 'muncipality': {'muncipality': {}},
+    #  'longitude': {'longitude': {}}, 'latitude': {'latitude': {}}, 'country': {'country': {}, 'country2': {}},
+    #  'city': {'city': {}}, 'airport': {'airport': {}}}
+
+    if 'phone_number' in columns:
+            phone_number(data_frame, number, field_names.get('phone_number'))
+
+    cols=['airport','latitude','longitude','municipality','country','country_code','city','state','postal_code']
+    t_data_frame = pd.DataFrame(tuple(df[cols].iloc[random.randint(0, len(df) - 1)] for _ in range(number)))
+    t_data_frame.reset_index(drop=True, inplace=True)
+    data_frame[cols] = t_data_frame
+
+
+    # name,latitude,longitude,municipality,country,region,cities,states,postal_codes
+    for col in ['airport','latitude','longitude','municipality','country','country_code','city','state','postal_code']:
+        if col not in columns:
+            data_frame.drop(col, inplace=True, axis=1)
+
+    # {'country': {'country': {}, 'country2': {}}
+    for item in field_names:
+        count = len(field_names[item])
+        column_names = list(field_names[item].keys())
+        if count > 0:
+            data_frame.rename(columns={item:column_names[0]}, inplace=True)
+            for i in range(1,len(column_names)):
+                data_frame[f"{item}{i}"] = data_frame[column_names[0]]
+                data_frame.rename(columns={f"{item}{i}" : column_names[i]}, inplace=True)
+                random.shuffle(data_frame[column_names[i]])
+
+
 country_calling_codes = [
     '+93', '+358 18', '+355', '+213', '+1 684', '+376', '+244', '+1 264',
     '+1 268', '+54', '+374', '+297', '+247', '+61', '+672 1', '+672', '+43',
@@ -48,6 +91,7 @@ country_calling_codes = [
     '+260', '+255 24', '+263',
 ]
 
+
 def country(number):
     """
         Generator function for countries
@@ -55,8 +99,16 @@ def country(number):
         :type int
         :return: list
     """
-    faker = Faker()
-    return [faker.country() for _ in range(number)]
+    raise NotImplemented
+
+def state(number):
+    """
+        Generator function for countries
+        :param number: Number of records to generate
+        :type int
+        :return: list
+    """
+    raise NotImplemented
 
 
 def city(number):
@@ -66,8 +118,8 @@ def city(number):
      :type int
      :return: list
      """
-    faker = Faker()
-    return [faker.city() for _ in range(number)]
+    raise NotImplemented
+
 
 def latitude(number):
     """
@@ -76,8 +128,8 @@ def latitude(number):
         :type int
         :return: list
     """
-    faker = Faker()
-    return [str(faker.latitude()) for _ in range(number)]
+    raise NotImplemented
+
 
 def longitude(number):
     """
@@ -86,26 +138,26 @@ def longitude(number):
         :type int
         :return: list
     """
-    faker = Faker()
-    return [str(faker.longitude()) for _ in range(number)]
+    raise NotImplemented
 
 
 def replace_hashes(format, cell_number, country_code):
-    code=''
+    code = ''
     if format.startswith('+'):
-        code=country_code
-        code=code.replace(' ','')
+        code = country_code
+        code = code.replace(' ', '')
         # format=format[2:]
-        cell_number=list(code+cell_number)[1:]
+        cell_number = list(code + cell_number)[1:]
     else:
         cell_number = list(code + cell_number)
-    for i  in range(len(cell_number)):
-        format=format.replace('#',str(cell_number[i]),1)
-    formatted_cell_number=format
+    for i in range(len(cell_number)):
+        format = format.replace('#', str(cell_number[i]), 1)
+    formatted_cell_number = format
     return formatted_cell_number
 
 
-def phone_number(number, args=None):
+# {'phone': {'format': '#-(###)-###-####'}}
+def phone_number(data_frame, number, args=None):
     """
      Generator function for phone numbers
      :param number: Number of records to generate
@@ -114,32 +166,36 @@ def phone_number(number, args=None):
      :type dict
      :return: list
      """
-    cell_number_list=[]
+    cell_number_list = []
     digits = list(string.digits * 3)
 
-    if args is not None:
-        format=args.get('format','##########')
-        length=len(format.replace(' ','').replace('-','').replace('(','').replace(')','').replace('+',''))
-    else:
-        format='##########'
-        length=len(format)
-    for _ in range(number):
-        random.shuffle(country_calling_codes)
-        random.shuffle(digits)
-        cell_number=''.join(digits[:length])
-        formatted_cell_number=replace_hashes(format,cell_number,country_calling_codes[0])
-        cell_number_list.append(formatted_cell_number)
-    return  cell_number_list
+    dcols = [f for f in data_frame.columns if f.startswith("phone_number")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        if args is not None:
+            format = args.get(column_name).get('format', '##########')
+            length = len(format.replace(' ', '').replace('-', '').replace('(', '').replace(')', '').replace('+', ''))
+        else:
+            format = '##########'
+            length = len(format)
+        for _ in range(number):
+            random.shuffle(country_calling_codes)
+            random.shuffle(digits)
+            cell_number = ''.join(digits[:length])
+            formatted_cell_number = replace_hashes(format, cell_number, country_calling_codes[0])
+            cell_number_list.append(formatted_cell_number)
+        data_frame[data_frame_col_name] = cell_number_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def post_code(number):
+
+def postal_code(number):
     """
     Generator function for post codes
     :param number: Number of records to generate
     :type int
     :return: list
     """
-    faker = Faker()
-    return [faker.postcode() for _ in range(number)]
+    raise NotImplemented
+
 
 def country_code(number):
     """
@@ -148,42 +204,18 @@ def country_code(number):
         :type int
         :return: list
     """
-    faker = Faker()
-    return [faker.country_code() for _ in range(number)]
+    raise NotImplemented
 
 def address(number):
-    """
-        Generator function for addresses
-        :param number: Number of records to generate
-        :type int
-        :return: list
-    """
     faker = Faker()
     return [faker.address() for _ in range(number)]
 
-def airport(number):
-    """
-        Generator function for airport names
-        :param number: Number of records to generate
-        :type int
-        :return: list
-    """
-    path=os.path.dirname(__file__)+'/airpots.csv'
-    df=pd.read_csv(path,usecols=['name'])
-    length=len(df)
-    return random.choices(df['name'],k=number) if length< number else df['name']
 
-def muncipality(number):
-    """
-        Generator function for muncipality names
-        :param number: Number of records to generate
-        :type int
-        :return: list
-    """
-    path = os.path.dirname(__file__) + '/airpots.csv'
-    df = pd.read_csv(path, usecols=['Municipality'])
-    length = len(df)
-    return random.choices(df['Municipality'], k=number) if length < number else df['Municipality']
+def airport(number):
+    raise NotImplemented
+
+def municipality(number):
+    raise NotImplemented
 
 def timezones(number):
     """
@@ -194,4 +226,3 @@ def timezones(number):
     """
     faker = Faker()
     return [faker.timezone() for _ in range(number)]
-
