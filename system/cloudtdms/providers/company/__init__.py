@@ -30,10 +30,12 @@ def company_name(data_frame, number, args=None):
     :type dict
     :return: list
     """
-    df = pd.read_csv(f"{os.path.dirname(__file__)}/d_company.csv", usecols=['company_name'])
+
     dcols = [f for f in data_frame.columns if f.startswith("company_name")]
     for column_name, data_frame_col_name in zip(args, dcols):
-        data_frame[data_frame_col_name] = [df.iloc[i % len(df)]['company_name'] for i in range(int(number))]
+        locale = args.get('locale', 'en_GB')
+        df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/d_company.csv", usecols=['company_name'])
+        data_frame[data_frame_col_name] = [df.iloc[random.randint(0, len(df)-1)]['company_name'] for _ in range(int(number))]
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 def department(data_frame, number, args=None):
