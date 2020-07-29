@@ -32,6 +32,10 @@ def location(data_frame, number, args):
     t_data_frame.reset_index(drop=True, inplace=True)
     data_frame[cols] = t_data_frame
 
+    #here data_frame contains the country_code column
+    if 'address' in columns:
+        address(data_frame, number, field_names.get('address'))
+
 
     # name,latitude,longitude,municipality,country,region,cities,states,postal_codes
     for col in ['airport','latitude','longitude','municipality','country','country_code','city','state','postal_code']:
@@ -40,6 +44,8 @@ def location(data_frame, number, args):
 
     # {'country': {'country': {}, 'country2': {}}
     for item in field_names:
+        if item in ('address','phone_number'):
+            continue
         count = len(field_names[item])
         column_names = list(field_names[item].keys())
         if count > 0:
@@ -47,7 +53,7 @@ def location(data_frame, number, args):
             for i in range(1,len(column_names)):
                 data_frame[f"{item}{i}"] = data_frame[column_names[0]]
                 data_frame.rename(columns={f"{item}{i}" : column_names[i]}, inplace=True)
-                random.shuffle(data_frame[column_names[i]])
+                data_frame[column_names[i]].sample(frac=1).reset_index(drop=True, inplace=True)
 
 
 country_calling_codes = [
@@ -183,7 +189,7 @@ def phone_number(data_frame, number, args=None):
             cell_number = ''.join(digits[:length])
             formatted_cell_number = replace_hashes(format, cell_number, country_calling_codes[0])
             cell_number_list.append(formatted_cell_number)
-        data_frame[data_frame_col_name] = cell_number_list
+        data_frame[data_frame_col_name] = cell_number_list[:number]
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
@@ -206,9 +212,33 @@ def country_code(number):
     """
     raise NotImplemented
 
-def address(number):
+def address(data_frame, number, args=None):
+    addresses=[]
+    df_region=data_frame['country_code']
     faker = Faker()
-    return [faker.address() for _ in range(number)]
+
+    dcols = [f for f in data_frame.columns if f.startswith("address")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        for i in range(number):
+            address=faker.address()
+            address = address.replace('\n', ' ')
+
+            if ',' not in address:
+                address = address.split(' ')
+                total = len(address)
+                address[total - 2] = ', ' + address[total - 2]
+                address = ' '.join(address)
+
+            # print(f'OLD-- {address}')
+            address=address.split(',',2)
+            address[1] = " "+str(df_region[i])+" " + address[1].strip().split(' ')[1]
+            address=''.join(address)
+            # print(f'NEW-- {address}')
+            addresses.append(address)
+        data_frame[data_frame_col_name] = addresses[:number]
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
+
 
 
 def airport(number):
