@@ -54,3 +54,7 @@ CloudTDMS - Test Data Management Service
 7. Start airflow scheduler
 
         airflow scheduler
+        
+8. Place your data generation scripts inside `scripts` folder and your corresponding output data files will be generated inside `data` folder.
+
+9. You can access the UI of the AIRFLOW via http://127.0.0.1:8080
