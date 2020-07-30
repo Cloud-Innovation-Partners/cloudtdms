@@ -44,17 +44,19 @@ def location(data_frame, number, args):
 
     # {'country': {'country': {}, 'country2': {}}
     for item in field_names:
-        if item in ('address','phone_number'):
-            continue
+
         count = len(field_names[item])
         column_names = list(field_names[item].keys())
         if count > 0:
-            data_frame.rename(columns={item:column_names[0]}, inplace=True)
-            for i in range(1,len(column_names)):
-                data_frame[f"{item}{i}"] = data_frame[column_names[0]]
-                data_frame.rename(columns={f"{item}{i}" : column_names[i]}, inplace=True)
-                data_frame[column_names[i]].sample(frac=1).reset_index(drop=True, inplace=True)
-
+            if item in ('address', 'phone_number'):
+                for label in column_names[1:]:
+                    random.shuffle(data_frame[label])
+            else:
+                data_frame.rename(columns={item:column_names[0]}, inplace=True)
+                for i in range(1,len(column_names)):
+                    data_frame[f"{item}{i}"] = data_frame[column_names[0]]
+                    data_frame.rename(columns={f"{item}{i}" : column_names[i]}, inplace=True)
+                    random.shuffle(data_frame[column_names[i]])
 
 country_calling_codes = [
     '+93', '+358 18', '+355', '+213', '+1 684', '+376', '+244', '+1 264',
