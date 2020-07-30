@@ -9,8 +9,51 @@ import uuid
 from airflow import LoggingMixin
 from faker import Faker
 
+def basics(data_frame, number, args):
+    field_names = {}
+    for k in args:
+        if k.split('-$-', 2)[1] not in field_names:
+            field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
+        else:
+            field_names[k.split('-$-', 2)[1]][k.split('-$-', 2)[0]] = args.get(k)
 
-def boolean(number, args=None):
+    columns = field_names.keys()
+
+    for col in columns:
+        if col == 'boolean':
+            boolean(data_frame, number, field_names.get('boolean'))
+
+        if col == 'frequency':
+            frequency(data_frame, number, field_names.get('frequency'))
+
+        if col == 'color':
+            color(data_frame, number, field_names.get('color'))
+
+        if col == 'words':
+            words(data_frame, number, field_names.get('words'))
+
+        if col == 'sentence':
+            sentence(data_frame, number, field_names.get('sentence'))
+
+        if col == 'blank':
+            blank(data_frame, number,field_names.get('blank'))
+
+        if col == 'guid':
+            guid(data_frame, number,field_names.get('guid'))
+
+        if col == 'password':
+            password(data_frame, number, field_names.get('password'))
+
+        if col == 'auto_increment':
+            auto_increment(data_frame, number, field_names.get('auto_increment'))
+
+        if col == 'random_number':
+            random_number(data_frame, number, field_names.get('random_number'))
+
+        if col == 'number_range':
+            number_range(data_frame, number, field_names.get('number_range'))
+
+def boolean(data_frame, number, args=None):
     """
     Generator function for boolean values
     :param number: Number of records to generate
@@ -19,31 +62,39 @@ def boolean(number, args=None):
     :type dict
     :return: list
     """
-    if args is not None:
-        value = args.get('set_val', '1,0')
-        value = value if isinstance(value, str) else '1,0'
-        boolean_values = value.split(',')[:2]
-    else:
-        boolean_values = ['true', 'false']
+    dcols = [f for f in data_frame.columns if f.startswith("boolean")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        if args is not None:
+            value = args.get('set_val', '1,0')
+            value = value if isinstance(value, str) else '1,0'
+            boolean_values = value.split(',')[:2]
+        else:
+            boolean_values = ['true', 'false']
 
-    boolean_weights = [0.5, 0.5]
-    boolean_list = random.choices(population=boolean_values, weights=boolean_weights, k=number)
-    return boolean_list
+        boolean_weights = [0.5, 0.5]
+        boolean_list = random.choices(population=boolean_values, weights=boolean_weights, k=number)
+        data_frame[data_frame_col_name]= boolean_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-def frequency(number):
+def frequency(data_frame, number, args=None):
     """
     Generator function for frequency values
     :param number: Number of records to generate
     :type int
     :return: list
     """
-    frequency_values = ['Never', 'Seldom', 'Once', 'Often', 'Daily', 'Weekly', 'Monthly', 'Yearly']
-    frequency_list = random.choices(population=frequency_values, k=number)
-    return frequency_list
+    dcols = [f for f in data_frame.columns if f.startswith("frequency")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        frequency_values = ['Never', 'Seldom', 'Once', 'Often', 'Daily', 'Weekly', 'Monthly', 'Yearly']
+        frequency_list = random.choices(population=frequency_values, k=number)
+        data_frame[data_frame_col_name]=frequency_list
+
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-def color(number, args=None):
+
+def color(data_frame, number, args=None):
     """
     Generator function for color values
     :param number: Number of records to generate
@@ -53,26 +104,29 @@ def color(number, args=None):
     :return: list
     """
     source = list(string.hexdigits)
+    dcols = [f for f in data_frame.columns if f.startswith("color")]
+    for column_name, data_frame_col_name in zip(args, dcols):
 
-    if args is not None:
-        format = args.get('format', 'hex-code')
-        format = format if isinstance(format,str) else 'hex-code'
-    else:
-        format = 'hex-code'
+        if args is not None:
+            format = args.get('format', 'hex-code')
+            format = format if isinstance(format,str) else 'hex-code'
+        else:
+            format = 'hex-code'
 
-    if format == 'hex-code':
-        return [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
-    elif format == 'name':
-        f = Faker()
-        return [f.color_name() for _ in range(number)]
-    elif format == 'short-hex':
-        return [('#' + ''.join(source[:3]), random.shuffle(source))[0] for _ in range(number)]
-    else:
-        LoggingMixin().log.warning(f"InvalidAttribute: Invalid `format` = {format} value found!")
-        return [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
+        if format == 'hex-code':
+            data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
+        elif format == 'name':
+            f = Faker()
+            data_frame[data_frame_col_name] = [f.color_name() for _ in range(number)]
+        elif format == 'short-hex':
+            data_frame[data_frame_col_name] = [('#' + ''.join(source[:3]), random.shuffle(source))[0] for _ in range(number)]
+        else:
+            LoggingMixin().log.warning(f"InvalidAttribute: Invalid `format` = {format} value found!")
+            data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
 
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def words(number, args=None):
+def words(data_frame, number, args=None):
     """
     Generator function for words
     :param number: Number of records to generate
@@ -82,28 +136,29 @@ def words(number, args=None):
     :return: list
     """
     words_list = []
-    if args is not None:
-        atleast = int(args.get('atleast', 1))
-        atmost = int(args.get('atmost', 3))
-        if atleast == 1:
-            LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
-        if atmost == 3:
-            LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atmost`")
-    else:
-        atleast = 1
-        atmost = 3
+    dcols = [f for f in data_frame.columns if f.startswith("words")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        if args is not None:
+            atleast = int(args.get('atleast', 1))
+            atmost = int(args.get('atmost', 3))
+            if atleast == 1:
+                LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
+            if atmost == 3:
+                LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atmost`")
+        else:
+            atleast = 1
+            atmost = 3
 
-    path = os.path.dirname(__file__)+"/words.txt"
-    print(path)
-    words = open(path).read().splitlines()
-    for _ in range(number):
-        how_many = random.randint(atleast, atmost)
-        random.shuffle(words)
-        words_list.append(' '.join(words[:how_many]))
-    return words_list
+        path = os.path.dirname(__file__)+"/words.txt"
+        words = open(path).read().splitlines()
+        for _ in range(number):
+            how_many = random.randint(atleast, atmost)
+            random.shuffle(words)
+            words_list.append(' '.join(words[:how_many]))
+        data_frame[data_frame_col_name] = words_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-
-def sentence(number, args=None):
+def sentence(data_frame, number, args=None):
     """
     Generator function for sentences
     :param number: Number of records to generate
@@ -114,48 +169,55 @@ def sentence(number, args=None):
     """
 
     sentence_list = []
-    if args is not None:
-        atleast = int(args.get('atleast', 1))
-        atmost = int(args.get('atmost', 3))
-        if atleast == 1:
-            LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
-        if atmost == 3:
-            LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atmost`")
-    else:
-        atleast = 1
-        atmost = 3
-    path = os.path.dirname(__file__)+"/words.txt"
-    words = open(path).read().splitlines()
-    for _ in range(number):
-        random.shuffle(words)
-        how_many = random.randint(atleast, atmost)
-        sentence = [(' '.join(words[:4]) + ". ", random.shuffle(words)) for _ in range(how_many)]
-        sentence = list(map(lambda x: x[0][0].upper() + x[0][1:], sentence))
-        sentence_list.append(' '.join(sentence))
-    return sentence_list
+    dcols = [f for f in data_frame.columns if f.startswith("sentence")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        if args is not None:
+            atleast = int(args.get('atleast', 1))
+            atmost = int(args.get('atmost', 3))
+            if atleast == 1:
+                LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
+            if atmost == 3:
+                LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atmost`")
+        else:
+            atleast = 1
+            atmost = 3
+        path = os.path.dirname(__file__)+"/words.txt"
+        words = open(path).read().splitlines()
+        for _ in range(number):
+            random.shuffle(words)
+            how_many = random.randint(atleast, atmost)
+            sentence = [(' '.join(words[:4]) + ". ", random.shuffle(words)) for _ in range(how_many)]
+            sentence = list(map(lambda x: x[0][0].upper() + x[0][1:], sentence))
+            sentence_list.append(' '.join(sentence))
+        data_frame[data_frame_col_name] = sentence_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-
-def blank(number):
+def blank(data_frame, number, args=None):
     """
       Generator function for Null values
       :param number: Number of records to generate
       :type int
       :return: list
     """
-    return [None] * number
+    dcols = [f for f in data_frame.columns if f.startswith("blank")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        data_frame[data_frame_col_name]=  [None] * number
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-def guid(number):
+def guid(data_frame, number, args=None):
     """
       Generator function for UUID values
       :param number: Number of records to generate
       :type int
       :return: list
     """
-    return [str(uuid.uuid4()) for _ in range(number)]
+    dcols = [f for f in data_frame.columns if f.startswith("blank")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        data_frame[data_frame_col_name] = [str(uuid.uuid4()) for _ in range(number)]
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-
-def password(number, args=None):
+def password(data_frame, number, args=None):
     """
        Generator function for passwords
        :param number: Number of records to generate
@@ -165,23 +227,25 @@ def password(number, args=None):
        :return: list
     """
     passwords = []
-    if args is not None:
-        length = int(args.get('length',8))
-        if length == 8:
-            LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `password`")
-    else:
-        length = 8
-    source = list(string.ascii_letters + string.digits)
+    dcols = [f for f in data_frame.columns if f.startswith("password")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        if args is not None:
+            length = int(args.get('length',8))
+            if length == 8:
+                LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `password`")
+        else:
+            length = 8
+        source = list(string.ascii_letters + string.digits)
 
-    for _ in range(number):
-        random.shuffle(source)
-        password = ''.join(source[:length])
-        passwords.append(password)
+        for _ in range(number):
+            random.shuffle(source)
+            password = ''.join(source[:length])
+            passwords.append(password)
 
-    return passwords
+        data_frame[data_frame_col_name] =passwords
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-
-def auto_increment(number, args=None):
+def auto_increment(data_frame, number, args=None):
     """
        Generator function for auto increment
        :param number: Number of records to generate
@@ -190,40 +254,43 @@ def auto_increment(number, args=None):
        :type dict
        :return: list
     """
-    if args is not None:
-        start = int(args.get('start', 0))
-        inc = int(args.get('increment', 1))
-        prefix = args.get('prefix', '')
-        suffix = args.get('suffix', '')
-        # if start == 0:
-        #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `start`")
-        # if inc == 1:
-        #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `inc`")
-        # if len(prefix) == 0:
-        #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `prefix`")
-        # if len(suffix) == 0:
-        #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `suffix`")
+    dcols = [f for f in data_frame.columns if f.startswith("auto_increment")]
+    for column_name, data_frame_col_name in zip(args, dcols):
 
-    else:
-        start = 0
-        inc = 1
-        prefix = ''
-        suffix = ''
+        if args is not None:
+            start = int(args.get('start', 0))
+            inc = int(args.get('increment', 1))
+            prefix = args.get('prefix', '')
+            suffix = args.get('suffix', '')
+            # if start == 0:
+            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `start`")
+            # if inc == 1:
+            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `inc`")
+            # if len(prefix) == 0:
+            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `prefix`")
+            # if len(suffix) == 0:
+            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `suffix`")
 
-    range_list = list(range(start, start + number, inc))
-    range_list_len = len(range_list)
-    if range_list_len < number:
-        diff = number - range_list_len
-        last_elem = range_list[-1]
-        extra_elems = [last_elem] * diff
-        extra_elems = extra_elems[:number]
-        range_list.extend(extra_elems)
+        else:
+            start = 0
+            inc = 1
+            prefix = ''
+            suffix = ''
 
-    range_list = [prefix + str(i) + suffix if len(prefix) > 0 or len(suffix) > 0 else i for i in range_list]
-    return range_list
+        range_list = list(range(start, start + number, inc))
+        range_list_len = len(range_list)
+        if range_list_len < number:
+            diff = number - range_list_len
+            last_elem = range_list[-1]
+            extra_elems = [last_elem] * diff
+            extra_elems = extra_elems[:number]
+            range_list.extend(extra_elems)
 
+        range_list = [prefix + str(i) + suffix if len(prefix) > 0 or len(suffix) > 0 else i for i in range_list]
+        data_frame[data_frame_col_name]= range_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def random_number(number, args=None):
+def random_number(data_frame, number, args=None):
     """
        Generator function for random numbers
        :param number: Number of records to generate
@@ -233,20 +300,23 @@ def random_number(number, args=None):
        :return: list
     """
     start = end = 0
-    if args is not None:
-        start = int(args.get('start',0))
-        end = int(args.get('end',300))
-    else:
-        start = 0
-        end = 300
+    dcols = [f for f in data_frame.columns if f.startswith("random_number")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        if args is not None:
+            start = int(args.get('start',0))
+            end = int(args.get('end',300))
+        else:
+            start = 0
+            end = 300
 
-    random_range_list = []
-    for _ in range(number):
-        random_range_list.append(random.randint(start, end))
-    return random_range_list
+        random_range_list = []
+        for _ in range(number):
+            random_range_list.append(random.randint(start, end))
+        data_frame[data_frame_col_name]= random_range_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-def number_range(number, args=None):
+def number_range(data_frame, number, args=None):
     """
        Generator function for number range
        :param number: Number of records to generate
@@ -255,18 +325,22 @@ def number_range(number, args=None):
        :type dict
        :return: list
     """
-    if args is not None:
-        start = int(args.get('start', 0))
-        end = int(args.get('end', 20))
-    else:
-        start = 0
-        end = 20
+    dcols = [f for f in data_frame.columns if f.startswith("number_range")]
+    for column_name, data_frame_col_name in zip(args, dcols):
 
-    range_list = list(range(start, end + 1))
-    range_list_len = len(range_list)
-    if range_list_len < number:
-        diff = number - range_list_len
-        range_list = range_list * diff
-        range_list = range_list[:number]
+        if args is not None:
+            start = int(args.get('start', 0))
+            end = int(args.get('end', 20))
+        else:
+            start = 0
+            end = 20
 
-    return range_list
+        range_list = list(range(start, end + 1))
+        range_list_len = len(range_list)
+        if range_list_len < number:
+            diff = number - range_list_len
+            range_list = range_list * diff
+            range_list = range_list[:number]
+
+        data_frame[data_frame_col_name] = range_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)

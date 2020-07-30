@@ -9,6 +9,7 @@ import random
 import pandas as pd
 from datetime import datetime, timedelta
 import pathlib
+from collections import defaultdict
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
@@ -44,10 +45,10 @@ def generate_iterator(data_frame, methods,args_array):
         func_name = fcn.__name__
         arg = args_array.get(func_name)
         if arg is None:
-            result = fcn(number)
+            result = fcn(data_frame, number)
         else:
-            result = fcn(number, arg)
-        data_frame[name] = pd.Series(result) 
+            result = fcn(data_frame,number, arg)
+        # data_frame[name] = pd.Series(result) 
         
 
 def data_generator():
@@ -59,30 +60,35 @@ def data_generator():
     ncols = sum([len(f) for f in attributes.values()])
     columns = []
     labels = [columns.extend(f) for f in attributes.values()]
-    data_frame = pd.DataFrame(pd.np.zeros((nrows, ncols))*pd.np.nan, columns=columns)    
+    data_frame = pd.DataFrame(pd.np.zeros((nrows, ncols))*pd.np.nan, columns=[v + str(columns[:i].count(v)) if columns.count(v) > 1 and columns[:i].count(v) != 0 else v for i, v in enumerate(columns)])    
     
     for attrib in attributes:
         if attrib in meta_data['data_files']:
             try:
-                df = pd.read_csv(list(pathlib.Path(get_providers_home()).rglob(f"{attrib}.csv")).pop(0), usecols=attributes[attrib])
+                df = pd.read_csv(list(pathlib.Path(get_providers_home()).rglob(f"{attrib}.csv")).pop(0), usecols=[column for (field_name, column) in attributes[attrib]])
             except (FileNotFoundError, IndexError):
-                df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=attributes[attrib])
+                df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=[column for (field_name, column) in attributes[attrib]])
 
-            df_temp = pd.DataFrame(index=range(nrows), columns=attributes[attrib])
+            df_temp = pd.DataFrame(index=range(nrows), columns=[column for (field_name, column) in attributes[attrib]])
             for i in range(nrows):
                 df_temp.iloc[i] = df.iloc[random.randrange(len(df))]
                             
-            data_frame[attributes[attrib]] = df_temp[attributes[attrib]]
+            data_frame[[column for (field_name, column) in attributes[attrib]]] = df_temp[[column for (field_name, column) in attributes[attrib]]]
         elif attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
-            methods = [(getattr(mod, m), m) for m in attributes[attrib]]
-            args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
-            generate_iterator(data_frame, methods,args_array)
+            args_array={f"{f['field_name']}-$-{f['type'].split('.')[1]}": {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if f.get('type').startswith(attrib)}
+            try:
+                _all = getattr(mod, attrib)                
+                _all(data_frame, nrows, args_array)
+            except AttributeError:
+                # args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
+                methods = [(getattr(mod, m), m) for m in attributes[attrib]]
+                generate_iterator(data_frame, methods,args_array)
     
-    for scheme in schema:
-        field_name = scheme['field_name']
-        column_name = scheme['type'].split('.')[1]
-        data_frame.rename(columns={column_name:field_name}, inplace=True)
+    # for scheme in schema:
+    #     field_name = scheme['field_name']
+    #     column_name = scheme['type'].split('.')[1]
+    #     data_frame.rename(columns={column_name:field_name}, inplace=True)
 
     data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}.csv", index=False)
     

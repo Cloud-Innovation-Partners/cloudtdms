@@ -191,8 +191,22 @@ currency_symbols = {
         'XCD': '\u0024', 'YER': '\uFDFC', 'ZWD': '\u0024',
 }
 
+def commerce(data_frame, number, args):
+    field_names = {}
+    for k in args:
+        if k.split('-$-', 2)[1] not in field_names:
+            field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
+        else:
+            field_names[k.split('-$-', 2)[1]][k.split('-$-', 2)[0]] = args.get(k)
 
-def card_number(number):
+    columns = field_names.keys()
+
+    for col in columns:
+        mod = globals()[col]
+        mod(data_frame, number, field_names.get(col))
+
+
+def card_number(data_frame, number,args=None):
     """
       Generator function for credit card number
      :param number: Number of records to generate
@@ -201,14 +215,17 @@ def card_number(number):
     credit_card_number_list=[]
     digits = list(string.digits * 3)
 
-    for _ in range(number):
-        random.shuffle(digits)
-        credit_card_number = ''.join(digits[:16])
-        credit_card_number_list.append(credit_card_number)
+    dcols = [f for f in data_frame.columns if f.startswith("card_number")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        for _ in range(number):
+            random.shuffle(digits)
+            credit_card_number = ''.join(digits[:16])
+            credit_card_number_list.append(credit_card_number)
 
-    return  credit_card_number_list
+        data_frame[data_frame_col_name] =  credit_card_number_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def cvv(number):
+def cvv(data_frame, number,args=None):
     """
     Generator function for cvv number
     :param number: Number of records to generate
@@ -217,15 +234,17 @@ def cvv(number):
     cvv_list = []
     digits = list(string.digits * 3)
 
-    for _ in range(number):
-        random.shuffle   (digits)
-        cvv = ''.join(digits[:3])
-        cvv_list.append(cvv)
+    dcols = [f for f in data_frame.columns if f.startswith("cvv")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        for _ in range(number):
+            random.shuffle(digits)
+            cvv = ''.join(digits[:3])
+            cvv_list.append(cvv)
 
-    return cvv_list
+        data_frame[data_frame_col_name]= cvv_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-
-def network(number):
+def network(data_frame, number,args=None):
     """
     Generator function for network
     :param number: Number of records to generate
@@ -233,9 +252,12 @@ def network(number):
      """
     networks=['Master Card','Visa','American Express','Maestro','Visa Electron']
 
-    return random.choices(population=networks, k=number)
+    dcols = [f for f in data_frame.columns if f.startswith("network")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        data_frame[data_frame_col_name]= random.choices(population=networks, k=number)
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def expiry_date(nummber):
+def expiry_date(data_frame, number,args=None):
     """
     Generator function for expiry date
     :param number: Number of records to generate
@@ -246,49 +268,58 @@ def expiry_date(nummber):
     months = list(range(1, 13))
     now = datetime.datetime.now()
 
-    for _ in range(nummber):
-        year = random.randint(now.year, 2029)
-        random.shuffle(days)
-        random.shuffle(months)
-        exp_date = str(days[0]) + '-' + str(months[0]) + '-' + str(year)
-        expiry_dates.append(exp_date)
+    dcols = [f for f in data_frame.columns if f.startswith("expiry_date")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        for _ in range(number):
+            year = random.randint(now.year, 2029)
+            random.shuffle(days)
+            random.shuffle(months)
+            exp_date = str(days[0]) + '-' + str(months[0]) + '-' + str(year)
+            expiry_dates.append(exp_date)
 
-    return expiry_dates
+        data_frame[data_frame_col_name] = expiry_dates
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def currency(number):
+def currency(data_frame, number,args=None):
     """
     Generator function for currency
     :param number: Number of records to generate
     :type int
      """
     currencies_list=[]
-    for code, country in currencies:
-        currency=code + ' (' + country + ')'
-        currencies_list.append(currency)
+    print('currency')
+    print(data_frame.columns)
+    dcols = [f for f in data_frame.columns if f.startswith("currency") and not 'currency_code' in f]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        for code, country in currencies:
+            currency=code + ' (' + country + ')'
+            currencies_list.append(currency)
 
-    currencies_length=len(currencies_list)
-    if currencies_length<number:
-        diff=number-currencies_length
-        extra=currencies_list*diff
-        extra=extra[:number]
-        currencies_list.extend(extra)
+        currencies_length=len(currencies_list)
+        if currencies_length<number:
+            diff=number-currencies_length
+            extra=currencies_list*diff
+            currencies_list.extend(extra)
+            currencies_list=currencies_list[:number]
 
-    return  currencies_list
 
-def currency_code(number):
+        data_frame[data_frame_col_name] = currencies_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
+def currency_code(data_frame, number,args=None):
     """
     Generator function for currency codes
     :param number: Number of records to generate
     :type int
     """
-    code_list=[code for code, _ in currency_symbols.items()]
-    length=len(code_list)
-    if length<number:
-        code_list=random.choices(code_list,k=number)
+    dcols = [f for f in data_frame.columns if f.startswith("currency_code")]
+    for column_name, data_frame_col_name in zip(args, dcols):
+        code_list=[code for code, _ in currency_symbols.items()]
+        length=len(code_list)
+        if length<number:
+            code_list=random.choices(code_list,k=number)
 
-    return code_list
-
-
-
+        data_frame[data_frame_col_name] = code_list
+        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
