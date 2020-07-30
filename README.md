@@ -84,4 +84,22 @@ CloudTDMS - Test Data Management Service
         
 8. Place your data generation scripts inside `scripts` folder and your corresponding output data files will be generated inside `data` folder.
 
+   *example script*
+   
+        STREAM = {
+        "number": 1000,
+        "title": 'Stream2',
+        "format": "csv",
+        "frequency": "once",
+        "schema": [
+            {"field_name": "fname", "type": "personal.first_name", "locale": "fa_IR"},
+            {"field_name": "lname", "type": "personal.last_name",},
+            {"field_name": "sex", "type": "personal.gender"},
+            {"field_name": "email", "type": "personal.email_address"},
+            {"field_name": "user", "type": "personal.username"},
+            {"field_name": "univ", "type": "personal.university"},
+            {"field_name": "lang", "type": "personal.language"},
+        ]
+       }
+
 9. You can access the UI of the AIRFLOW via http://127.0.0.1:8080
