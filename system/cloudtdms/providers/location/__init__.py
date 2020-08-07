@@ -11,6 +11,8 @@ import os
 def location(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k=='locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
@@ -18,18 +20,13 @@ def location(data_frame, number, args):
 
     columns = field_names.keys()
 
-    locale = None
-    for e in args.values():
-        l = e.get('locale')
-        if l is not None:
-            if os.path.exists(f"{os.path.dirname(__file__)}/{l}"):
-                locale = e.get('locale')
-            else:
-                LoggingMixin().log.error(f"InvalidValue found for attribute `locale` in schema.")
-            break
-
+    locale=args.get('locale')
     if locale is not None:
-        df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/airport.csv")
+        if os.path.exists(f"{os.path.dirname(__file__)}/{locale}"):
+            df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/airport.csv")
+        else:
+            LoggingMixin().log.error(f"InvalidValue found for attribute `locale` in schema.")
+            df = pd.read_csv(f"{os.path.dirname(__file__)}/airport.csv")
     else:
         df = pd.read_csv(f"{os.path.dirname(__file__)}/airport.csv")
 
