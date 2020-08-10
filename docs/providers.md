@@ -382,7 +382,7 @@ generation process.
     ```
 ### Date
 
-1. **dates :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
+1. **date :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
     Few format options are listed below for your reference. 
 
     + *format* : takes a format string as a value
