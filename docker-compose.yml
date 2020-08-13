@@ -1,0 +1,40 @@
+version: "3"
+services:
+
+  webserver:
+    build: .
+    command: "webserver"
+    environment:
+      - AIRFLOW_HOME=/opt/cloudtdms/system
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/cloudtdms/system/dags
+      - AIRFLOW__CORE__BASE_LOG_FOLDER=/opt/cloudtdms/system/logs
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /opt/cloudtdms/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+    - ./system/dags:/opt/cloudtdms/system/dags
+    - ./system/airflow.cfg:/opt/cloudtdms/system/airflow.cfg
+    - ./scripts:/opt/cloudtdms/scripts
+    - ./data:/opt/cloudtdms/data
+    - ./user-data:/opt/cloudtdms/user-data
+    ports:
+    - "8080:8080"
+  scheduler:
+    build: .
+    command: "scheduler"
+    environment:
+      - AIRFLOW_HOME=/opt/cloudtdms/system
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/cloudtdms/system/dags
+      - AIRFLOW__CORE__BASE_LOG_FOLDER=/opt/cloudtdms/system/logs
+    volumes:
+      - ./system/dags:/opt/cloudtdms/system/dags
+      - ./system/airflow.cfg:/opt/cloudtdms/system/airflow.cfg
+      - ./scripts:/opt/cloudtdms/scripts
+      - ./data:/opt/cloudtdms/data
+      - ./user-data:/opt/cloudtdms/user-data
