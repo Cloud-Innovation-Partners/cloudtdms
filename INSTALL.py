@@ -175,6 +175,14 @@ def start_airflow():
                      executable='/bin/bash').communicate()
 
 
+def modify_configuration():
+    print("replacing values in configuration...")
+    basepath = os.path.abspath(os.path.dirname(__file__))
+    subprocess.Popen(["sed -i 's|/opt/cloudtdms|{}|g' system/airflow.cfg".format(basepath)],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+
+
 if __name__ == "__main__":
     check_python_version()
     install_packages_from_requirement_file()
@@ -184,7 +192,7 @@ if __name__ == "__main__":
         airflow_resetdb()
     else:
         airflow_initdb()
-
+    modify_configuration()
     create_service_user_group()
     create_system_service_entries()
     reload_enable__airflow_webserver_service()
