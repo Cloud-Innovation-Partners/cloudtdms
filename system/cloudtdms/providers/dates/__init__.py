@@ -8,6 +8,8 @@ import random
 def dates(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k == 'locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
