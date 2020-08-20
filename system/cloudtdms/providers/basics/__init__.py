@@ -65,7 +65,7 @@ def boolean(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("boolean")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            value = args.get('set_val', '1,0')
+            value = args.get(column_name).get('set_val', '1,0')
             value = value if isinstance(value, str) else '1,0'
             boolean_values = value.split(',')[:2]
         else:
@@ -108,7 +108,7 @@ def color(data_frame, number, args=None):
     for column_name, data_frame_col_name in zip(args, dcols):
 
         if args is not None:
-            format = args.get('format', 'hex-code')
+            format = args.get(column_name).get('format', 'hex-code')
             format = format if isinstance(format,str) else 'hex-code'
         else:
             format = 'hex-code'
@@ -139,8 +139,8 @@ def words(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("words")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            atleast = int(args.get('atleast', 1))
-            atmost = int(args.get('atmost', 3))
+            atleast = int(args.get(column_name).get('atleast', 1))
+            atmost = int(args.get(column_name).get('atmost', 3))
             if atleast == 1:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
             if atmost == 3:
@@ -172,8 +172,8 @@ def sentence(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("sentence")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            atleast = int(args.get('atleast', 1))
-            atmost = int(args.get('atmost', 3))
+            atleast = int(args.get(column_name).get('atleast', 1))
+            atmost = int(args.get(column_name).get('atmost', 3))
             if atleast == 1:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
             if atmost == 3:
@@ -230,7 +230,7 @@ def password(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("password")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            length = int(args.get('length',8))
+            length = int(args.get(column_name).get('length',8))
             if length == 8:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `password`")
         else:
@@ -258,10 +258,10 @@ def auto_increment(data_frame, number, args=None):
     for column_name, data_frame_col_name in zip(args, dcols):
 
         if args is not None:
-            start = int(args.get('start', 0))
-            inc = int(args.get('increment', 1))
-            prefix = args.get('prefix', '')
-            suffix = args.get('suffix', '')
+            start = int(args.get(column_name).get('start', 0))
+            inc = int(args.get(column_name).get('increment', 1))
+            prefix = args.get(column_name).get('prefix', '')
+            suffix = args.get(column_name).get('suffix', '')
             # if start == 0:
             #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `start`")
             # if inc == 1:
@@ -303,8 +303,8 @@ def random_number(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("random_number")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            start = int(args.get('start',0))
-            end = int(args.get('end',300))
+            start = int(args.get(column_name).get('start',0))
+            end = int(args.get(column_name).get('end',300))
         else:
             start = 0
             end = 300
@@ -329,8 +329,8 @@ def number_range(data_frame, number, args=None):
     for column_name, data_frame_col_name in zip(args, dcols):
 
         if args is not None:
-            start = int(args.get('start', 0))
-            end = int(args.get('end', 20))
+            start = int(args.get(column_name).get('start', 0))
+            end = int(args.get(column_name).get('end', 20))
         else:
             start = 0
             end = 20
