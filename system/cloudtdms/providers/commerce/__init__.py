@@ -194,6 +194,8 @@ currency_symbols = {
 def commerce(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k == 'locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
@@ -287,8 +289,6 @@ def currency(data_frame, number,args=None):
     :type int
      """
     currencies_list=[]
-    print('currency')
-    print(data_frame.columns)
     dcols = [f for f in data_frame.columns if f.startswith("currency") and not 'currency_code' in f]
     for column_name, data_frame_col_name in zip(args, dcols):
         for code, country in currencies:

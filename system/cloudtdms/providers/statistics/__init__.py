@@ -8,6 +8,8 @@ import numpy as np
 def statistics(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k == 'locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
@@ -102,7 +104,7 @@ def binomial(data_frame, number,args=None):
     """
     dcols = [f for f in data_frame.columns if f.startswith("binomial")]
     for column_name, data_frame_col_name in zip(args, dcols):
-        success_rate= args.get('success_rate',0.5) if args is not None else 0.5
+        success_rate= args.get(column_name).get('success_rate',0.5) if args is not None else 0.5
 
         if success_rate >1 or success_rate < 0:
             LoggingMixin().log.warning(f"InvalidValue:success_rate must between 0 and 1")

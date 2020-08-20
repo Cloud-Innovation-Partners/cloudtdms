@@ -8,6 +8,8 @@ import random
 def dates(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k == 'locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
@@ -64,9 +66,9 @@ def date(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("date")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            format = args.get('format', 'dd/mm/YYYY')
-            start = args.get('start', '10/10/2019')
-            end = args.get('end', '10/10/2020')
+            format = args.get(column_name).get('format', 'dd/mm/YYYY')
+            start = args.get(column_name).get('start', '10/10/2019')
+            end = args.get(column_name).get('end', '10/10/2020')
             if get_seperator(format) != get_seperator(start) or get_seperator(format) != get_seperator(end) \
                     or get_seperator(start) != get_seperator(end):
                 format = 'dd/mm/YYYY'
