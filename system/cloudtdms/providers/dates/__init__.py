@@ -64,9 +64,9 @@ def date(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("date")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            format = args.get('format', 'dd/mm/YYYY')
-            start = args.get('start', '10/10/2019')
-            end = args.get('end', '10/10/2020')
+            format = args.get(column_name).get('format', 'dd/mm/YYYY')
+            start = args.get(column_name).get('start', '10/10/2019')
+            end = args.get(column_name).get('end', '10/10/2020')
             if get_seperator(format) != get_seperator(start) or get_seperator(format) != get_seperator(end) \
                     or get_seperator(start) != get_seperator(end):
                 format = 'dd/mm/YYYY'

@@ -287,8 +287,6 @@ def currency(data_frame, number,args=None):
     :type int
      """
     currencies_list=[]
-    print('currency')
-    print(data_frame.columns)
     dcols = [f for f in data_frame.columns if f.startswith("currency") and not 'currency_code' in f]
     for column_name, data_frame_col_name in zip(args, dcols):
         for code, country in currencies:
