@@ -54,6 +54,7 @@ def generate_iterator(data_frame, methods,args_array):
 def data_generator():
     meta_data = providers.get_active_meta_data()
     stream = dag.params.get('stream')
+    locale=dag.params.get('stream').get('locale')
     schema = stream['schema']
     attributes = dag.params.get('attributes')
     nrows = stream['number']
@@ -78,6 +79,7 @@ def data_generator():
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
             args_array={f"{f['field_name']}-$-{f['type'].split('.')[1]}": {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if f.get('type').startswith(attrib)}
             try:
+                args_array['locale']=locale
                 _all = getattr(mod, attrib)                
                 _all(data_frame, nrows, args_array)
             except AttributeError:

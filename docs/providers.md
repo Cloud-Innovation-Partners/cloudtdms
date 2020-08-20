@@ -122,32 +122,6 @@ generation process.
     ```json
     {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200}
     ```
-### Company
-
-1. **company_name :** Generates a random company name.
-    
-    *syntax*:
-    ```json
-    {"field_name" :  "cname", "type" :  "company.company_name"}
-    ```
-    
-2. **department :** Generates a department type such as `Human Resource, Accounting, Engineering, Grocery, Books ...` etc
-    department names can be either of `retail` category or `coporate` category. You can specify the category type by add a value
-    to `category` attribute.
-    
-    + *`category`* : used to specify the category type, can take two values `retail` and `corporate`, by `default` the category
-    has `all` value which will generate a randomly any name out of the two categories.
-    
-    *syntax*:
-    ```json
-    {"field_name" :  "dept", "type" :  "company.department", "category" :  "corporate"}
-    ```  
- 3. **duns_number :** Generates random 9 digit Data Universal Numbering System (DUNS) number such as `31-300-8468, 34-230-3150...` etc.
- 
-    *syntax*:
-    ```json
-    {"field_name":  "duns_id", "type" :  "company.duns_number"}
-    ```
 
 ### Personal
 
@@ -218,6 +192,26 @@ generation process.
     ```json
     {"field_name":  "title", "type" :  "personal.title"}
     ```
+   
+  
+   **```We can specify the locale in `personal` provider attribute in the script. By locale attribute we can generate the localized data based on locale value. You have to specify the locale at global level in script. ```**
+   
+   Example: 
+   
+    STREAM = {
+    "number": 1000,
+    "title": 'Stream2',
+    'locale':'en_GB',
+    "schema": [...],
+    "format": "csv",
+    "frequency": "once" }
+
+   The `personal` provider supports following types of localization:
+   
+   - en_GB, locale code for English.
+   - fa_IR, locale code for Iran.
+   - hi_IN, locale code for India.
+   
     
 ### Location
 1. **country :** Generates a random `country` name such as `United Kingdom, Spain, Algeria...` etc
@@ -314,6 +308,55 @@ generation process.
     {"field_name" :  "municipality", "type" :  "location.municipality"}
     ```
     
+   
+   **```We can also specify the locale in `location` provider.```**
+   
+  
+   Example: 
+   
+    STREAM = {
+    "number": 1000,
+    "title": 'Stream2',
+    'locale':'en_GB',
+    "schema": [...],
+    "format": "csv",
+    "frequency": "once"}
+  
+   
+   The `location` provider supports following types of localization:
+   
+   - ch_CH, locale code for China.
+   - en_UN, locale code for United States.
+   - hi_IN, locale code for India.
+    
+### Company
+
+1. **company_name :** Generates a random company name.
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "cname", "type" :  "company.company_name"}
+    ```
+    
+2. **department :** Generates a department type such as `Human Resource, Accounting, Engineering, Grocery, Books ...` etc
+    department names can be either of `retail` category or `coporate` category. You can specify the category type by add a value
+    to `category` attribute.
+    
+    + *`category`* : used to specify the category type, can take two values `retail` and `corporate`, by `default` the category
+    has `all` value which will generate a randomly any name out of the two categories.
+    
+    *syntax*:
+    ```json
+    {"field_name" :  "dept", "type" :  "company.department", "category" :  "corporate"}
+    ```  
+ 3. **duns_number :** Generates random 9 digit Data Universal Numbering System (DUNS) number such as `31-300-8468, 34-230-3150...` etc.
+ 
+    *syntax*:
+    ```json
+    {"field_name":  "duns_id", "type" :  "company.duns_number"}
+    ```
+  **```The `company` provider currently supports `en_GB` locale. ```**
+
 ### Commerce
 
 1. **credit_card :** Generates a random credit card number.
@@ -382,7 +425,7 @@ generation process.
     ```
 ### Date
 
-1. **dates :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
+1. **date :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
     Few format options are listed below for your reference. 
 
     + *format* : takes a format string as a value

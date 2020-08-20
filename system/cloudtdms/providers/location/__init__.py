@@ -1,6 +1,6 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
-
+from airflow import LoggingMixin
 from faker import Faker
 import random
 import string
@@ -11,6 +11,8 @@ import os
 def location(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k=='locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
@@ -18,7 +20,15 @@ def location(data_frame, number, args):
 
     columns = field_names.keys()
 
-    df = pd.read_csv(f"{os.path.dirname(__file__)}/airport.csv")
+    locale=args.get('locale')
+    if locale is not None:
+        if os.path.exists(f"{os.path.dirname(__file__)}/{locale}"):
+            df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/airport.csv")
+        else:
+            LoggingMixin().log.error(f"InvalidValue found for attribute `locale` in schema.")
+            df = pd.read_csv(f"{os.path.dirname(__file__)}/airport.csv")
+    else:
+        df = pd.read_csv(f"{os.path.dirname(__file__)}/airport.csv")
 
     # {'phone_number': {'phone': {'format': '#-(###)-###-####'}}, 'muncipality': {'muncipality': {}},
     #  'longitude': {'longitude': {}}, 'latitude': {'latitude': {}}, 'country': {'country': {}, 'country2': {}},
@@ -26,7 +36,7 @@ def location(data_frame, number, args):
 
 
 
-    cols=['airport','latitude','longitude','municipality','country','country_code','city','state','postal_code','calling_code']
+    cols=['airport','latitude','longitude','municipality','country','country_code','city','state','postal_code','calling_code', 'timezone']
     t_data_frame = pd.DataFrame(tuple(df[cols].iloc[random.randint(0, len(df) - 1)] for _ in range(number)))
     t_data_frame.reset_index(drop=True, inplace=True)
     data_frame[cols] = t_data_frame
@@ -223,12 +233,11 @@ def airport(number):
 def municipality(number):
     raise NotImplemented
 
-def timezones(number):
+def timezone(number):
     """
         Generator function for timezones
         :param number: Number of records to generate
         :type int
         :return: list
     """
-    faker = Faker()
-    return [faker.timezone() for _ in range(number)]
+    raise NotImplemented

@@ -12,6 +12,8 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 def personal(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k == 'locale':
+            continue
         if k.split('-$-',2)[1] not in field_names:
             field_names[k.split('-$-',2)[1]] = {k.split('-$-',2)[0]: args.get(k)}
         else:
@@ -19,18 +21,15 @@ def personal(data_frame, number, args):
 
     columns = field_names.keys()
     # Set locale
-    locale = 'en_GB'
-    for e in args.values():
-        l = e.get('locale')
-        if l is not None:
-            if os.path.exists(f"{os.path.dirname(__file__)}/{l}"):
-                locale = e.get('locale')
-            else:
-               LoggingMixin().log.error(f"InvalidValue found for attribute `locale` in schema.")
-               locale = 'en_GB'
-            break
-
-    df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/person.csv")
+    locale = args.get('locale')
+    if locale is not None:
+        if os.path.exists(f"{os.path.dirname(__file__)}/{locale}"):
+            df = pd.read_csv(f"{os.path.dirname(__file__)}/{locale}/person.csv")
+        else:
+            LoggingMixin().log.error(f"InvalidValue found for attribute `locale` in schema.")
+            df = pd.read_csv(f"{os.path.dirname(__file__)}/person.csv")
+    else:
+        df = pd.read_csv(f"{os.path.dirname(__file__)}/person.csv")
 
     # {'university': {'univ2': {}}, 'language': {'lang': {}}, 'gender': {'sex': {'set_val': 'M,F'}}, 'first_name': {'first_name': {'category': 'male'}}}
     # gender
