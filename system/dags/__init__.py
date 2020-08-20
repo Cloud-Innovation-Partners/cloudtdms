@@ -87,7 +87,35 @@ for (module, name) in modules:
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         stream = getattr(module, 'STREAM')
         meta_data = get_active_meta_data()
-        schema = stream['schema']
+        schema = []
+        if 'schema' in stream:
+            schema = stream['schema']
+
+        elif 'mask' in stream:
+            mask = stream['mask']
+            for k, v in mask.items():
+
+                v['field_name'] = k
+                schema.append(v)
+            if 'source' in stream:
+                with open(f'/home/shahbaz/airflow_workspace/cloudtdms/user-data/{stream["source"]}.csv') as f:
+                    columns = f.readline()
+                    columns = columns.replace('\n', '')
+                for col in str(columns).split(','):
+                    if col in mask:
+                        pass
+                    else:
+                        schema.append({
+                            "field_name" :  col,
+                            "type" :  "advanced.custom_file",
+                            "name" :  stream['source'],
+                            "column" :  col,
+                            "ignore_headers" :  "no"
+                        })
+
+            else:
+                raise ValueError(f'No `source` value found in script {name}')
+            stream['schema'] = schema
         attributes = {}
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
         for scheme in schema:
