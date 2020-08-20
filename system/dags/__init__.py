@@ -98,7 +98,7 @@ for (module, name) in modules:
                 v['field_name'] = k
                 schema.append(v)
             if 'source' in stream:
-                with open(f'/home/shahbaz/airflow_workspace/cloudtdms/user-data/{stream["source"]}.csv') as f:
+                with open(f'{get_cloudtdms_home()}/user-data/{stream["source"]}.csv', 'r') as f:
                     columns = f.readline()
                     columns = columns.replace('\n', '')
                 for col in str(columns).split(','):
