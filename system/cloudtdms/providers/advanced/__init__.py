@@ -69,8 +69,6 @@ def encryption(record, key):
 
 
 def encrypt(data_frame, column, key):
-    print(data_frame.columns)
-    print(column)
     data_frame[column]=data_frame[column].apply(encryption, key=key)
 
 

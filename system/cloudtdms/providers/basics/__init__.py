@@ -71,7 +71,7 @@ def boolean(data_frame, number, args=None):
             value = value if isinstance(value, str) else '1,0'
             boolean_values = value.split(',')[:2]
         else:
-            boolean_values = ['true', 'false']
+            boolean_values = ['1', '0']
 
         boolean_weights = [0.5, 0.5]
         boolean_list = random.choices(population=boolean_values, weights=boolean_weights, k=number)
