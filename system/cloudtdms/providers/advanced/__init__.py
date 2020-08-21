@@ -5,6 +5,13 @@ import re
 import os
 import random
 import pandas as pd
+import numpy as np
+import base64
+
+from airflow.utils.log.logging_mixin import LoggingMixin
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 from airflow.configuration import get_airflow_home
 
 
@@ -43,7 +50,64 @@ def custom_list(data_frame, number, args=None):
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
+def set_null(data_frame, column):
+    data_frame[column]=np.nan
+
+
+
+
+def get_key(custom_key):
+    digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
+    digest.update(custom_key)
+    return base64.urlsafe_b64encode(digest.finalize())
+
+def encryption(record, key):
+    f = Fernet(get_key(bytes(key, 'utf-8')))
+    encoded_text = f.encrypt(bytes(str(record), 'utf-8'))
+    return encoded_text
+    # decoded_text = cipher_suite.decrypt(encoded_text)
+
+
+def encrypt(data_frame, column, key):
+    print(data_frame.columns)
+    print(column)
+    data_frame[column]=data_frame[column].apply(encryption, key=key)
+
+
+def masking(record, with_, character, from_):
+    record = str(record)
+    characters = int(character)
+    if from_ == 'start':
+        if len(record) < characters:
+            record = with_ * len(record)
+        else:
+            record = with_ * characters + record[characters:]
+    elif from_ == 'end':
+        if len(record) < characters:
+            record = with_ * len(record)
+        else:
+            record = record[:-characters] + with_ * characters
+    elif from_ == 'mid':
+        if len(record) < characters:
+            record = with_ * len(record)
+        else:
+            mid = int(len(record) / 2)
+            sub_part = record[:mid - 1] + with_ * characters
+            record = sub_part + record[len(sub_part):]
+    else:
+        LoggingMixin().log.error("Invalid masking attributes...")
+    return record
+
+
+def mask_out(data_frame, column, with_, character, from_):
+    data_frame[column]=data_frame[column].apply(masking,with_=with_, character=character, from_=from_)
+
+
+def shuffle(data_frame, column):
+    data_frame[column]=data_frame[column].sample(frac=1).reset_index(drop=True)
+
 def custom_file(data_frame, number, args=None):
+
     data_path = f"{os.path.dirname(get_airflow_home())}/user-data"
     dcols = [f for f in data_frame.columns if f.startswith("custom_file")]
     for column_name, data_frame_col_name in zip(args, dcols):
@@ -54,6 +118,7 @@ def custom_file(data_frame, number, args=None):
 
         name = args.get(column_name).get('name')
         column = args.get(column_name).get('column')
+
         if name is None:
             raise AttributeError(f"No value found for attribute `name` in `advanced.custom_file` schema entry!")
         if column is None:
@@ -78,6 +143,25 @@ def custom_file(data_frame, number, args=None):
                 data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
         except FileNotFoundError:
             raise
+
+        if 'encrypt' in args.get(column):
+            key=args.get(column).get('encrypt').get('key')
+            encrypt(data_frame, column, key)
+        elif 'shuffle' in args.get(column):
+            shuffle_value=args.get(column).get('shuffle').lower()
+            shuffle_value = True if shuffle_value == 'true' else False
+            if shuffle_value:
+                shuffle(data_frame, column)
+        elif 'mask_out' in args.get(column):
+            with_=args.get(column).get('mask_out').get('with')
+            character=args.get(column).get('mask_out').get('character')
+            size=args.get(column).get('mask_out').get('from')
+            mask_out(data_frame, column, with_,character, size)
+        elif 'set_null' in args.get(column):
+            set_null_value = args.get(column).get('set_null').lower()
+            set_null_value = True if set_null_value == 'true' else False
+            if set_null_value:
+                set_null(data_frame,column)
 
 
 def concatenate(data_frame, number, args=None):
