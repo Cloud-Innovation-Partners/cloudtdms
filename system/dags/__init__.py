@@ -123,8 +123,8 @@ for (module, name) in modules:
         dag_file_path = f"{get_airflow_home()}/dags/{name}.py"
         with open(dag_file_path, 'w') as f:
             f.write(output)
-        os.chmod(dag_file_path, 0o664)
-        os.chown(dag_file_path, pwd.getpwnam("cloudtdms").pw_uid, grp.getgrnam("cloudtdms").gr_gid)
+        #os.chmod(dag_file_path, 0o664)
+        #os.chown(dag_file_path, pwd.getpwnam("cloudtdms").pw_uid, grp.getgrnam("cloudtdms").gr_gid)
         LoggingMixin().log.info(f"Creating DAG: {name}")
     else:
         LoggingMixin().log.warn(f"No `STREAM` attribute found in script {name}.py")
