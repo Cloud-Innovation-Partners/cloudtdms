@@ -205,22 +205,22 @@ def custom_file(data_frame, number, args=None):
         except FileNotFoundError:
             raise
 
-        if 'encrypt' in args.get(column):
-            key=args.get(column).get('encrypt').get('key')
-            type=args.get(column).get('encrypt').get('type','fernet').lower()
+        if 'encrypt' in args.get(column_name):
+            key=args.get(column_name).get('encrypt').get('key')
+            type=args.get(column_name).get('encrypt').get('type','fernet').lower()
             encrypt(data_frame, column, key, type)
-        elif 'shuffle' in args.get(column):
-            shuffle_value=args.get(column).get('shuffle').lower()
+        elif 'shuffle' in args.get(column_name):
+            shuffle_value=args.get(column_name).get('shuffle').lower()
             shuffle_value = True if shuffle_value == 'true' else False
             if shuffle_value:
                 shuffle(data_frame, column)
-        elif 'mask_out' in args.get(column):
-            with_=args.get(column).get('mask_out').get('with')
-            character=args.get(column).get('mask_out').get('character')
-            size=args.get(column).get('mask_out').get('from')
+        elif 'mask_out' in args.get(column_name):
+            with_=args.get(column_name).get('mask_out').get('with')
+            character=args.get(column_name).get('mask_out').get('character')
+            size=args.get(column_name).get('mask_out').get('from')
             mask_out(data_frame, column, with_,character, size)
-        elif 'set_null' in args.get(column):
-            set_null_value = args.get(column).get('set_null').lower()
+        elif 'set_null' in args.get(column_name):
+            set_null_value = args.get(column_name).get('set_null').lower()
             set_null_value = True if set_null_value == 'true' else False
             if set_null_value:
                 set_null(data_frame,column)
