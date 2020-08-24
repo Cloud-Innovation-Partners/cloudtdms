@@ -117,7 +117,7 @@ def create_service_user_group():
                      executable='/bin/bash').communicate()
 
     user_id = os.environ['SUDO_UID']
-    subprocess.Popen([f"usermod -aG cloudtdms {pwd.getpwuid(int(user_id)).pw_name} & newgrp cloudtdms"],
+    subprocess.Popen([f"usermod -aG cloudtdms {pwd.getpwuid(int(user_id)).pw_name}"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
@@ -200,13 +200,13 @@ if __name__ == "__main__":
     check_python_version()
     install_packages_from_requirement_file()
     set_airflow_home_as_environment()
-
+    modify_configuration()
+    create_service_user_group()
+    change_ownership_permissions()
     if os.path.exists(f"{AIRFLOW_HOME}/airflow.db"):
         airflow_resetdb()
     else:
         airflow_initdb()
-    modify_configuration()
-    create_service_user_group()
     change_ownership_permissions()
     create_system_service_entries()
     reload_enable__airflow_webserver_service()
