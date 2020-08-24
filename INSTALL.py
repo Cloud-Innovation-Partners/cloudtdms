@@ -5,6 +5,7 @@
 
 import sys
 import os
+import pwd
 import subprocess
 
 AIRFLOW_HOME = f"{os.path.abspath(os.path.dirname(__file__))}/system"
@@ -115,6 +116,18 @@ def create_service_user_group():
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
+    user_id = os.environ['SUDO_UID']
+    subprocess.Popen([f"usermod -aG cloudtdms {pwd.getpwuid(int(user_id)).pw_name} & newgrp cloudtdms"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+
+
+def change_ownership_permissions():
+    dirname = os.getcwd()
+    subprocess.Popen([f"chown -R cloudtdms:cloudtdms {dirname} & chmod -R ug+rw {dirname}"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+
 
 def create_system_service_entries():
     from jinja2 import Template
@@ -166,7 +179,7 @@ def reload_enable_airflow_scheduler_service():
 
 
 def start_airflow():
-    print("starting mini-BRS")
+    print("starting CloudTDMS...")
     subprocess.Popen(["service airflow-webserver start"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
@@ -194,6 +207,7 @@ if __name__ == "__main__":
         airflow_initdb()
     modify_configuration()
     create_service_user_group()
+    change_ownership_permissions()
     create_system_service_entries()
     reload_enable__airflow_webserver_service()
     reload_enable_airflow_scheduler_service()
