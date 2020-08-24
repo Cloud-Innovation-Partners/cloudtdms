@@ -51,7 +51,7 @@ def location(data_frame, number, args):
 
 
     # name,latitude,longitude,municipality,country,region,cities,states,postal_codes
-    for col in ['airport','latitude','longitude','municipality', 'calling_code', 'timezone','country','country_code','city','state','postal_code']:
+    for col in ['airport','latitude','longitude','municipality', 'timezone','country','country_code','city','state','postal_code']:
         if col not in columns:
             data_frame.drop(col, inplace=True, axis=1)
 
@@ -145,7 +145,7 @@ def replace_hashes(format, cell_number, country_code):
 
 # {'phone': {'format': '#-(###)-###-####'}}
 def phone_number(data_frame, number, args=None):
-    print(data_frame.columns)
+
     """
      Generator function for phone numbers
      :param number: Number of records to generate
