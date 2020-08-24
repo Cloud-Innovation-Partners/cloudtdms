@@ -11,6 +11,7 @@ WORKDIR /opt/cloudtdms
 RUN pip install faker
 RUN pip install apache-airflow==1.10.9
 RUN pip install SQLAlchemy==1.3.15
+RUN pip install cryptography
 
 # Copy selected subdirectories only
 RUN mkdir scripts
