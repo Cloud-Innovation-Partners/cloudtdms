@@ -1,2 +1,5 @@
 apache-airflow==1.10.10
 faker
+cryptography
+onetimepad
+pycrypto
