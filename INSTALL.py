@@ -2,11 +2,27 @@
 
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
+#  Installation Script for Ubuntu 18.04
+#   ____ _                 _ _____ ____  __  __ ____
+#  / ___| | ___  _   _  __| |_   _|  _ \|  \/  / ___|
+# | |   | |/ _ \| | | |/ _` | | | | | | | |\/| \___ \
+# | |___| | (_) | |_| | (_| | | | | |_| | |  | |___) |
+#  \____|_|\___/ \__,_|\__,_| |_| |____/|_|  |_|____/
+#
 
 import sys
 import os
 import pwd
 import subprocess
+
+figlet = """
+  ____ _                 _ _____ ____  __  __ ____  
+ / ___| | ___  _   _  __| |_   _|  _ \|  \/  / ___| 
+| |   | |/ _ \| | | |/ _` | | | | | | | |\/| \___ \ 
+| |___| | (_) | |_| | (_| | | | | |_| | |  | |___) |
+ \____|_|\___/ \__,_|\__,_| |_| |____/|_|  |_|____/ 
+
+"""
 
 AIRFLOW_HOME = f"{os.path.abspath(os.path.dirname(__file__))}/system"
 
@@ -197,6 +213,8 @@ def modify_configuration():
 
 
 if __name__ == "__main__":
+    print("Initiating Installation process...")
+    print(figlet)
     check_python_version()
     install_packages_from_requirement_file()
     set_airflow_home_as_environment()
