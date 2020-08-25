@@ -1,6 +1,5 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
-import hashlib
 import re
 import os
 import random

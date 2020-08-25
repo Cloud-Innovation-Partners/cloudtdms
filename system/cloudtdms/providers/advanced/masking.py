@@ -4,6 +4,7 @@ import hashlib
 
 import numpy as np
 import base64
+import hashlib
 import onetimepad
 from Crypto.Cipher import AES
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -30,6 +31,7 @@ def encryption(record, key):
 def caesar(record, key):
     result = ""
     key=int(key)
+    record = str(record)
     # transverse the plain text
     for i in range(len(record)):
         char = record[i]
