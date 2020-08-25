@@ -535,18 +535,17 @@ generation process.
    for generating masked data from your data set.
    
    + *encrypt* : With this option you can apply encryption on the data column, this option takes a dictionary as a value 
-                 which contains the `encryption_key` and `type` of encryption to be used for the process. In case no key is provided, encryption process
-                 will not be applied.
-                 
-   In the current version of `cloudtdms` the encryption techniques are:
-   + *fernet*
-   + *ceasar*
-   + *monoaplha*
-   + *onetimepad*
-   + *aes*
-   
-     You can specify the encryption technique by setting the value for `type` attribute, as shown in the syntax below:
-   
+                 which contains the `encryption_key` and `type` of encryption to be used for the process. In case no key 
+                 is provided, encryption process will not be applied.
+     
+     - *type* : This attribute is used to specify the type of encryption to be used in the process. Currently `cloutdms`
+                has support for following encryption techniques:
+                `fernet`, `caesar`, `monoaplha`, `onetimepad`, `aes`. The `type` attribute can take any one of the value from
+                these techniques. For more information check `data_masking` document.
+     
+     - *key* : This attribute is used to specify the encryption key. Key value need to be string or integer depending on the
+               the technique used to encrypt. e.q in `caesar` cipher key must always be integer else exception will be raised
+                
      *syntax*:
                  
       ```json
@@ -556,15 +555,12 @@ generation process.
         "name" :  "my_data_set", 
         "column" :  "4", 
         "ignore_headers" :  "yes", 
-        "encrypt": {"type": "ceasar","key" : "js7AaX3nFh72fuhueVAgc1G"}
+        "encrypt": {"type": "caesar","key" : 9797 }
         }
       ```
-     **Note:**  1. *You don't have to specify a `key` for `monoalpha` encryption technique.*
-                   2. *For `caesar` encryption technique, you must provide the key which contains only integers.*
-     
      
    + *mask_out* : With this option you can apply character substitution to values. You can replace a value character 
-                  with a symbol such as “*” or “x” etc. to mask the actual data. This option takes a dictionary value 
+                  with a symbol such as `*` or `x` etc. to mask the actual data. This option takes a dictionary value 
                   comprising three keys.
                   
      - *with* : This attribute takes a single character as value such as `*` or `x` which will be used as a substitute value
