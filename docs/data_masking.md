@@ -19,8 +19,7 @@ With `CloudTDMS` you can perform various data masking operations besides generat
 
 ## Basic Usage
 We shall take an example to describe the basic usage of the data masking feature. Suppose we have a sample bank data named 
-**`Churn-Modeling.csv`** with following contents. We will apply `substitution`, `encryption`, `masking out` etc on
-this data file
+**`Churn-Modeling.csv`** with following contents. We shall apply various data masking technique on this data.
 
 ```csv
 RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,NumOfProducts,HasCrCard,IsActiveMember,EstimatedSalary,Exited
@@ -30,7 +29,8 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
 4,15701354,Boni,699,France,Female,39,1,0,2,0,0,93826.63,0
 5,15737888,Mitchell,850,Spain,Female,43,2,125510.82,1,1,1,79084.1,0
 ```
-  
+### Steps
+
 1. Place your data file inside **`user-data`** folder of the `cloutdms`. Only `csv` data files are allowed, for any
    other file type system will throw exception.
    
@@ -40,45 +40,118 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
    
    Following is an example script.
    
-```python
-STREAM = {
+    ```
+    STREAM = {
+        "number": 1000,
+        "title": 'Stream6',
+        "source": 'Churn-Modeling',
+        "substitute": {
+            "Surname": {"type" : "personal.last_name"},
+            "Gender": {"type": "personal.gender"},
+            "Geography": {"type" : "location.country"}
+        },
+        "encrypt": {
+            "columns": ["EstimatedSalary", "Balance"],
+            "type" : "ceaser",
+            "encryption_key": "Jd28hja8HG9wkjw89yd"
+        },
+        "mask_out": {
+        "CustomerId": {
+            "with": "x",
+                    "characters": 4,
+                    "from": "start"	
+        }
+        },
+        "shuffle": ["NumOfProducts", "IsActiveMember"],
+        "nullying" : ["RowNumber"],
+        "delete" : ["CreditScore"],
+        "schema": [
+            {"field_name": "fname", "type": "personal.first_name", "locale": "fa_IR"},
+            {"field_name": "lname", "type": "personal.last_name",},
+            {"field_name": "sex", "type": "personal.gender"},
+            {"field_name": "email", "type": "personal.email_address"},
+            {"field_name": "user", "type": "personal.username"},
+            {"field_name": "univ", "type": "personal.university"},
+            {"field_name": "lang", "type": "personal.language"}
+        ],
+        "format": "csv",
+        "frequency": "once"
+    }
+    ``` 
+
+## Data Masking
+
+1. **Anonymization / Substitution :**
+   Anonymization or substitution, substitutes realistic but false data for the original to ensure privacy. It is used to 
+   allow for testing, training, application development, or support personnel to work with the data set without sharing 
+   sensitive data.
+   
+   In order to use anonymization technique on personal identifiable information (PII), You can choose a compatible realistic data
+   provider from the list of providers in the `cloudtdms`. Once you have found a compatible provider, you can use that to
+   generate substitute value for your real data. for example, In case of bank data example mentioned above. The PII are 
+   `Surname`, `Gender`, `Country`. In order to anonymize PII's in the data file we use **`substitute`** attribute in our 
+   script, The substitute attribute takes a dictionary as value, where `key` represents the column in the data
+   file and `value` represents a cloudtdms provider to be used as substitute value. 
+   
+   In the below code snippet we took `last_name` provider from the `personal` category of the cloudtdms to be used as a 
+   substitution value for the `Surname` data. The `last_name` provider is going to generate synthetic data for the column `Surname`
+   Similarly, we have used `gender` provider from the `personal` category to replace `Gender` and `country` provider from 
+   `location` category to replace `Geography` values in the real data. 
+   ```
+    STREAM = {
     "number": 1000,
-    "title": 'Stream6',
+    "title": 'substitute_example',
     "source": 'Churn-Modeling',
+    "format": "csv",
+    "frequency": "once",
+
     "substitute": {
         "Surname": {"type" : "personal.last_name"},
         "Gender": {"type": "personal.gender"},
         "Geography": {"type" : "location.country"}
-    },
-    "encrypt": {
-        "columns": ["EstimatedSalary", "Balance"],
-        "type" : "ceaser",
-        "encryption_key": "Jd28hja8HG9wkjw89yd"
-    },
-    "mask_out": {
-	"CustomerId": {
-		"with": "x",
-                "characters": 4,
-                "from": "start"	
-	}
-    },
-    "shuffle": ["NumOfProducts", "IsActiveMember"],
-    "nullying" : ["RowNumber"],
-    "delete" : ["CreditScore"],
-    "schema": [
-        {"field_name": "fname", "type": "personal.first_name", "locale": "fa_IR"},
-        {"field_name": "lname", "type": "personal.last_name",},
-        {"field_name": "sex", "type": "personal.gender"},
-        {"field_name": "email", "type": "personal.email_address"},
-        {"field_name": "user", "type": "personal.username"},
-        {"field_name": "univ", "type": "personal.university"},
-        {"field_name": "lang", "type": "personal.language"}
-    ],
+    }
+    }
+   ```
+    
+2. **Encryption :**
+   Encryption is very secure, but you lose the ability to work with or analyze the data while it’s encrypted. It is a good 
+   obfuscation method if you need to store or transfer data securely.
+   
+   In order to use encryption on an sensitive data, You can choose type of encryption to be used from the various encryption's
+   supported by cloudtdms. *encryption's are resource intensive's, they consume lot of processing power and are usually
+   time consuming*.   
+   
+   In case of bank data example mentioned above. We are using encryption for two columns `EstimatedSalary`, `Balance`,
+   To encrypt the values for these columns we need to use attribute `encrypt` inside our `STREAM` dictionary. `encrypt` key
+   take a dictionary as a value which contains information about the type of encryption and encryption key besides
+   the names of the columns to be used for encryption. Lets discuss each attribute of `encrypt` attribute.
+   
+    - *columns* : This is an array of column names that need to be encrypted 
+   
+    - *type* : This attribute is used to specify the type of encryption to be used in the process. Currently `cloutdms`
+                has support for following encryption techniques:
+                `fernet`, `caesar`, `monoaplha`, `onetimepad`, `aes`. The `type` attribute can take any one of the value from
+                these techniques.
+     
+    - *key* : This attribute is used to specify the encryption key. Key value need to be string or integer depending on the
+               the technique used to encrypt. e.q in `caesar` cipher key must always be integer else exception will be raised
+  
+   ```
+    STREAM = {
+    "number": 1000,
+    "title": 'encrypt_example',
+    "source": 'Churn-Modeling',
     "format": "csv",
-    "frequency": "once"
-}
-``` 
+    "frequency": "once",
 
+    "encrypt": {
+            "columns": ["EstimatedSalary", "Balance"],
+            "type" : "ceaser",
+            "encryption_key": "Jd28hja8HG9wkjw89yd"
+    }
+    }
+   ```
+   
 **Encryption techniques**
 
 The various techniques the the curernt version of `cloudtdms` supports are:
