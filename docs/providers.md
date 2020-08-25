@@ -534,22 +534,35 @@ generation process.
    With `custom_file` function, you can use data masking options to mask your custom data. Following are the available options
    for generating masked data from your data set.
    
-   + *encrypt* : With this option you can apply `AES` encryption on the data column, this option takes a dictionary as a value 
-                 which contains the `encryption_key` to be used for the process. In case no key is provided, encryption process
+   + *encrypt* : With this option you can apply encryption on the data column, this option takes a dictionary as a value 
+                 which contains the `encryption_key` and `type` of encryption to be used for the process. In case no key is provided, encryption process
                  will not be applied.
                  
+   In the current version of `cloudtdms` the encryption techniques are:
+   + *fernet*
+   + *ceasar*
+   + *monoaplha*
+   + *onetimepad*
+   + *aes*
+   
+     You can specify the encryption technique by setting the value for `type` attribute, as shown in the syntax below:
+   
      *syntax*:
                  
-        ```json
+      ```json
         {
         "field_name" :  "custom_column", 
         "type" :  "advanced.custom_file", 
         "name" :  "my_data_set", 
         "column" :  "4", 
         "ignore_headers" :  "yes", 
-        "encrypt": {"key" : "js7AaX3nFh72fuhueVAgc1G"}
+        "encrypt": {"type": "ceasar","key" : "js7AaX3nFh72fuhueVAgc1G"}
         }
-        ```
+      ```
+     **Note:**  1. *You don't have to specify a `key` for `monoalpha` encryption technique.*
+                   2. *For `caesar` encryption technique, you must provide the key which contains only integers.*
+     
+     
    + *mask_out* : With this option you can apply character substitution to values. You can replace a value character 
                   with a symbol such as “*” or “x” etc. to mask the actual data. This option takes a dictionary value 
                   comprising three keys.
