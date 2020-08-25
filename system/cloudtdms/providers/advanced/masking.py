@@ -1,5 +1,6 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
+import hashlib
 
 import numpy as np
 import base64
@@ -50,6 +51,7 @@ def monoalpha_cipher(record):
 
 def onetime(record, key):
     record =str(record)
+    key=str(key)
     cipher = onetimepad.encrypt(record, key)
     return cipher
 
