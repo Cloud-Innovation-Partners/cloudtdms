@@ -1,4 +1,83 @@
+# Data Masking / Data Obfuscation
 
+Data masking or data obfuscation is the process of hiding original data with modified content, The main reason for applying 
+masking to a data field is to protect data that is classified as personally identifiable information, sensitive personal data, 
+or commercially sensitive data. [*courtesy* : [wikipedia](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjftM33iLbrAhWC8HMBHQlDBEMQmhMwJXoECAMQAg&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FData_masking&usg=AOvVaw2RlM7u4zsoU6I2zbbJGBot)]
+
+In an organisation data may be needed at various fronts such as `Analysis`, `Training`, `DevOps`, `3rd Party` or `Development`, Using
+production data is always going to cost you with regards to compliance and security. `CloudTDMS` provides you an option to 
+anonymize personally identifiable information and hide sensitive data by masking it using various data masking techniques.
+
+## Scope 
+With `CloudTDMS` you can perform various data masking operations besides generating synthetic data. You can:
+
++ Anonymize sensitive data with synthetic data
++ Encrypt data with available encryption techniques
++ Perform masking using pseudo characters
++ Shuffle data
++ Perform nullying and deletion operations
+
+## Basic Usage
+We shall take an example to describe the basic usage of the data masking feature. Suppose we have a sample bank data named 
+**`Churn-Modeling.csv`** with following contents. We will apply `substitution`, `encryption`, `masking out` etc on
+this data file
+
+```csv
+RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,NumOfProducts,HasCrCard,IsActiveMember,EstimatedSalary,Exited
+1,15634602,Hargrave,619,France,Female,42,2,0,1,1,1,101348.88,1
+2,15647311,Hill,608,Spain,Female,41,1,83807.86,1,0,1,112542.58,0
+3,15619304,Onio,502,France,Female,42,8,159660.8,3,1,0,113931.57,1
+4,15701354,Boni,699,France,Female,39,1,0,2,0,0,93826.63,0
+5,15737888,Mitchell,850,Spain,Female,43,2,125510.82,1,1,1,79084.1,0
+```
+  
+1. Place your data file inside **`user-data`** folder of the `cloutdms`. Only `csv` data files are allowed, for any
+   other file type system will throw exception.
+   
+2. create a script inside **`scripts`** folder with name say `example.py`. Now we shall create a **`STREAM`** variable 
+   which represents a python dictionary for specifying our configuration. `cloudtdms` will load your script and start the 
+   data generation process. You can find your generated data inside **`data`** folder of `cloudtdms`.
+   
+   Following is an example script.
+   
+```python
+STREAM = {
+    "number": 1000,
+    "title": 'Stream6',
+    "source": 'Churn-Modeling',
+    "substitute": {
+        "Surname": {"type" : "personal.last_name"},
+        "Gender": {"type": "personal.gender"},
+        "Geography": {"type" : "location.country"}
+    },
+    "encrypt": {
+        "columns": ["EstimatedSalary", "Balance"],
+        "type" : "ceaser",
+        "encryption_key": "Jd28hja8HG9wkjw89yd"
+    },
+    "mask_out": {
+	"CustomerId": {
+		"with": "x",
+                "characters": 4,
+                "from": "start"	
+	}
+    },
+    "shuffle": ["NumOfProducts", "IsActiveMember"],
+    "nullying" : ["RowNumber"],
+    "delete" : ["CreditScore"],
+    "schema": [
+        {"field_name": "fname", "type": "personal.first_name", "locale": "fa_IR"},
+        {"field_name": "lname", "type": "personal.last_name",},
+        {"field_name": "sex", "type": "personal.gender"},
+        {"field_name": "email", "type": "personal.email_address"},
+        {"field_name": "user", "type": "personal.username"},
+        {"field_name": "univ", "type": "personal.university"},
+        {"field_name": "lang", "type": "personal.language"}
+    ],
+    "format": "csv",
+    "frequency": "once"
+}
+``` 
 
 **Encryption techniques**
 
