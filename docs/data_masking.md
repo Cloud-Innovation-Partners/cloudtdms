@@ -66,13 +66,8 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
         "nullying" : ["RowNumber"],
         "delete" : ["CreditScore"],
         "schema": [
-            {"field_name": "fname", "type": "personal.first_name", "locale": "fa_IR"},
-            {"field_name": "lname", "type": "personal.last_name",},
-            {"field_name": "sex", "type": "personal.gender"},
             {"field_name": "email", "type": "personal.email_address"},
-            {"field_name": "user", "type": "personal.username"},
             {"field_name": "univ", "type": "personal.university"},
-            {"field_name": "lang", "type": "personal.language"}
         ],
         "format": "csv",
         "frequency": "once"
