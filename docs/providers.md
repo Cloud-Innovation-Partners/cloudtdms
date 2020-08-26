@@ -209,8 +209,6 @@ generation process.
    The `personal` provider supports following types of localization:
    
    - en_GB, locale code for English.
-   - fa_IR, locale code for Iran.
-   - hi_IN, locale code for India.
    
     
 ### Location
@@ -325,9 +323,7 @@ generation process.
    
    The `location` provider supports following types of localization:
    
-   - ch_CH, locale code for China.
-   - en_UN, locale code for United States.
-   - hi_IN, locale code for India.
+   - en_US, locale code for United States.
     
 ### Company
 
