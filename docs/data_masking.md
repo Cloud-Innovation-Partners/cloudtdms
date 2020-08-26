@@ -1,10 +1,10 @@
 # Data Masking / Data Obfuscation
 
-Data masking or data obfuscation is the process of hiding original data with modified content, The main reason for applying 
+Data masking or data obfuscation is the process of hiding original data with modified content, the main reason for applying 
 masking to a data field is to protect data that is classified as personally identifiable information, sensitive personal data, 
 or commercially sensitive data. [*courtesy* : [wikipedia](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjftM33iLbrAhWC8HMBHQlDBEMQmhMwJXoECAMQAg&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FData_masking&usg=AOvVaw2RlM7u4zsoU6I2zbbJGBot)]
 
-In an organisation data may be needed at various fronts such as `Analysis`, `Training`, `DevOps`, `3rd Party` or `Development`, Using
+In an organisation data may be needed at various fronts such as `Analysis`, `Training`, `DevOps`, `3rd Party` or `Development`. Using
 production data is always going to cost you with regards to compliance and security. `CloudTDMS` provides you an option to 
 anonymize personally identifiable information and hide sensitive data by masking it using various data masking techniques.
 
@@ -34,7 +34,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
 1. Place your data file inside **`user-data`** folder of the `cloutdms`. Only `csv` data files are allowed, for any
    other file type system will throw exception.
    
-2. create a script inside **`scripts`** folder with name say `example.py`. Now we shall create a **`STREAM`** variable 
+2. Create a script inside **`scripts`** folder with name say `example.py`. Now we shall create a **`STREAM`** variable 
    which represents a python dictionary for specifying our configuration. `cloudtdms` will load your script and start the 
    data generation process. You can find your generated data inside **`data`** folder of `cloudtdms`.
    
@@ -57,7 +57,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
         },
         "mask_out": {
         "CustomerId": {
-            "with": "x",
+                    "with": "x",
                     "characters": 4,
                     "from": "start"	
         }
@@ -86,15 +86,15 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
    allow for testing, training, application development, or support personnel to work with the data set without sharing 
    sensitive data.
    
-   In order to use anonymization technique on personal identifiable information (PII), You can choose a compatible realistic data
+   In order to use anonymization technique on Personal Identifiable Information (PII), you can choose a compatible realistic data
    provider from the list of providers in the `cloudtdms`. Once you have found a compatible provider, you can use that to
-   generate substitute value for your real data. for example, In case of bank data example mentioned above. The PII are 
+   generate substitute value for your real data. For example, in case of bank data example mentioned above. The PII are 
    `Surname`, `Gender`, `Country`. In order to anonymize PII's in the data file we use **`substitute`** attribute in our 
-   script, The substitute attribute takes a dictionary as value, where `key` represents the column in the data
-   file and `value` represents a cloudtdms provider to be used as substitute value. 
+   script. The substitute attribute takes a dictionary as value, where `key` represents the column in the data
+   file and `value` represents a `cloudtdms` provider to be used as substitute value. 
    
-   In the below code snippet we took `last_name` provider from the `personal` category of the cloudtdms to be used as a 
-   substitution value for the `Surname` data. The `last_name` provider is going to generate synthetic data for the column `Surname`
+   In the below code snippet we took `last_name` provider from the `personal` category of the `cloudtdms` to be used as a 
+   substitution value for the `Surname` data. The `last_name` provider is going to generate synthetic data for the column `Surname`.
    Similarly, we have used `gender` provider from the `personal` category to replace `Gender` and `country` provider from 
    `location` category to replace `Geography` values in the real data. 
    ```
@@ -117,8 +117,8 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
    Encryption is very secure, but you lose the ability to work with or analyze the data while it’s encrypted. It is a good 
    obfuscation method if you need to store or transfer data securely.
    
-   In order to use encryption on an sensitive data, You can choose type of encryption to be used from the various encryption's
-   supported by cloudtdms. *encryption's are resource intensive's, they consume lot of processing power and are usually
+   In order to use encryption on an sensitive data, you can choose type of encryption to be used from the various encryption's
+   supported by `cloudtdms`. *encryption's are resource intensive's, they consume lot of processing power and are usually
    time consuming*.   
    
    In case of bank data example mentioned above. We are using encryption for two columns `EstimatedSalary`, `Balance`,
@@ -164,21 +164,13 @@ The various techniques the the curernt version of `cloudtdms` supports are:
  **Fernet(symmetric encryption):** `Fernet` guarantees that a message encrypted using it cannot be manipulated or read without the key. `Fernet` 
                                     is an implementation of symmetric (also known as “secret key”) authenticated cryptography.
  
- The syntax for using `fernet` in `cloudtdms` is given below:
- 
- *syntax*:
-   
-    ```json
-        {
-        "field_name" :  "custom_column", 
-        "type" :  "advanced.custom_file", 
-        "name" :  "my_data_set", 
-        "column" :  "4", 
-        "ignore_headers" :  "yes", 
-        "encrypt": {"type": "fernet","key" : "your key here"}
-        }
-      ```
-                                     
+   *Example:*
+         
+        Key:      helloworld123
+  
+        Plain:    My name is Jhon
+        
+        Fernet Encryption:   b'gAAAAABfRgB14pvxcSm9CkS1whOVlWdxWmxzKxVW-BM70CBucTNi4YYPpX9jY0GjUEUTb7gPNDuXOyE69k-0Ku4XJDJ0PCOIkg=='
  
  **Caeser:** `Caesar cipher` is one of the simplest and most widely known encryption techniques. It is a type of
              substitution cipher in which each letter in the plaintext is replaced by a letter some fixed number of 
@@ -187,24 +179,12 @@ The various techniques the the curernt version of `cloudtdms` supports are:
              
   *Example:*
   
-        Plain:    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        Key:      15
+  
+        Plain:    My name is Jhon
         
-        Cipher:   XYZABCDEFGHIJKLMNOPQRSTUVW
+        Cipher:   BnccpbtcxhcYwdc
         
- The syntax for using `caeser` in `cloudtdms` is given below:
- 
- *syntax*:
-   
-    ```json
-        {
-        "field_name" :  "custom_column", 
-        "type" :  "advanced.custom_file", 
-        "name" :  "my_data_set", 
-        "column" :  "4", 
-        "ignore_headers" :  "yes", 
-        "encrypt": {"type": "caeser","key" : "your key here"}
-        }
-      ```
  **Note:**  *For `caesar` encryption technique, you must provide the key which contains only integers.*
  
  
@@ -213,39 +193,24 @@ The various techniques the the curernt version of `cloudtdms` supports are:
                 and the message is `hello`. From the mapping values `h` will be replaced with `J`, `e` with `P`, `l` with `T`
                 and so on. Finally the message `hello` will be encrypted as `JPTTG`.
    
-  The syntax for using `monoalpha` in `cloudtdms` is given below:
- 
- *syntax*:
-   
-    ```json
-        {
-        "field_name" :  "custom_column", 
-        "type" :  "advanced.custom_file", 
-        "name" :  "my_data_set", 
-        "column" :  "4", 
-        "ignore_headers" :  "yes", 
-        "encrypt": {"type": "monoalpha"}
-        }
-      ```       
+ *Example:*
+  
+        Plain:       My name is Jhon
+        
+        monoaplha:   Hw jmhc si Dakj
+               
  **Note:**  *You don't have to specify a `key` for `monoalpha` encryption technique.* 
  
  **onetimepad:** The one-time pad (OTP) is an encryption technique that cannot be cracked, but requires the use of 
                 a one-time pre-shared key the same size as, or longer than, the message being sent.      
                 
-  The syntax for using `onetimepad` in `cloudtdms` is given below:
- 
- *syntax*:
-   
-    ```json
-        {
-        "field_name" :  "custom_column", 
-        "type" :  "advanced.custom_file", 
-        "name" :  "my_data_set", 
-        "column" :  "4", 
-        "ignore_headers" :  "yes", 
-        "encrypt": {"type": "onetimepad","key":"your key here"}
-        }
-      ```      
+ *Example:*
+  
+        Key:        helloworld123
+        
+        Plain:       My name is Jhon
+        
+        onetimepad:   251c4c020e1a0a52051711785b070b 
       
  **AES:** The Advanced Encryption Standard (AES) is a symmetric block cipher chosen by the U.S. government to protect
           classified information. AES is implemented in software and hardware throughout the world to encrypt sensitive 
@@ -256,20 +221,82 @@ The various techniques the the curernt version of `cloudtdms` supports are:
           cryptographic keys of 128, 192 and 256 bits, respectively.
           You have to just provide a key and it will convert it into the specified block cipher (AES-128, AES-192 and AES-256)
 
- The syntax for using `AES` in `cloudtdms` is given below:
+  *Example:*
+  
+        Key:        helloworld123
+        
+        Plain:       My name is Jhon
+        
+        aes:   b'\xd3\xf6;i\xad\x01\xfe\xc5\x8a\xdb\xd2\x80\xa3\xfa\xb6A' 
+
+ 3.**Nullying :** 
  
- *syntax*:
+   Nullying replaces all the data in a column with null values. The column is there but there will be no data 
+   available. This technique is mostly used when we neither annonymize / substitute the data nor encrypt the data.
+   In order to use `nullying` on an sensitive data, you have to specify which column/columns you want to nullified. 
    
-    ```json
-        {
-        "field_name" :  "custom_column", 
-        "type" :  "advanced.custom_file", 
-        "name" :  "my_data_set", 
-        "column" :  "4", 
-        "ignore_headers" :  "yes", 
-        "encrypt": {"type": "aes","key":"your key here"}
-        }
-      ```              
+   In case of bank data example mentioned above. We are using `nullying` for `RowNumber`,
+   to nullify the values for these column we need to use attribute `nullying` inside our `STREAM` dictionary. `nullying` key
+   take a list as a value which contains information about the column/columns which are supposed to be nullified.
+   
+   ```
+    STREAM = {
+    "number": 1000,
+    "title": 'encrypt_example',
+    "source": 'Churn-Modeling',
+    "format": "csv",
+    "frequency": "once",
+
+    "nullying" : ["RowNumber"]
+    }
+   ```
+
+ 
+4.**Delete :**
+
+   `Delete` technique delets a column eniterly.This technique is also used when we neither annonymize / substitute the 
+   data nor encrypt the data.In order to use `delete` on an sensitive data, you have to specify which column/columns 
+   you want to deleted. 
+   
+   In case of bank data example mentioned above. We are using `delete` for `CreditScore`, to `delete` the values 
+   for these column we need to use attribute `delete` inside our `STREAM` dictionary. `delete` key
+   take a list as a value which contains information about the column/columns which are supposed to be deleted.
+   
+   ```
+    STREAM = {
+    "number": 1000,
+    "title": 'encrypt_example',
+    "source": 'Churn-Modeling',
+    "format": "csv",
+    "frequency": "once",
+
+    "delete" : ["CreditScore"]
+    }
+    
+   ```
+
+5.**Shuffle :** 
+    In this technique the orginal data is shuffled in order to break the relativity of data. 
+       
+   In case of bank data example mentioned above. We are using `shuffle` for `NumOfProducts` and `IsActiveMember`, 
+   to `shuffle` the values for these column we need to use attribute `shuffle` inside our `STREAM` dictionary. 
+   `shuffle` key take a list as a value which contains information about the column/columns which are supposed to be shuffled.
+   
+   ```
+    STREAM = {
+    "number": 1000,
+    "title": 'encrypt_example',
+    "source": 'Churn-Modeling',
+    "format": "csv",
+    "frequency": "once",
+
+    "shuffle": ["NumOfProducts", "IsActiveMember"],
+    }
+    
+   ```
+
+                  
+                  
                 
                 
      
