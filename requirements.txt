@@ -1,4 +1,4 @@
-apache-airflow==1.10.10
+apache-airflow
 faker
 cryptography
 onetimepad
