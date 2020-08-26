@@ -152,88 +152,96 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     }
    ```
    
-**Encryption techniques**
-
-The various techniques the the curernt version of `cloudtdms` supports are:
-+ *fernet*
-+ *ceasar*
-+ *monoaplha*
-+ *onetimepad*
-+ *aes*
- 
- **Fernet(symmetric encryption):** `Fernet` guarantees that a message encrypted using it cannot be manipulated or read without the key. `Fernet` 
-                                    is an implementation of symmetric (also known as “secret key”) authenticated cryptography.
- 
-   *Example:*
-         
-        Key:      helloworld123
-  
-        Plain:    My name is Jhon
-        
-        Fernet Encryption:   b'gAAAAABfRgB14pvxcSm9CkS1whOVlWdxWmxzKxVW-BM70CBucTNi4YYPpX9jY0GjUEUTb7gPNDuXOyE69k-0Ku4XJDJ0PCOIkg=='
- 
- **Caeser:** `Caesar cipher` is one of the simplest and most widely known encryption techniques. It is a type of
-             substitution cipher in which each letter in the plaintext is replaced by a letter some fixed number of 
-             positions down the alphabet. For example, with a left shift of 3, D would be replaced by A, E would become
-             B, and so on.
+    **Different Types of Encryption Techniques Available in CloudTDMS**
+    
+    Following are the encryption/cipher techniques provided by `CloudTDMS` for data masking and obfuscation purpose. In order
+    to use any of the supported ciphers techniques you can use the associated value name in the below table in the `type` 
+    attribute of `encrypt` attribute of your `STREAM` variable.
+    
+    | Name                               | value       |
+    |------------------------------------|-------------|
+    | Fernet (Symmetric Encryption)      |`fernet`     |
+    | Caesar Cipher                      |`ceasar`     |
+    | One Time Pad                       | `onetimepad`|
+    | Mono-Alphabetic Cipher             |`monoalpha`  |
+    | Advanced Encryption Standard (AES) |`fernet`     |
+    
+    Let's discuss each cipher techniques briefly:
+    
+    + **Fernet (Symmetric Encryption):** `Fernet` is a name of Symmetric-key algorithm provided by the cryptography library
+    that use the same cryptographic keys for both encryption of plaintext and decryption of ciphertext. The keys may be 
+    identical or there may be a simple transformation to go between the two keys.`Fernet` guarantees that a message encrypted 
+    using it cannot be manipulated or read without the key.
+     
+       *example:*
              
-  *Example:*
-  
-        Key:      15
-  
-        Plain:    My name is Jhon
-        
-        Cipher:   BnccpbtcxhcYwdc
-        
- **Note:**  *For `caesar` encryption technique, you must provide the key which contains only integers.*
- 
- 
- **monoalpha:** A `Monoalphabetic cipher` uses a fixed substitution for encrypting the entire message. It uses the mapping
-                values which are used for encrypting a message. For example, the mapping values are`{h:J, l:T, o:G, e:P ...}`
-                and the message is `hello`. From the mapping values `h` will be replaced with `J`, `e` with `P`, `l` with `T`
-                and so on. Finally the message `hello` will be encrypted as `JPTTG`.
-   
- *Example:*
-  
-        Plain:       My name is Jhon
-        
-        monoaplha:   Hw jmhc si Dakj
-               
- **Note:**  *You don't have to specify a `key` for `monoalpha` encryption technique.* 
- 
- **onetimepad:** The one-time pad (OTP) is an encryption technique that cannot be cracked, but requires the use of 
-                a one-time pre-shared key the same size as, or longer than, the message being sent.      
-                
- *Example:*
-  
-        Key:        helloworld123
-        
-        Plain:       My name is Jhon
-        
-        onetimepad:   251c4c020e1a0a52051711785b070b 
+            key            :      helloworld123
       
- **AES:** The Advanced Encryption Standard (AES) is a symmetric block cipher chosen by the U.S. government to protect
-          classified information. AES is implemented in software and hardware throughout the world to encrypt sensitive 
-          data. It is essential for government computer security, cybersecurity and electronic data protection. AES 
-          includes three block ciphers: AES-128, AES-192 and AES-256. AES-128 uses a 128-bit key length to encrypt 
-          and decrypt a block of messages, while AES-192 uses a 192-bit key length and AES-256 a 256-bit key length 
-          to encrypt and decrypt messages. Each cipher encrypts and decrypts data in blocks of 128 bits using 
-          cryptographic keys of 128, 192 and 256 bits, respectively.
-          You have to just provide a key and it will convert it into the specified block cipher (AES-128, AES-192 and AES-256)
+            text           :    My name is Jhon
+            
+            fernet cipher :   b'gAAAAABfRgB14pvxcSm9CkS1whOVlWdxWmxzKxVW-BM70CBucTNi4YYPpX9jY0GjUEUTb7gPNDuXOyE69k-0Ku4XJDJ0PCOIkg=='
+     
+    + **Caeser Cipher:** `Caesar cipher` is one of the simplest and most widely known encryption techniques. It is a type of 
+    substitution cipher in which each letter in the plaintext is replaced by a letter some fixed number of positions down the 
+    alphabet. For example, with a left shift of 3, D would be replaced by A, E would become B, and so on.
+                 
+      *example:*
+      
+            key              :  15
+      
+            text            :   My name is Jhon
+            
+            caesar cipher  :   BnccpbtcxhcYwdc
+      
+      >**Note:**  *For `caesar` encryption technique, you must provide the key which contains only integers.*
+     
+    + **MonoAlphabetic Cipher:** A `Monoalphabetic cipher` uses a fixed substitution for encrypting the entire message. 
+    It uses the mapping values which are used for encrypting a message. For example, the mapping values are`{h:J, l:T, o:G, e:P ...}`
+    and the message is `hello`. From the mapping values `h` will be replaced with `J`, `e` with `P`, `l` with `T` and so on. 
+    Finally the message `hello` will be encrypted as `JPTTG`.
+       
+     *example:*
+      
+            text              :   My name is Jhon
+            
+            monoaplha cipher :   Hw jmhc si Dakj
+                   
+     >**Note:**  *You don't have to specify a `key` for `monoalpha` encryption technique.* 
+     
+    + **OneTimePad:** The one-time pad (OTP) is an encryption technique that cannot be cracked, but requires the use of 
+    a one-time pre-shared key the same size as, or longer than, the message being sent.      
+                    
+     *example:*
+      
+            key        :   helloworld123
+            
+            text      :    My name is Jhon
+            
+            onetimepad:   251c4c020e1a0a52051711785b070b 
+          
+    + **AES:** The Advanced Encryption Standard (AES) is a symmetric block cipher chosen by the U.S. government to protect
+              classified information. AES is implemented in software and hardware throughout the world to encrypt sensitive 
+              data. It is essential for government computer security, cybersecurity and electronic data protection. AES 
+              includes three block ciphers: AES-128, AES-192 and AES-256. AES-128 uses a 128-bit key length to encrypt 
+              and decrypt a block of messages, while AES-192 uses a 192-bit key length and AES-256 a 256-bit key length 
+              to encrypt and decrypt messages. Each cipher encrypts and decrypts data in blocks of 128 bits using 
+              cryptographic keys of 128, 192 and 256 bits, respectively.
+              You have to just provide a key and it will convert it into the specified block cipher (AES-128, AES-192 and AES-256)
+    
+      *example:*
+      
+            key:    helloworld123
+            
+            text:  My name is Jhon
+            
+            aes:   b'\xd3\xf6;i\xad\x01\xfe\xc5\x8a\xdb\xd2\x80\xa3\xfa\xb6A' 
 
-  *Example:*
-  
-        Key:        helloworld123
-        
-        Plain:       My name is Jhon
-        
-        aes:   b'\xd3\xf6;i\xad\x01\xfe\xc5\x8a\xdb\xd2\x80\xa3\xfa\xb6A' 
-
- 3.**Nullying :** 
+3. **Nullying :** 
  
-   Nullying replaces all the data in a column with null values. The column is there but there will be no data 
-   available. This technique is mostly used when we neither annonymize / substitute the data nor encrypt the data.
-   In order to use `nullying` on an sensitive data, you have to specify which column/columns you want to nullified. 
+   Nullying is a simple data masking technique, It replaces all the data in a column with null values. The column is there 
+   but there will be no data available. This technique is mostly used when we neither anonymize / substitute the data nor 
+   encrypt the data. In order to use `nullying` on an sensitive data, you have to specify which column/columns you want to be 
+   nullified. 
    
    In case of bank data example mentioned above. We are using `nullying` for `RowNumber`,
    to nullify the values for these column we need to use attribute `nullying` inside our `STREAM` dictionary. `nullying` key
@@ -251,12 +259,11 @@ The various techniques the the curernt version of `cloudtdms` supports are:
     }
    ```
 
- 
-4.**Delete :**
+4. **Delete :**
 
-   `Delete` technique delets a column eniterly.This technique is also used when we neither annonymize / substitute the 
-   data nor encrypt the data.In order to use `delete` on an sensitive data, you have to specify which column/columns 
-   you want to deleted. 
+   `Delete` technique deletes a column entirely.This technique is also used when we neither anonymize / substitute the 
+   data nor encrypt the data. In order to use `delete` on an sensitive data, you have to specify which column/columns 
+   you want to deleted in generated data file. 
    
    In case of bank data example mentioned above. We are using `delete` for `CreditScore`, to `delete` the values 
    for these column we need to use attribute `delete` inside our `STREAM` dictionary. `delete` key
@@ -275,8 +282,8 @@ The various techniques the the curernt version of `cloudtdms` supports are:
     
    ```
 
-5.**Shuffle :** 
-    In this technique the orginal data is shuffled in order to break the relativity of data. 
+5. **Shuffle :** 
+    In this technique the original data columns are shuffled in order to break the relativity of data. 
        
    In case of bank data example mentioned above. We are using `shuffle` for `NumOfProducts` and `IsActiveMember`, 
    to `shuffle` the values for these column we need to use attribute `shuffle` inside our `STREAM` dictionary. 
