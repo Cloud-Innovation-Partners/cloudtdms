@@ -5,8 +5,6 @@ import os
 import sys
 import importlib
 import subprocess
-import grp
-import pwd
 from jinja2 import Template
 from airflow import DAG
 from airflow import settings
@@ -87,7 +85,72 @@ for (module, name) in modules:
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         stream = getattr(module, 'STREAM')
         meta_data = get_active_meta_data()
-        schema = stream['schema']
+
+        # check 'source' attribute is present
+        source = f'{get_cloudtdms_home()}/user-data/{stream["source"]}.csv' if 'source' in stream else None
+
+        # columns in data-file
+        all_columns = []
+        if source is not None:
+            with open(source, 'r') as f:
+                columns = f.readline()
+                columns = columns.replace('\n', '')
+            all_columns = str(columns).split(',')
+
+        # get columns to delete
+        delete = stream['delete'] if 'delete' in stream else []
+
+        all_columns = list(set(all_columns) - set(delete))
+
+        # check 'schema' attribute is present
+        schema = stream['schema'] if 'schema' in stream else []
+
+        # check 'substitute' attribute is present along with 'source'
+        if 'substitute' in stream and source is not None:
+            substitutions = []
+            for k, v in stream['substitute'].items():
+                v['field_name'] = k
+                substitutions.append(v)
+
+            schema += substitutions
+
+        # check 'encrypt' attribute is present along with 'source'
+
+        if 'encrypt' in stream and source is not None:
+            encryption = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
+                           "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
+                          for v in stream['encrypt']['columns'] if v in all_columns]
+            schema += encryption
+
+        # check 'mask_out' attribute is present along with 'source'
+
+        if 'mask_out' in stream and source is not None:
+            mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": stream['source'],
+                          "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
+                         for k, v in stream['mask_out'].items() if k in all_columns]
+            schema += mask_outs
+
+        # check 'shuffle' attribute is present along with 'source'
+
+        if 'shuffle' in stream and source is not None:
+            shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
+                        "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
+            schema += shuffle
+
+        # check 'nullying' attribute is present along with 'source'
+
+        if 'nullying' in stream and source is not None:
+            nullify = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
+                        "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
+            schema += nullify
+
+        if source is not None:
+            schema_fields = [f['field_name'] for f in schema]
+            remaining_fields = list(set(all_columns) - set(schema_fields))
+            remaining = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
+                            "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
+            schema += remaining
+
         attributes = {}
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
         for scheme in schema:
@@ -123,8 +186,7 @@ for (module, name) in modules:
         dag_file_path = f"{get_airflow_home()}/dags/{name}.py"
         with open(dag_file_path, 'w') as f:
             f.write(output)
-        os.chmod(dag_file_path, 0o664)
-        os.chown(dag_file_path, pwd.getpwnam("cloudtdms").pw_uid, grp.getgrnam("cloudtdms").gr_gid)
+
         LoggingMixin().log.info(f"Creating DAG: {name}")
     else:
         LoggingMixin().log.warn(f"No `STREAM` attribute found in script {name}.py")

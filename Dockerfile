@@ -1,18 +1,21 @@
 # Base Image
-FROM apache/airflow
+FROM python:3.6-stretch
+
+COPY entrypoint.sh /entrypoint.sh
 
 # Create Project Directory
+RUN mkdir /opt/cloudtdms
+WORKDIR /opt/cloudtdms
 
-RUN rm -r /opt/airflow/dags
-RUN rm -r /opt/airflow/logs
+#Install Dependencies
+RUN pip install faker
+RUN pip install apache-airflow==1.10.9
+RUN pip install SQLAlchemy==1.3.15
+RUN pip install cryptography
+RUN pip install onetimepad
+RUN pip install pycrypto
 
-WORKDIR /opt/airflow
-
-##Install Dependencies
-RUN pip install --user faker
-#
-## Copy selected subdirectories only
-#
+# Copy selected subdirectories only
 RUN mkdir scripts
 RUN mkdir system
 COPY system/dags system/dags
@@ -22,8 +25,9 @@ COPY system/__init__.py system/__init__.py
 COPY __init__.py .
 RUN mkdir user-data
 RUN mkdir data
-## Environment
-ENV AIRFLOW_HOME="/opt/airflow/system"
 
+# Environment
+ENV AIRFLOW_HOME="/opt/cloudtdms/system"
 
-RUN airflow initdb
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["webserver"]

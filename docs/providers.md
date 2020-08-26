@@ -528,6 +528,94 @@ generation process.
     ```json
     {"field_name" :  "custom_column", "type" :  "advanced.custom_file", "name" :  "my_data_set", "column" :  "4", "ignore_headers" :  "yes"}
     ```
+   
+   **Data Masking / Data Obfuscation  :**
+   
+   With `custom_file` function, you can use data masking options to mask your custom data. Following are the available options
+   for generating masked data from your data set.
+   
+   + *encrypt* : With this option you can apply encryption on the data column, this option takes a dictionary as a value 
+                 which contains the `encryption_key` and `type` of encryption to be used for the process. In case no key 
+                 is provided, encryption process will not be applied.
+     
+     - *type* : This attribute is used to specify the type of encryption to be used in the process. Currently `cloutdms`
+                has support for following encryption techniques:
+                `fernet`, `caesar`, `monoaplha`, `onetimepad`, `aes`. The `type` attribute can take any one of the value from
+                these techniques. For more information check `data_masking` document.
+     
+     - *key* : This attribute is used to specify the encryption key. Key value need to be string or integer depending on the
+               the technique used to encrypt. e.q in `caesar` cipher key must always be integer else exception will be raised
+                
+     *syntax*:
+                 
+      ```json
+        {
+        "field_name" :  "custom_column", 
+        "type" :  "advanced.custom_file", 
+        "name" :  "my_data_set", 
+        "column" :  "4", 
+        "ignore_headers" :  "yes", 
+        "encrypt": {"type": "caesar","key" : 9797 }
+        }
+      ```
+     
+   + *mask_out* : With this option you can apply character substitution to values. You can replace a value character 
+                  with a symbol such as `*` or `x` etc. to mask the actual data. This option takes a dictionary value 
+                  comprising three keys.
+                  
+     - *with* : This attribute takes a single character as value such as `*` or `x` which will be used as a substitute value
+                for masking the actual characters.
+     - *character* : This take an integer value specifying the number of characters to mask out.
+     
+     - *from* : This option takes three values `start`, `end`, `mid` each refers to the starting point for carrying the masking
+                operation
+                
+     In the example below the first 5 characters for all values in the 4th column from data file `my_data_set` will be masked with the character `*`                 
+                 
+     *syntax*:
+                 
+        ```json
+        {
+        "field_name" :  "custom_column", 
+        "type" :  "advanced.custom_file", 
+        "name" :  "my_data_set", 
+        "column" :  "4", 
+        "ignore_headers" :  "yes", 
+        "mask_out" : {"with" : "*", "character" : 5, "from" : "start"}
+        }
+        ```
+   + *shuffle* : This option takes a boolean  value, specifying whether the data in the column should be shuffled or not.
+     
+     *syntax*:
+                 
+        ```json
+        {
+        "field_name" :  "custom_column", 
+        "type" :  "advanced.custom_file", 
+        "name" :  "my_data_set", 
+        "column" :  "4", 
+        "ignore_headers" :  "yes", 
+        "shuffle": True
+        }
+        ```
+   + *set_null* : If you want to make the column values null, you can set this value to `True`, It will make the whole column
+                  as null.
+                 
+     *syntax*:
+                 
+        ```json
+        {
+        "field_name" :  "custom_column", 
+        "type" :  "advanced.custom_file", 
+        "name" :  "my_data_set", 
+        "column" :  "4", 
+        "ignore_headers" :  "yes", 
+        "set_null": True
+        }
+        ```             
+   
+   
+    
 
 ### Statistics
     

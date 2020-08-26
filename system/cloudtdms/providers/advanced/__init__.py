@@ -1,16 +1,18 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
-
 import re
 import os
 import random
 import pandas as pd
+from system.cloudtdms.providers.advanced import masking
 from airflow.configuration import get_airflow_home
 
 
 def advanced(data_frame, number, args):
     field_names = {}
     for k in args:
+        if k == 'locale':
+            continue
         if k.split('-$-', 2)[1] not in field_names:
             field_names[k.split('-$-', 2)[1]] = {k.split('-$-', 2)[0]: args.get(k)}
         else:
@@ -42,6 +44,7 @@ def custom_list(data_frame, number, args=None):
 
 
 def custom_file(data_frame, number, args=None):
+
     data_path = f"{os.path.dirname(get_airflow_home())}/user-data"
     dcols = [f for f in data_frame.columns if f.startswith("custom_file")]
     for column_name, data_frame_col_name in zip(args, dcols):
@@ -52,6 +55,7 @@ def custom_file(data_frame, number, args=None):
 
         name = args.get(column_name).get('name')
         column = args.get(column_name).get('column')
+
         if name is None:
             raise AttributeError(f"No value found for attribute `name` in `advanced.custom_file` schema entry!")
         if column is None:
@@ -76,6 +80,26 @@ def custom_file(data_frame, number, args=None):
                 data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
         except FileNotFoundError:
             raise
+
+        if 'encrypt' in args.get(column_name):
+            key=args.get(column_name).get('encrypt').get('key')
+            type=args.get(column_name).get('encrypt').get('type','fernet').lower()
+            masking.encrypt(data_frame, column, key, type)
+        elif 'shuffle' in args.get(column_name):
+            shuffle_value= str(args.get(column_name).get('shuffle')).lower()
+            shuffle_value = True if shuffle_value == 'true' else False
+            if shuffle_value:
+                masking.shuffle(data_frame, column)
+        elif 'mask_out' in args.get(column_name):
+            with_=args.get(column_name).get('mask_out').get('with')
+            character=args.get(column_name).get('mask_out').get('characters')
+            size=args.get(column_name).get('mask_out').get('from')
+            masking.mask_out(data_frame, column, with_,character, size)
+        elif 'set_null' in args.get(column_name):
+            set_null_value = str(args.get(column_name).get('set_null')).lower()
+            set_null_value = True if set_null_value == 'true' else False
+            if set_null_value:
+                masking.set_null(data_frame,column)
 
 
 def concatenate(data_frame, number, args=None):

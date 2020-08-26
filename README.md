@@ -1,14 +1,34 @@
-# CloudTDMS
+<pre>
+  ____ _                 _ _____ ____  __  __ ____  
+ / ___| | ___  _   _  __| |_   _|  _ \|  \/  / ___| 
+| |   | |/ _ \| | | |/ _` | | | | | | | |\/| \___ \ 
+| |___| | (_) | |_| | (_| | | | | |_| | |  | |___) |
+ \____|_|\___/ \__,_|\__,_| |_| |____/|_|  |_|____/    version 0.1
+</pre>
 
-CloudTDMS - Test Data Management Service
+![license](https://img.shields.io/badge/license-Apache2-blue) ![Github docs](https://img.shields.io/badge/docs-passing-green) ![python](https://img.shields.io/badge/python-3.6-blue)
+
+
+### CloudTDMS - Test Data Management Service
+CloudTDMS is a test data management tool that let's you generate realistic synthetic data in real time. Besides synthetic 
+data generation `CloudTDMS` can be used as a potential tool for data masking and obfuscation of production data. 
+
+### What is it for?
+With `CloudTDMS` you can ?
++ Generate Realistic Synthetic Data
++ Generate Synthetic Data From Custom Seed File
++ Anonymize Personal Identifiable Information (PII) In Data
++ Mask Sensitive Data To Ensure Compliance & Security
++ Encrypt Private Data 
++ Generate Synthetic Data In Real Time.
 
 # Installation
 
 **Pre-Requisite :** 
 
-`cloudtdms` requires `python3` and `pip3` installation, in-case you have `python2` please follow the steps specified to install `python3`
+`CloudTDMS` requires `python3` and `pip3` for installation, in-case you have `python2` please follow the steps specified to install `python3`
 
-**Ubuntu18.04**
+**Install python3 on Ubuntu18.04**
 + If you are using Ubuntu18.04, there is a possibility you already have `python3` installed. By default Ubuntu has `python2` as default python
   interpreter but it also has `python3` installed. In case `python3` is not available you can install it with following command
         
@@ -23,15 +43,53 @@ CloudTDMS - Test Data Management Service
 
         sudo apt install python3-pip
         
-# Steps
+### Installation Steps :
+You can use anyone of the methods to install and run the service.
+
+**Docker Image :**
+
+You can start using `CloudTDMS` with docker, ensure you have `docker-compose` installed.
+
+1. Simply clone the repo from the github:
+
+         git clone https://github.com/Cloud-Innovation-Partners/cloudtdms.git
+         
+2. Change directory to `cloudtdms`
+
+         cd cloudtdms
+         
+3. Build and run the service using following command
+
+         docker-compose up --build
+         
+**Installation Script :**
+
+>**Note :** *Installation script is available for Ubuntu 18.04 only, In case you are using any other OS, you can go for either
+             manual or docker installation.*
+             
+`CloudTDMS` accompanies an installation script that can be used to install and run the service on Ubuntu 18.04. The script
+will run as a service on ubuntu machine.
+
+1. Simply clone the repo from the github:
+
+         git clone https://github.com/Cloud-Innovation-Partners/cloudtdms.git
+         
+2. Change directory to `cloudtdms`
+
+         cd cloudtdms
+         
+3. Run the install script inside `cloudtdms` directory
+
+         sudo ./INSTALL
+
+**Manual Installation :**
 
 1. Clone the repo using github url
     
         git clone https://github.com/Cloud-Innovation-Partners/cloudtdms.git
     
 2. If you want to install `cloudtdms` inside python virtual environment then follow `Step 2` else you can skip this step
-    
-    
+        
     - Create a virtual environment inside the folder `cloudtdms`, using below command
     
             virtualenv -p /usr/bin/python .env
@@ -44,12 +102,11 @@ CloudTDMS - Test Data Management Service
     
     - Edit `.env/bin/activate` file, add the below line to the end of the file, 
       
-      
-      > **Note** : Remember to replace **`<YOUR_PROJECT_PATH>`** with absolute path of parent directory of `cloudtdms` folder
+      >**Note** : Remember to replace **`<YOUR_PROJECT_PATH>`** with absolute path of parent directory of `cloudtdms` folder
            
            export AIRLFOW_HOME="<YOUR_PROJECT_PATH>/cloudtdms/system"
     
-    - Activate the `virtualenv`, with the following command
+   - Activate the `virtualenv`, with the following command
             
            source .env/bin/activate
            
@@ -68,8 +125,7 @@ CloudTDMS - Test Data Management Service
    - Update your session with environment changes
          
          source /etc/environment
-   
-        
+           
 5. Initialize Airflow Database
 
         airflow initdb
@@ -82,7 +138,10 @@ CloudTDMS - Test Data Management Service
 
         airflow scheduler
         
-8. Place your data generation scripts inside `scripts` folder and your corresponding output data files will be generated inside `data` folder.
+
+## How To Use ?
+
+Place your data generation scripts inside `scripts` folder and your corresponding output data files will be generated inside `data` folder.
 
    *example script*
    
