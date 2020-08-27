@@ -87,12 +87,12 @@ def data_generator():
                 methods = [(getattr(mod, m), m) for m in attributes[attrib]]
                 generate_iterator(data_frame, methods,args_array)
     
-    # for scheme in schema:
-    #     field_name = scheme['field_name']
-    #     column_name = scheme['type'].split('.')[1]
-    #     data_frame.rename(columns={column_name:field_name}, inplace=True)
-
-    data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}.csv", index=False)
+    file_name = f"{stream['title']}_{datetime.strftime(datetime.now(), '%Y-%m-%d_%H:%M:%S')}.csv"
+    try:
+        data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
+    except FileNotFoundError:
+        os.makedirs(f"{get_output_data_home()}/{stream['title']}")
+        data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
     
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
