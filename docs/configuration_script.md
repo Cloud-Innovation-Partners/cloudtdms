@@ -64,10 +64,10 @@ STREAM = {
                     to run scripts inside the `scripts` folder. `frequency` defines how often should scheduler run your
                     script to generate random data for you. It can take cron values like
                     
-                    - `once` : This will run script only once
-                    - `hourly` : This will run script each hour
-                    - `daily` : This will run script daily at `00:00:00` hours.
-                    - `monthly` : This will run script on 1st of every month at `00:00:00` hours
+    - `once` : This will run script only once
+    - `hourly` : This will run script each hour
+    - `daily` : This will run script daily at `00:00:00` hours.
+    - `monthly` : This will run script on 1st of every month at `00:00:00` hours
 ```python
 STREAM = {
     "frequency" : "once"
