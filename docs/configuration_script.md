@@ -157,5 +157,59 @@ STREAM = {
     "shuffle" : ["NoOfProducts", "PurchasedItems"]
  }
  ```                   
-                     
-                     
+**Realistic Synthetic Data attribute :**                     
+Following are the configuration attributes required for generating realistic synthetic data.
+
++ **`schema`** : In order to use `CloudTDMS` for realistic synthetic data generation, You need to use `schema` attribute
+                 inside your `STREAM` variable to define the schema of the output data file. As the name suggests in this
+                 attribute you define the schema of the output data to be generated. The schema of the data to be generated is 
+                 defined using the `generator` functions available under different `providers` of `CloudTDMS`. 
+                 `CloudTDMS` provides various `generator` functions inside different `providers` for example, In `personal`
+                 provider `first_name`, `last_name`, `gender`, `full_name`, `username` etc. are various generator functions
+                 which generate corresponding synthetic data. Please refer to [Providers](providers.md) sections to get a
+                 list of all `providers` and corresponding `generator` functions available in `CloudTDMS`.
+
+**example script**
+   
+```python
+STREAM = {
+        "number": 1000,
+        "title": 'synthetic_data',
+        "format": "csv",
+        "frequency": "once",
+        "schema": [
+            {"field_name" :  "id", "type" :  "basics.auto_increment", "prefix" :  "INC", "suffix" :  "NZD", "start":  2000, "increment" :  1},
+            {"field_name": "fname", "type": "personal.first_name"},
+            {"field_name": "lname", "type": "personal.last_name",},
+            {"field_name": "sex", "type": "personal.gender"},
+            {"field_name": "email", "type": "personal.email_address"},
+            {"field_name": "country", "type": "location.country"},
+            {"field_name": "city", "type": "location.city"},
+        ]
+       }
+```
+`schema` attribute takes a list of `generator` functions as value. Each `generator` function is defined using a dictionary
+object and represents a column in the output data file. The dictionary object contains different attributes depending upon 
+the `generator` function. In the example above, we see 7 dictionary objects inside the `schema` list. It means we are supposed
+to generate data for 7 columns. First column will be name `id` as the `field_name` of the object is set value `id`. The `id`
+is to be generated using `auto_increment` generator fucntion available inside `basics` provider.
+
+Which `generator` function to use is defined using `type` attribute of the dictionary object. The other attributes like `prefix`,
+`suffix`, `start` etc. are specific to a particular `generator` function. All attributes specified in the dictionary object
+are passed as arguments to the functions. Different `generator` functions have different attributes available to tweak their
+data generation settings.
+
+In the example above we are generating `id` which is an integer value starting from 2000 and for each record it will be 
+incremented by 1. Similarly we have `fname` which is generated using `first_name` function and like wise other are defined.
+
+The output of the above script would be something like this:
+
+|id    | fname | lname | sex | email | country | city |
+|------|-------|-------|-----|-------|---------|------|                
+| 2000 | David |Savage |Male |d.savage87@gmail.com | United States of America | New York
+| 2001 | Paul  |Winter |Male |p_winter234@outlook.com | United Kingdom | London |
+| 2002 | Christopher|Metcalfe|Male |c.metcalfe901@mail.com | United Kingdom | Manchester |
+
+---                 
+                 
+                                       
