@@ -151,6 +151,8 @@ for (module, name) in modules:
                             "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
             schema += remaining
 
+        stream['schema'] = schema
+        
         attributes = {}
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
         for scheme in schema:
