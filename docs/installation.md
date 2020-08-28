@@ -1,5 +1,14 @@
 # Installation
 
+**`CloudTDMS`** uses [Apache Airflow](http://airflow.apache.org/) to orchestrate data generation work-flows. Installation 
+of `CloudTDMS` requires installation of apache airflow. `CloudTDMS` has helper scripts associated for installation, You can
+choose any mode of installation that suits your requirement. We recommend docker installation as its simple and easy to use.
+
+Each installation method will run apache airflow `webserver` and `scheduler` in background as a container or as a service 
+depending upon the type of installation you choose.
+
+Once you have airflow running as a service you can access apache-airflow webserver @ http://127.0.0.1:8080  
+
 ## Pre-Requisite 
 
 `CloudTDMS` requires `python3` and `pip3` for installation, in-case you have `python2` please follow the steps specified to install `python3`
@@ -24,7 +33,10 @@ You can use anyone of the methods to install and run the service.
 
 ### Docker Image
 
-You can start using `CloudTDMS` with docker, ensure you have `docker-compose` installed.
+**(Recommended Method)**
+
+You can start using `CloudTDMS` with docker, ensure you have `docker-compose` installed. For details about the 
+installation of `docker-engine` and `docker-compose` please refer to [Docker Site](https://docs.docker.com/engine/install/)
 
 1. Simply clone the repo from the github:
 
@@ -37,6 +49,13 @@ You can start using `CloudTDMS` with docker, ensure you have `docker-compose` in
 3. Build and run the service using following command
 
          docker-compose up --build
+         
+4. Once you have container running, you can access airflow webserver at http://127.0.0.1:8080        
+         
+5. To stop the container your either press `CTRL+C` or run following command
+
+         docker-compose down   
+                        
          
 ### Installation Script
 
@@ -57,6 +76,18 @@ will run as a service on ubuntu machine.
 3. Run the install script inside `cloudtdms` directory
 
          sudo ./INSTALL
+         
+4. Check the status of the webserver and scheduler service using
+ 
+         sudo service airflow-webserver status
+         sudo service airflow-scheduler status
+         
+5. You can stop the service using
+
+         sudo service airflow-webserver stop
+         sudo service airflow-scheduler stop
+   
+   and `restart` by replacing `stop` with `start` in above command                          
 
 ### Manual Installation
 
@@ -113,4 +144,5 @@ will run as a service on ubuntu machine.
 7. Start airflow scheduler
 
         airflow scheduler
-        
+
+8. You can now access the webserver of apache airflow @ http://127.0.0.1:8080        
