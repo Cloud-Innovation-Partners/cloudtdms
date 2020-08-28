@@ -57,7 +57,7 @@ def data_generator():
     locale=dag.params.get('stream').get('locale')
     schema = stream['schema']
     attributes = dag.params.get('attributes')
-    nrows = stream['number']
+    nrows = int(stream['number'])
     ncols = sum([len(f) for f in attributes.values()])
     columns = []
     labels = [columns.extend(f) for f in attributes.values()]
