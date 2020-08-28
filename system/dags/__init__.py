@@ -13,7 +13,6 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.configuration import get_airflow_home
 from airflow.exceptions import AirflowException
 
-
 def get_cloudtdms_home():
     """
     Returns `cloudtdms` HOME directory path
@@ -61,6 +60,8 @@ sys.path.append(get_cloudtdms_home())
 
 from system.cloudtdms.utils.template import TEMPLATE
 from system.cloudtdms.providers import get_active_meta_data
+from system.cloudtdms.utils import validation
+
 
 scripts = [f[:-3] for f in os.listdir(get_scripts_home()) if os.path.isfile(f"{get_scripts_home()}/{f}")
            and f.endswith('.py') and not f.startswith('__')]
@@ -82,8 +83,22 @@ for s in scripts:
 # Create a dag for each `script` in scripts directory
 
 for (module, name) in modules:
+
+    stream = getattr(module, 'STREAM')
+
+    validation.check_stream_type(stream, name)
+    validation.check_mandotry_field(stream, name)
+    validation.check_schema_type(stream, name)
+    stream['format']= 'csv'
+    validation.check_source(stream,name)
+    validation.check_substitute(stream,name)
+    validation.check_encrypt(stream,name)
+    validation.check_shuffle(stream, name)
+    validation.check_nullying(stream, name)
+    validation.check_delete(stream, name)
+    validation.check_mask_out(stream, name)
+
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
-        stream = getattr(module, 'STREAM')
         meta_data = get_active_meta_data()
 
         # check 'source' attribute is present
