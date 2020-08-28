@@ -1,6 +1,7 @@
 ## Providers
-`cloudtdms` uses concept of `provider` to generate a data. The term `provider` with reference to `cloudtdms` refers to a 
-pythonic function that is capable of generating data. A provider can be as simple as 
+
+`cloudtdms` uses concept of `generator` function to generate synthetic data. Each `generator` function is capable of generating
+random sequence of data. A `generator` function can be as simple as 
 
 ```python
 def example_provider(number_of_records, args):
@@ -9,8 +10,13 @@ def example_provider(number_of_records, args):
 
 or it can be a complex statistical function calculating various stats from the data.
 
-`cloudtdms` has many in-built providers that can be used for generating synthetic data for specific purpose. Here we shall
-list providers that are available in cloudtdms and there syntax and control attributes that can be used to change the data 
+`CloudTDMS` has many in-built providers that can be used for generating synthetic data for specific purpose.
+**`Providers`** in `CloudTDMS` refers to a collection of `generator` functions that generate realistic synthetic data for a
+specific category. for example, **`personal`** is a provider and it is comprised of following `generator` functions `first_name`,
+`last_name`, `gender` etc. **`personal`** provider can be used to generate personal data. Similarly, **`location`** provider 
+can generate `location` data such as `country`, `city` etc.
+
+Here we shall list providers that are available in cloudtdms and there syntax and control attributes that can be used to change the data 
 generation process. 
 
 ### Basics
@@ -194,22 +200,18 @@ generation process.
     ```
    
   
-   **```We can specify the locale in `personal` provider attribute in the script. By locale attribute we can generate the localized data based on locale value. You have to specify the locale at global level in script. ```**
-   
-   Example: 
-   
-    STREAM = {
-    "number": 1000,
-    "title": 'Stream2',
-    'locale':'en_GB',
-    "schema": [...],
-    "format": "csv",
-    "frequency": "once" }
+   **Localisation** :
+   Localised data can be generated from `personal` provider by specifying the `locale` attribute in corresponding `generator`
+   function.
 
-   The `personal` provider supports following types of localization:
+   >**Note :** Before using `locale` attribute check if the localised data is available.
+
+   *example*: 
    
-   - en_GB, locale code for English.
-   
+   ```json
+   {"field_name":  "fname", "type" :  "personal.first_name", "category" :  "male", "locale" : "en_GB"}
+   ```
+
     
 ### Location
 1. **country :** Generates a random `country` name such as `United Kingdom, Spain, Algeria...` etc
@@ -307,24 +309,18 @@ generation process.
     ```
     
    
-   **```We can also specify the locale in `location` provider.```**
+   **Localisation** :
+   Localised data can be generated from `location` provider by specifying the `locale` attribute in corresponding `generator`
+   function.
+
+   >**Note :** Before using `locale` attribute check if the localised data is available.
+
+   *example*: 
    
-  
-   Example: 
-   
-    STREAM = {
-    "number": 1000,
-    "title": 'Stream2',
-    'locale':'en_GB',
-    "schema": [...],
-    "format": "csv",
-    "frequency": "once"}
-  
-   
-   The `location` provider supports following types of localization:
-   
-   - en_US, locale code for United States.
-    
+   ```json
+   {"field_name":  "city", "type" :  "location.city", "locale" : "en_US"}
+   ```
+
 ### Company
 
 1. **company_name :** Generates a random company name.
@@ -584,7 +580,7 @@ generation process.
      
      *syntax*:
                  
-        ```json
+        ```
         {
         "field_name" :  "custom_column", 
         "type" :  "advanced.custom_file", 
@@ -599,7 +595,7 @@ generation process.
                  
      *syntax*:
                  
-        ```json
+        ```
         {
         "field_name" :  "custom_column", 
         "type" :  "advanced.custom_file", 
