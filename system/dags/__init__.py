@@ -93,7 +93,7 @@ for (module, name) in modules:
         # check 'source' attribute is present
         source = f'{get_cloudtdms_home()}/user-data/{stream["source"]}.csv' if 'source' in stream else None
 
-        if not validation.check_mandotry_field(stream, name): # means false
+        if not validation.check_mandatory_field(stream, name): # means false
             continue
 
         if not validation.check_schema_type(stream, name):

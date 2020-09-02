@@ -5,10 +5,10 @@ import os
 from airflow import LoggingMixin
 
 
-def check_mandotry_field(stream, name):
+def check_mandatory_field(stream, name):
     result=True
     if 'number' not in stream:
-        LoggingMixin().log.error(f"AttributeError: `number` atttibute not found in {name}.py")
+        LoggingMixin().log.error(f"AttributeError: `number` attribute not found in {name}.py")
         result=False
     else:
         if not isinstance(stream['number'], int):
@@ -16,25 +16,25 @@ def check_mandotry_field(stream, name):
             result = False
 
     if 'format' not in stream:
-        LoggingMixin().log.error(f"AttributeError: `format` atttibute not found in {name}.py")
+        LoggingMixin().log.error(f"AttributeError: `format` attribute not found in {name}.py")
         result = False
 
     if 'title' not in stream:
-        LoggingMixin().log.error(f"AttributeError: `title` atttibute not found in {name}.py")
+        LoggingMixin().log.error(f"AttributeError: `title` attribute not found in {name}.py")
         result = False
     else:
         title_value = stream.get('title')
         if len(title_value) == 0:
-            LoggingMixin().log.error("ValueError: Value for `title` must be not None")
+            LoggingMixin().log.error("ValueError: `title` cannot be empty or None")
             result = False
     if 'frequency' not in stream:
-        LoggingMixin().log.error(f"AttributeError: `frequency` atttibute not found in {name}.py")
+        LoggingMixin().log.error(f"AttributeError: `frequency` attribute not found in {name}.py")
         result = False
     else:
         frequency_value = stream['frequency']
         if frequency_value not in ('once', 'hourly', 'daily', 'monthly'):
             LoggingMixin().log.error(
-                f"ValueError: `frequency` atttibute have invalid `{frequency_value}` value in {name}.py")
+                f"ValueError: Invalid value `{frequency_value}` for `frequency` attribute in {name}.py")
             result = False
     return  result
 
@@ -48,14 +48,14 @@ def check_schema_attribs(schema, name):
     result=True
     for sch in schema:
         if not isinstance(sch, dict):
-            LoggingMixin().log.error(f'TypeError: Entries in `schema` are not of type `dictionary` in {name}.py')
+            LoggingMixin().log.error(f'TypeError: entries in `schema` are not of type `dictionary` in {name}.py')
             result=False
         else:
             if 'field_name' not in sch:
-                LoggingMixin().log.error(f'AttributeError: `field_type` attribute not present in `scehma` in {name}.py')
+                LoggingMixin().log.error(f'AttributeError: `field_type` attribute not present in `schema` in {name}.py')
                 result=False
             if 'type' not in sch:
-                LoggingMixin().log.error(f'AttributeError: `type` attribute not present in `scehma` in {name}.py')
+                LoggingMixin().log.error(f'AttributeError: `type` attribute not present in `schema` in {name}.py')
                 result=False
     return  result
 
@@ -65,7 +65,7 @@ def check_schema_type(stream, name):
     schema = stream.get('schema')
     if schema is not None:
         if not isinstance(schema, list):
-            LoggingMixin().log.error(f"TypeError: `schema` is not of `list` in {name}.py")
+            LoggingMixin().log.error(f"TypeError: `schema` must be of type `list` in {name}.py")
             result=False
         else:
             result=check_schema_attribs(schema, name)
@@ -87,7 +87,7 @@ def set_default_format(stream, name):
 def check_source(stream, name):
     result=True
     if 'source' not in stream:
-        LoggingMixin().log.error(f'AttrbuteError: `source` attribute not found in {name}.py')
+        LoggingMixin().log.error(f'AttributeError: `source` attribute not found in {name}.py')
         result=True
     else:
         # /home/user/AFW/cloudtdms/system/cloudtdms/utils/validation.py
@@ -115,7 +115,7 @@ def check_substitute(stream, name):
                     sub_value = subst[sub]
                     if not isinstance(sub_value, dict):
                         LoggingMixin().log.error(
-                            f'TypeError: Entries in `substitute` are not of type `dictionary` in {name}.py')
+                            f'TypeError: entries in `substitute` are not of type `dictionary` in {name}.py')
                         result=False
                     else:
                         if 'type' not in sub_value:
@@ -128,7 +128,7 @@ def check_substitute(stream, name):
 def check_encrypt_type(encrypt):
     encrypt_type_value=encrypt.get('type')
     if encrypt_type_value not in ('fernet', 'caesar', 'monoaplha', 'onetimepad', 'aes'):
-        LoggingMixin().log.error(f'`type` in encrypt must be `fernet` or `caesar` or `monoaplha` or `onetimepad` or `aes`')
+        LoggingMixin().log.error(f'`type` in encrypt can be `fernet` / `caesar` / `monoaplha` / `onetimepad` / `aes`')
 
 
 def check_encrypt(stream, name):
@@ -142,7 +142,7 @@ def check_encrypt(stream, name):
             else:
                 encrypt_cols = encrypt.get('columns')
                 if not isinstance(encrypt_cols, list) and encrypt_cols is not None:
-                    LoggingMixin().log.error(f'TypeError: `columns` in `encrypt` are not of type `list` in {name}.py')
+                    LoggingMixin().log.error(f'TypeError: `columns` in `encrypt` is not of type `list` in {name}.py')
                     result=False
                 check_encrypt_type(encrypt)
     return result
