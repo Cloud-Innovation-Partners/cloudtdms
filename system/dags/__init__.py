@@ -85,24 +85,25 @@ for s in scripts:
 for (module, name) in modules:
 
     stream = getattr(module, 'STREAM')
-
-    validation.check_stream_type(stream, name)
-    validation.check_mandotry_field(stream, name)
-    validation.check_schema_type(stream, name)
     stream['format']= 'csv'
-    validation.check_source(stream,name)
-    validation.check_substitute(stream,name)
-    validation.check_encrypt(stream,name)
-    validation.check_shuffle(stream, name)
-    validation.check_nullying(stream, name)
-    validation.check_delete(stream, name)
-    validation.check_mask_out(stream, name)
 
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         meta_data = get_active_meta_data()
 
         # check 'source' attribute is present
         source = f'{get_cloudtdms_home()}/user-data/{stream["source"]}.csv' if 'source' in stream else None
+
+        if not validation.check_mandotry_field(stream, name): # means false
+            continue
+
+        if not validation.check_schema_type(stream, name):
+            continue
+
+        if not validation.check_source(stream, name):
+            continue
+
+        if not validation.check_delete(stream,name):
+            continue
 
         # columns in data-file
         all_columns = []
@@ -122,6 +123,8 @@ for (module, name) in modules:
 
         # check 'substitute' attribute is present along with 'source'
         if 'substitute' in stream and source is not None:
+            if not validation.check_substitute(stream,name):
+                continue
             substitutions = []
             for k, v in stream['substitute'].items():
                 v['field_name'] = k
@@ -132,6 +135,8 @@ for (module, name) in modules:
         # check 'encrypt' attribute is present along with 'source'
 
         if 'encrypt' in stream and source is not None:
+            if not validation.check_encrypt(stream, name):
+                continue
             encryption = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                            "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
                           for v in stream['encrypt']['columns'] if v in all_columns]
@@ -148,6 +153,8 @@ for (module, name) in modules:
         # check 'shuffle' attribute is present along with 'source'
 
         if 'shuffle' in stream and source is not None:
+            if not validation.check_shuffle(stream, name):
+                continue
             shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                         "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
             schema += shuffle
@@ -155,6 +162,8 @@ for (module, name) in modules:
         # check 'nullying' attribute is present along with 'source'
 
         if 'nullying' in stream and source is not None:
+            if not validation.check_nullying(stream,name):
+                continue
             nullify = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                         "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
             schema += nullify
