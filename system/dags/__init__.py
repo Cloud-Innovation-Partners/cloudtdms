@@ -85,10 +85,10 @@ for s in scripts:
 for (module, name) in modules:
 
     stream = getattr(module, 'STREAM')
-    stream['format']= 'csv'
 
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         meta_data = get_active_meta_data()
+        stream['format'] = 'csv'
 
         # check 'source' attribute is present
         source = f'{get_cloudtdms_home()}/user-data/{stream["source"]}.csv' if 'source' in stream else None
