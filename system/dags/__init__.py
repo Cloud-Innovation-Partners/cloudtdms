@@ -99,8 +99,8 @@ for (module, name) in modules:
         if not validation.check_schema_type(stream, name):
             continue
 
-        if not validation.check_source(stream, name):
-            continue
+        # if not validation.check_source(stream, name):
+        #     continue
 
         if not validation.check_delete(stream,name):
             continue
@@ -108,11 +108,14 @@ for (module, name) in modules:
         # columns in data-file
         all_columns = []
         if source is not None:
-            with open(source, 'r') as f:
-                columns = f.readline()
-                columns = columns.replace('\n', '')
-            all_columns = str(columns).split(',')
-
+            try:
+                with open(source, 'r') as f:
+                    columns = f.readline()
+                    columns = columns.replace('\n', '')
+                all_columns = str(columns).split(',')
+            except FileNotFoundError:
+                LoggingMixin().log.error(f'ValueError: File {source} not found')
+                continue
         # get columns to delete
         delete = stream['delete'] if 'delete' in stream else []
 
@@ -174,6 +177,9 @@ for (module, name) in modules:
             remaining = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                             "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
             schema += remaining
+
+        if not schema:
+            LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
 
         attributes = {}
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])

@@ -85,10 +85,10 @@ def set_default_format(stream, name):
 
 
 def check_source(stream, name):
-    result=True
-    if 'source' not in stream:
+    result = True
+    if 'source' not in stream and ('encrypt' or 'substitute' or 'nullying' or 'delete' or 'mask_out' or 'shuffle' not in stream):
         LoggingMixin().log.error(f'AttributeError: `source` attribute not found in {name}.py')
-        result=True
+        result=False
     else:
         # /home/user/AFW/cloudtdms/system/cloudtdms/utils/validation.py
         # /home/user/AFW/cloudtdms/user-data
