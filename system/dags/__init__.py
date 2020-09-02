@@ -180,6 +180,7 @@ for (module, name) in modules:
 
         if not schema:
             LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+            continue
 
         attributes = {}
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
