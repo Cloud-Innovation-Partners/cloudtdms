@@ -101,3 +101,56 @@ stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator
 start >> stream >> end
 
 """
+
+# --------------------------------- Discovery ----------------------------------------
+
+DISCOVER = """
+import sys
+import os
+from datetime import datetime, timedelta
+import pandas as pd
+from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.configuration import get_airflow_home
+from airflow.utils.log.logging_mixin import LoggingMixin
+sys.path.append(os.path.dirname(get_airflow_home()))
+from system.dags import get_user_data_home, get_output_data_home
+from system.cloudtdms.discovery import discover
+from system.cloudtdms.utils.pandas_profiling import ProfileReport
+
+dag = DAG(
+    dag_id={{ "'"~data.dag_id|string~"'" }},
+    schedule_interval={{"'@"~data.frequency~"'"}},
+    catchup=False,
+    default_args={
+        'owner': 'CloudTDMS',
+        'depends_on_past': False,
+        'start_date': datetime(2020, 7, 8),
+        'retries': 1,
+        'retry_delay': timedelta(minutes=1)
+    },
+    params={
+       'data_file' : {{ "'"~data.data_file|string~"'" }}
+    }
+)
+
+
+def data_discovery():
+    df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
+    columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    df.columns = columns
+    profile = ProfileReport(
+        df, title=f"Profile Report of the data-set {dag.params.get('data_file')}", explorative=True
+    )
+    profile.to_file(f"{get_output_data_home()}/report_{dag.params.get('data_file')}.html")
+
+
+start = DummyOperator(task_id="start", dag=dag)
+end = DummyOperator(task_id="end", dag=dag)
+stream = PythonOperator(task_id="DataDiscovery", python_callable=data_discovery, dag=dag)
+
+start >> stream >> end
+
+
+"""
