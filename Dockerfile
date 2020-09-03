@@ -7,12 +7,11 @@ COPY entrypoint.sh /entrypoint.sh
 RUN mkdir /opt/cloudtdms
 WORKDIR /opt/cloudtdms
 
+# Copy requirements.txt
+COPY requirements.txt /requirements.txt
+
 #Install Dependencies
-RUN pip install faker
-RUN pip install apache-airflow
-RUN pip install cryptography
-RUN pip install onetimepad
-RUN pip install pycrypto
+RUN pip install -r /requirements.txt
 
 # Copy selected subdirectories only
 RUN mkdir scripts
