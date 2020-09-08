@@ -15,8 +15,9 @@ from pandas_profiling.report.presentation.core.root import Root
 from pandas_profiling.report.presentation.core import (
     HTML,
     Container,
-    Table
+    Table,
 )
+from pandas_profiling.report.presentation.flavours.html.html import HTMLHTML
 config = Config()
 
 import pandas as pd
@@ -26,24 +27,57 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
     pii = summary['pii']
     rows = []
     for key, value in pii.items():
-        rows.append(
-            {
-                "name": str(key).replace('_', ' ').title(),
-                "value": ', '.join(value),
-                "fmt": "raw",
-                "alert": "n_unique",
-            }
-        )
+        for item in value:
+            rows.append(
+                {
+                    "name": f'<a class="anchor" href="#pp_var_{hash(item)}"><code>{item}</code></a> <span style="font-weight:normal">is classified as <strong>{key}</strong> with score of <code>60%</code></span> ',
+                    "value": '<span class ="label label-primary"> Sensitive </span>',
+                    "fmt": "raw",
+                }
+            )
     pii_table = Table(
         rows,
-        name="Sensitive",
+        name="Sensitive Variables",
         anchor_id="metadata_reproduction",
     )
 
     return Container(
-        [pii_table], name="Personal Identifiable Information", anchor_id="pii", sequence_type="grid",
+        [pii_table], name="Overview", anchor_id="pii", sequence_type="grid",
     )
 
+
+def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
+
+    script = HTMLHTML(name="Synthetic Data Configuration", content="""
+    
+    <div style="margin:10px">
+    <pre>
+    <code>
+    STREAM = {
+                "number": 1000,
+                "title": 'Stream6',
+                "source": 'Churn-Modeling',
+                "substitute": {
+                "Surname": {"type" : "personal.last_name"},
+                "Gender": {"type": "personal.gender"},
+                "Geography": {"type" : "location.country"}
+                },
+                "encrypt": {
+                "columns": ["EstimatedSalary", "Balance"],
+                "type": "caesar",
+                "encryption_key": 56789
+                },
+                "format": "csv",
+                "frequency": "once"
+                }
+                </code>
+                </pre>
+                </div>
+    """)
+
+    return Container(
+        [script], name="Configuration", anchor_id="script", sequence_type="sections",
+    )
 
 
 def get_dataset_items(summary: dict, warnings: list) -> list:
@@ -66,6 +100,19 @@ def get_dataset_items(summary: dict, warnings: list) -> list:
 
     return items
 
+
+def render_configuration(summary: dict, warnings: list) -> list:
+    metadata = {
+        key: config["dataset"][key].get(str) for key in config["dataset"].keys()
+    }
+
+    items = [
+        get_dataset_proposed_masking_script(summary, metadata),
+    ]
+
+    return items
+
+
 def get_report_structure(summary: dict) -> Renderable:
     """Generate a HTML report from summary statistics and a given sample.
 
@@ -84,9 +131,15 @@ def get_report_structure(summary: dict) -> Renderable:
         section_items: List[Renderable] = [
             Container(
                 get_dataset_items(summary, warnings=[]),
-                sequence_type="tabs",
-                name="Overview",
-                anchor_id="overview",
+                sequence_type="list",
+                name="Personally Identifiable Information (PII)",
+                anchor_id="personal_identifiable_information",
+            ),
+            Container(
+                render_configuration(summary, warnings=[]),
+                sequence_type="list",
+                name="",
+                anchor_id="configuration",
             )
         ]
 
