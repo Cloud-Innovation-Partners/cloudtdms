@@ -1,0 +1,178 @@
+#  Copyright (c) 2020. Cloud Innovation Partners (CIP)
+#  CloudTDMS - Test Data Management Service
+
+from pandas_profiling.profile_report import ProfileReport
+from pandas_profiling.report.presentation.core.renderable import Renderable
+from pandas_profiling.config import Config
+from pandas_profiling.version import __version__
+
+from tqdm import tqdm
+from typing import List, Optional
+import warnings
+from system.cloudtdms.discovery import discover
+from datetime import datetime
+from pandas_profiling.report.presentation.core.root import Root
+from pandas_profiling.report.presentation.core import (
+    HTML,
+    Container,
+    Table
+)
+config = Config()
+
+import pandas as pd
+
+
+def get_dataset_personal_identifiable_information(summary: dict, metadata: dict):
+    pii = summary['pii']
+    rows = []
+    for key, value in pii.items():
+        rows.append(
+            {
+                "name": str(key).replace('_', ' ').title(),
+                "value": ', '.join(value),
+                "fmt": "raw",
+                "alert": "n_unique",
+            }
+        )
+    pii_table = Table(
+        rows,
+        name="Sensitive",
+        anchor_id="metadata_reproduction",
+    )
+
+    return Container(
+        [pii_table], name="Personal Identifiable Information", anchor_id="pii", sequence_type="grid",
+    )
+
+
+
+def get_dataset_items(summary: dict, warnings: list) -> list:
+    """Returns the dataset overview (at the top of the report)
+
+    Args:
+        summary: the calculated summary
+        warnings: the warnings
+
+    Returns:
+        A list with components for the dataset overview (overview, reproduction, warnings)
+    """
+    metadata = {
+        key: config["dataset"][key].get(str) for key in config["dataset"].keys()
+    }
+
+    items = [
+        get_dataset_personal_identifiable_information(summary, metadata),
+    ]
+
+    return items
+
+def get_report_structure(summary: dict) -> Renderable:
+    """Generate a HTML report from summary statistics and a given sample.
+
+    Args:
+      sample: A dict containing the samples to print.
+      summary: Statistics to use for the overview, variables, correlations and missing values.
+
+    Returns:
+      The profile report in HTML format
+    """
+    disable_progress_bar = not config["progress_bar"].get(bool)
+    with tqdm(
+            total=1, desc="Generate report structure", disable=disable_progress_bar
+    ) as pbar:
+
+        section_items: List[Renderable] = [
+            Container(
+                get_dataset_items(summary, warnings=[]),
+                sequence_type="tabs",
+                name="Overview",
+                anchor_id="overview",
+            )
+        ]
+
+        sections = Container(section_items, name="Root", sequence_type="sections")
+        pbar.update()
+
+    footer = HTML(
+        content='Report generated with <a href="https://github.com/Cloud-Innovation-Partners/cloudtdms">cloudtdms</a>.'
+    )
+
+    return Root("Root", sections, footer)
+
+
+def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> dict:
+    """Calculate the statistics for each series in this DataFrame.
+
+    Args:
+        title: report title
+        df: DataFrame.
+        sample: optional, dict with custom sample
+
+    Returns:
+        This function returns a dictionary containing:
+            - table: overall statistics.
+            - variables: descriptions per series.
+            - correlations: correlation matrices.
+            - missing: missing value diagrams.
+            - messages: direct special attention to these patterns in your data.
+            - package: package details.
+    """
+
+    if df is None:
+        raise ValueError("Can not describe a `lazy` ProfileReport without a DataFrame.")
+
+    if not isinstance(df, pd.DataFrame):
+        warnings.warn("df is not of type pandas.DataFrame")
+
+    if df.empty:
+        raise ValueError("df can not be empty")
+
+    date_start = datetime.utcnow()
+
+    with tqdm(
+            total=1, desc="Identifying PII's", disable=False
+    ) as pbar:
+        pii = discover(df)
+        pbar.update()
+
+    date_end = datetime.utcnow()
+
+    package = {
+        "pandas_profiling_version": __version__,
+        "pandas_profiling_config": config.dump(),
+    }
+
+    analysis = {
+        "title": title,
+        "date_start": date_start,
+        "date_end": date_end,
+        "duration": date_end - date_start,
+    }
+
+    # Start PII discovery
+
+    return {
+        #Analysis
+        "analysis" : analysis,
+        #Package
+        "package": package,
+        # PII
+        "pii" : pii
+    }
+
+
+class PIIReport(ProfileReport):
+    def __init__(self, df, **kwargs):
+        super().__init__(df)
+
+    @property
+    def report(self):
+        if self._report is None:
+            self._report = get_report_structure(self.description_set)
+        return self._report
+
+    @property
+    def description_set(self):
+        if self._description_set is None:
+            self._description_set = describe_df(self.title, self.df, self._sample)
+        return self._description_set
