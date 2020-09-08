@@ -117,7 +117,8 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 sys.path.append(os.path.dirname(get_airflow_home()))
 from system.dags import get_user_data_home, get_output_data_home
 from system.cloudtdms.discovery import discover
-from system.cloudtdms.utils.pandas_profiling import ProfileReport
+from pandas_profiling import ProfileReport
+from system.cloudtdms.utils.pii_report import PIIReport
 
 dag = DAG(
     dag_id={{ "'"~data.dag_id|string~"'" }},
@@ -136,21 +137,29 @@ dag = DAG(
 )
 
 
-def data_discovery():
+def generate_eda_profile():
     df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
     columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = ProfileReport(
-        df, title=f"Profile Report of the data-set {dag.params.get('data_file')}", explorative=True
+        df, title=f"Exploratory Data Analysis of the data-set {dag.params.get('data_file')}", explorative=True
     )
-    profile.to_file(f"{get_output_data_home()}/report_{dag.params.get('data_file')}.html")
+    profile.to_file(f"{get_output_data_home()}/eda_report_{dag.params.get('data_file')}.html")
 
+def generate_sensitive_data_profile():
+    df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
+    columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    df.columns = columns
+    profile = PIIReport(
+        df, title=f"Sensitive Data Discovery Report of the data-set {dag.params.get('data_file')}", explorative=True
+    )
+    profile.to_file(f"{get_output_data_home()}/sensitive_report_{dag.params.get('data_file')}.html")
 
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
-stream = PythonOperator(task_id="DataDiscovery", python_callable=data_discovery, dag=dag)
-
-start >> stream >> end
+eda_stream = PythonOperator(task_id="ExploratoryDataProfiling", python_callable=generate_eda_profile, dag=dag)
+sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
+start >> [eda_stream, sensitive_data_profile] >> end
 
 
 """
