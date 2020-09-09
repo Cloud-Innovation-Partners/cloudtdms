@@ -7,7 +7,7 @@ phone_sensitive_column_headers = ['phone_number', 'phone number', 'contact', 'co
 
 def phone_number_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Phone_Number', 'basis' : 'column_name'}  for f in column_headers if f in phone_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Phone_Number', 'basis' : 'column_name'}  for f in column_headers if f in phone_sensitive_column_headers]
     return matched_columns
 
 def _is_valid_phone_number(number):
@@ -32,7 +32,8 @@ def phone_number_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 50:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'Phone_Number', 'basis': 'column_data'})
+            if score > 5:
+                statistic_match.append({column: int(score), 'match': 'Phone_Number', 'basis': 'column_data'})
 
     return statistic_match
 

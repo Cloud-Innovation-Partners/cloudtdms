@@ -107,7 +107,13 @@ start >> stream >> end
 DISCOVER = """
 import sys
 import os
+import yaml
+import email, smtplib, ssl
 from datetime import datetime, timedelta
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import pandas as pd
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
@@ -115,7 +121,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.configuration import get_airflow_home
 from airflow.utils.log.logging_mixin import LoggingMixin
 sys.path.append(os.path.dirname(get_airflow_home()))
-from system.dags import get_user_data_home, get_cloudtdms_home
+from system.dags import get_user_data_home, get_cloudtdms_home, get_config_default_path, get_reports_home
 from system.cloudtdms.discovery import discover
 from pandas_profiling import ProfileReport
 from system.cloudtdms.utils.pii_report import PIIReport
@@ -136,7 +142,6 @@ dag = DAG(
     }
 )
 
-reports_home = f"{get_cloudtdms_home()}/reports"
 
 def generate_eda_profile():
     df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
@@ -145,12 +150,12 @@ def generate_eda_profile():
     profile = ProfileReport(
         df, title=f"Exploratory Data Analysis of the data-set {dag.params.get('data_file')}", explorative=True
     )
-    path = f"{reports_home}/{dag.params.get('data_file')}"
+    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
     try:
         os.makedirs(path)
     except FileExistsError:
         pass
-    profile.to_file(f"{path}/eda_report_{dag.params.get('data_file')}.html")
+    profile.to_file(f"{path}/profiling_{dag.params.get('data_file')}.html")
 
 def generate_sensitive_data_profile():
     df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
@@ -159,18 +164,69 @@ def generate_sensitive_data_profile():
     profile = PIIReport(
         df, title=f"Sensitive Data Discovery Report of the data-set {dag.params.get('data_file')}", explorative=True
     )
-    path = f"{reports_home}/{dag.params.get('data_file')}"
+    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
     try:
         os.makedirs(path)
     except FileExistsError:
         pass
-    profile.to_file(f"{path}/sensitive_report_{dag.params.get('data_file')}.html")
+    profile.to_file(f"{path}/pii_{dag.params.get('data_file')}.html")
 
+def email_reports():
+    # Get config_default.yaml
+    file = open(get_config_default_path())
+    config = yaml.load(file, Loader=yaml.FullLoader)
+    email = config["email"]
+    subject = "Data Profile"
+    body = "This is an email with attachment sent from CloudTDMS"
+    sender_email = email["username"]
+    receiver_email = email["to"]
+    password = email["password"]
+
+    # Create a multipart message and set headers
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = subject
+    message["Bcc"] = receiver_email  # Recommended for mass emails
+
+    # Add body to email
+    message.attach(MIMEText(body, "plain"))
+    
+    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+    
+    for file in os.listdir(path):
+        with open(f"{path}/{file}", "rb") as attachment:
+            # Add file as application/octet-stream
+            # Email client can usually download this automatically as attachment
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+    
+        # Encode file in ASCII characters to send by email
+        encoders.encode_base64(part)
+    
+        # Add header as key/value pair to attachment part
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {file}",
+        )
+    
+        # Add attachment to message and convert message to string
+        message.attach(part)
+    text = message.as_string()
+
+    # Log in to server using secure context and send email
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(email["smtp_host"], email["smtp_port"], context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, text)
+        
+        
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 eda_stream = PythonOperator(task_id="ExploratoryDataProfiling", python_callable=generate_eda_profile, dag=dag)
+send_email = PythonOperator(task_id="EmailReports", python_callable=email_reports, dag=dag)
 sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
-start >> [eda_stream, sensitive_data_profile] >> end
+start >> [eda_stream, sensitive_data_profile]>> send_email >> end
 
 
 """
