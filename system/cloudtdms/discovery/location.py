@@ -19,7 +19,7 @@ state_sensitive_column_headers=['state']
 
 def coord_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in coord_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Coordinates(Latitude and Longitude)', 'basis' : 'column_name'}  for f in column_headers if f in coord_sensitive_column_headers]
     return matched_columns
 
 
@@ -42,23 +42,27 @@ def coord_search_on_data_basis(data_frame, matched):
     r = re.compile(regex_latitude)
     for column in columns:
         mask = data_frame[column].apply(lambda x: bool(r.match(str(x))))
-        if mask.sum() > 100:
-            statistic_match.append(column)
+        sum=mask.sum()
+        if sum > 100:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'Latitude', 'basis': 'column_data'})
 
     # search for longitude
     r = re.compile(regex_longitude)
     for column in columns:
         mask = data_frame[column].apply(lambda x: bool(r.match(str(x))))
-        if mask.sum() > 100:
-            statistic_match.append(column)
-            
-    statistic_match = list(set(statistic_match))
+        sum = mask.sum()
+        if sum > 100:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'Longitude', 'basis': 'column_data'})
+
+    # statistic_match = list(set(statistic_match))
 
     return statistic_match
 
 def country_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in country_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Country', 'basis' : 'column_name'}  for f in column_headers if f in country_sensitive_column_headers]
     return matched_columns
 
 def country_search_on_data_basis(data_frame, matched):
@@ -79,15 +83,17 @@ def country_search_on_data_basis(data_frame, matched):
 
     for column in columns:
         data_frame[column]=data_frame[column].apply(lambda x:str(x).lower())
-        country_intersection = reduce(np.intersect1d, [data_frame[column], df['country']])
-        if len(country_intersection) >=3:
-            statistic_match.append(column)
+        mask=pd.Series(data_frame[column]).isin(pd.Series(df['country']))
+        sum=mask.sum()
+        # country_intersection = reduce(np.intersect1d, [data_frame[column], df['country']])
+        score = (sum/ len(data_frame)) * 100
+        statistic_match.append({column: score, 'match': 'Country', 'basis': 'column_data'})
 
     return statistic_match
 
 def city_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in city_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'City', 'basis' : 'column_name'}  for f in column_headers if f in city_sensitive_column_headers]
     return matched_columns
 
 def city_search_on_data_basis(data_frame, matched):
@@ -109,15 +115,16 @@ def city_search_on_data_basis(data_frame, matched):
     for column in columns:
         data_frame[column] = data_frame[column].apply(lambda x: str(x).lower())
         city_intersection = reduce(np.intersect1d, [data_frame[column], df['city']])
-        if len(city_intersection) > 100:
-            statistic_match.append(column)
+        if len(city_intersection) >100:
+            score = (len(city_intersection) / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'City', 'basis': 'column_data'})
 
     return statistic_match
 
 
 def municipality_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in municipality_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Municipality', 'basis' : 'column_name'}  for f in column_headers if f in municipality_sensitive_column_headers]
     return matched_columns
 
 def municipality_search_on_data_basis(data_frame, matched):
@@ -138,15 +145,16 @@ def municipality_search_on_data_basis(data_frame, matched):
 
     for column in columns:
         data_frame[column] = data_frame[column].apply(lambda x: str(x).lower())
-        city_intersection = reduce(np.intersect1d, [data_frame[column], df['municipality']])
-        if len(city_intersection) > 100:
-            statistic_match.append(column)
+        mun_intersection = reduce(np.intersect1d, [data_frame[column], df['municipality']])
+        if len(mun_intersection) >100:
+            score = (len(mun_intersection) / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'Municipality', 'basis': 'column_data'})
 
     return statistic_match
 
 def state_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in state_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'State', 'basis' : 'column_name'}  for f in column_headers if f in state_sensitive_column_headers]
     return matched_columns
 
 
@@ -168,23 +176,25 @@ def state_search_on_data_basis(data_frame, matched):
 
     for column in columns:
         data_frame[column] = data_frame[column].apply(lambda x: str(x).lower())
-        city_intersection = reduce(np.intersect1d, [data_frame[column], df['state']])
-        if len(city_intersection) > 100:
-            statistic_match.append(column)
+        state_intersection = reduce(np.intersect1d, [data_frame[column], df['state']])
+        if len(state_intersection) >100:
+            score = (len(state_intersection) / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'State', 'basis': 'column_data'})
 
     return statistic_match
 
 def search(data_frame):
     result = []
-    result = coord_search_on_column_basis(data_frame,result)
-    result += coord_search_on_data_basis(data_frame, result)
-    result += country_search_on_column_basis(data_frame,result)
-    result += country_search_on_data_basis(data_frame, result)
-    result += city_search_on_column_basis(data_frame, result)
-    result += city_search_on_data_basis(data_frame, result)
-    result += municipality_search_on_column_basis(data_frame, result)
-    result += municipality_search_on_data_basis(data_frame, result)
-    result += state_search_on_column_basis(data_frame, result)
-    result += state_search_on_data_basis(data_frame, result)
+    result = coord_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += coord_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += country_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += country_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += city_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += city_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += municipality_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += municipality_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += state_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += state_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
 
-    return list(set(result))
+    # return list(set(result))
+    return result

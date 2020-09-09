@@ -7,7 +7,7 @@ phone_sensitive_column_headers = ['phone_number', 'phone number', 'contact', 'co
 
 def phone_number_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in phone_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Phone_Number', 'basis' : 'column_name'}  for f in column_headers if f in phone_sensitive_column_headers]
     return matched_columns
 
 def _is_valid_phone_number(number):
@@ -24,18 +24,20 @@ def phone_number_search_on_data_basis(data_frame, matched):
     data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
 
     columns = data_frame.columns
-    print(f'COLS ARE {columns}')
+
     # Load Sample Data
     statistic_match = []
     for column in columns:
         mask = data_frame[column].apply(_is_valid_phone_number)
-        if mask.sum() > 50:
-            statistic_match.append(column)
+        sum = mask.sum()
+        if sum > 50:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'Phone_Number', 'basis': 'column_data'})
 
     return statistic_match
 
 def search(data_frame):
     result = []
-    result = phone_number_search_on_column_basis(data_frame, result)
-    result += phone_number_search_on_data_basis(data_frame, result)
+    result = phone_number_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += phone_number_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
     return result

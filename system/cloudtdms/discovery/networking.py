@@ -52,15 +52,18 @@ def ip_search_on_data_basis(data_frame, matched):
     statistic_match = []
     for column in columns:
         mask = data_frame[column].apply(valid_ip)
-        if mask.sum() > 50:
-            statistic_match.append(column)
+        sum = mask.sum()
+        if sum > 50:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'IP', 'basis': 'column_data'})
+
 
     return statistic_match
 
 
 def mac_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in mac_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'MAC', 'basis' : 'column_name'}  for f in column_headers if f in mac_sensitive_column_headers]
     return matched_columns
 
 
@@ -85,24 +88,27 @@ def mac_search_on_data_basis(data_frame, matched):
     statistic_match = []
     for column in columns:
         mask = data_frame[column].apply(_is_valid_mac)
-        if mask.sum() > 50:
-            statistic_match.append(column)
+        sum = mask.sum()
+        if sum > 50:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'MAC', 'basis': 'column_data'})
+
 
     return statistic_match
 
 def msisdn_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in msisdn_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'MSISDN', 'basis' : 'column_name'}  for f in column_headers if f in msisdn_sensitive_column_headers]
     return matched_columns
 
 def imsi_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in imsi_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'IMSI', 'basis' : 'column_name'}  for f in column_headers if f in imsi_sensitive_column_headers]
     return matched_columns
 
 def guid_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in guid_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'GUID', 'basis' : 'column_name'}  for f in column_headers if f in guid_sensitive_column_headers]
     return matched_columns
 
 def _is_valid_guid(guid):
@@ -125,14 +131,17 @@ def guid_search_on_data_basis(data_frame, matched):
     statistic_match = []
     for column in columns:
         mask = data_frame[column].apply(_is_valid_guid)
-        if mask.sum() > 50:
-            statistic_match.append(column)
+        sum = mask.sum()
+        if sum > 50:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'GUID', 'basis': 'column_data'})
+
 
     return statistic_match
 
 def hardware_serial_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in hardware_serial_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Hardware_Serial', 'basis' : 'column_name'}  for f in column_headers if f in hardware_serial_sensitive_column_headers]
     return matched_columns
 
 def _is_valid_sn(sn):
@@ -155,22 +164,26 @@ def hardware_serial_search_on_data_basis(data_frame, matched):
     statistic_match = []
     for column in columns:
         mask = data_frame[column].apply(_is_valid_sn)
-        if mask.sum() > 50:
-            statistic_match.append(column)
+        sum = mask.sum()
+        if sum > 50:
+            score = (sum / len(data_frame)) * 100
+            statistic_match.append({column: score, 'match': 'Hardware_Serial', 'basis': 'column_data'})
 
     return statistic_match
 
 def search(data_frame):
     result = []
-    result = ip_search_on_column_basis(data_frame, result)
-    result += ip_search_on_data_basis(data_frame, result)
-    result += mac_search_on_data_basis(data_frame, result)
-    result += mac_search_on_data_basis(data_frame, result)
-    result += guid_search_on_column_basis(data_frame, result)
-    result += guid_search_on_data_basis(data_frame, result)
-    result += hardware_serial_search_on_column_basis(data_frame, result)
-    result += hardware_serial_search_on_data_basis(data_frame, result)
-    result += msisdn_search_on_column_basis(data_frame, result)
-    result += imsi_search_on_column_basis(data_frame, result)
+    result = ip_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += ip_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += mac_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += mac_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += guid_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += guid_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += hardware_serial_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += hardware_serial_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += msisdn_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += imsi_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
 
-    return list(set(result))
+    # return list(set(result))
+
+    return result
