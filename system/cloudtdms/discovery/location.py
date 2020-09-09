@@ -197,18 +197,19 @@ def state_search_on_data_basis(data_frame, matched):
 
 def search(data_frame):
     result = []
-    result = latitude_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result = longitude_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += coord_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += latitude_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += longitude_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += country_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += city_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += municipality_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += state_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += coord_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+
     result += country_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += city_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += municipality_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += state_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result += coord_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+
 
     # return list(set(result))
     return result
