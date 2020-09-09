@@ -23,6 +23,7 @@ COPY system/__init__.py system/__init__.py
 COPY __init__.py .
 RUN mkdir user-data
 RUN mkdir data
+RUN mkdir reports
 
 # Environment
 ENV AIRFLOW_HOME="/opt/cloudtdms/system"

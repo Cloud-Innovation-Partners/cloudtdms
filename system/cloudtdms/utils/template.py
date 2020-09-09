@@ -115,7 +115,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.configuration import get_airflow_home
 from airflow.utils.log.logging_mixin import LoggingMixin
 sys.path.append(os.path.dirname(get_airflow_home()))
-from system.dags import get_user_data_home, get_output_data_home
+from system.dags import get_user_data_home, get_cloudtdms_home
 from system.cloudtdms.discovery import discover
 from pandas_profiling import ProfileReport
 from system.cloudtdms.utils.pii_report import PIIReport
@@ -136,6 +136,7 @@ dag = DAG(
     }
 )
 
+reports_home = f"{get_cloudtdms_home()}/reports"
 
 def generate_eda_profile():
     df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
@@ -144,7 +145,12 @@ def generate_eda_profile():
     profile = ProfileReport(
         df, title=f"Exploratory Data Analysis of the data-set {dag.params.get('data_file')}", explorative=True
     )
-    profile.to_file(f"{get_output_data_home()}/eda_report_{dag.params.get('data_file')}.html")
+    path = f"{reports_home}/{dag.params.get('data_file')}"
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        pass
+    profile.to_file(f"{path}/eda_report_{dag.params.get('data_file')}.html")
 
 def generate_sensitive_data_profile():
     df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
@@ -153,7 +159,12 @@ def generate_sensitive_data_profile():
     profile = PIIReport(
         df, title=f"Sensitive Data Discovery Report of the data-set {dag.params.get('data_file')}", explorative=True
     )
-    profile.to_file(f"{get_output_data_home()}/sensitive_report_{dag.params.get('data_file')}.html")
+    path = f"{reports_home}/{dag.params.get('data_file')}"
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        pass
+    profile.to_file(f"{path}/sensitive_report_{dag.params.get('data_file')}.html")
 
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)

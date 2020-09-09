@@ -19,6 +19,7 @@ services:
     - ./scripts:/opt/cloudtdms/scripts
     - ./data:/opt/cloudtdms/data
     - ./user-data:/opt/cloudtdms/user-data
+    - ./reports:/opt/cloudtdms/reports
     ports:
     - "8080:8080"
 
