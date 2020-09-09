@@ -28,7 +28,7 @@ hardware_serial_sensitive_column_headers=['Serial Number','Serial_Number','seria
 
 def ip_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [f for f in column_headers if f in ip_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'IP', 'basis' : 'column_name'} for f in column_headers if f in ip_sensitive_column_headers]
     return matched_columns
 
 
@@ -42,7 +42,7 @@ def ip_search_on_data_basis(data_frame, matched):
     try:
         data_frame.drop(matched, inplace=True, axis=1)
     except KeyError:
-        print("No columns available for drop operation!")
+        pass
 
     data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
 
@@ -51,7 +51,7 @@ def ip_search_on_data_basis(data_frame, matched):
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_ip)
+        mask = data_frame[column].apply(valid_ip)
         if mask.sum() > 50:
             statistic_match.append(column)
 
