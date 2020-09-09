@@ -19,12 +19,12 @@ state_sensitive_column_headers=['state']
 
 def latitude_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Latitude', 'basis' : 'column_name'}  for f in column_headers if f in latitude_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Latitude', 'basis' : 'column_name'}  for f in column_headers if f in latitude_sensitive_column_headers]
     return matched_columns
 
 def longitude_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Longitude', 'basis' : 'column_name'}  for f in column_headers if f in longitude_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Longitude', 'basis' : 'column_name'}  for f in column_headers if f in longitude_sensitive_column_headers]
 
     return matched_columns
 
