@@ -8,8 +8,8 @@ from system.dags import get_providers_home
 import re
 
 
-coord_sensitive_column_headers = ['latitude', 'longitude','lat','long','altitude','azimuth','ordinate','abscissa',
-                            'right ascension','declension']
+latitude_sensitive_column_headers = ['latitude','lat','altitude']
+longitude_sensitive_column_headers = ['longitude','long']
 country_sensitive_column_headers=['country','homeland','native land','native_land','grass roots','grass_roots','land']
 city_sensitive_column_headers=['city','capital','center','metropolis','downtown','place','port','polis','urbs']
 municipality_sensitive_column_headers=['municipality','community','district','town','township','village'
@@ -17,9 +17,14 @@ municipality_sensitive_column_headers=['municipality','community','district','to
 postal_codes_sensitive_column_headers=['zip','pincode','pin_code','pin code','postalcode', 'postal_code','postal code']
 state_sensitive_column_headers=['state']
 
-def coord_search_on_column_basis(data_frame, matched):
+def latitude_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Coordinates(Latitude and Longitude)', 'basis' : 'column_name'}  for f in column_headers if f in coord_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Latitude', 'basis' : 'column_name'}  for f in column_headers if f in latitude_sensitive_column_headers]
+    return matched_columns
+
+def longitude_search_on_column_basis(data_frame, matched):
+    column_headers = data_frame.columns
+    matched_columns = [{f: 90.0, 'match': 'Longitude', 'basis' : 'column_name'}  for f in column_headers if f in longitude_sensitive_column_headers]
     return matched_columns
 
 
@@ -185,7 +190,8 @@ def state_search_on_data_basis(data_frame, matched):
 
 def search(data_frame):
     result = []
-    result = coord_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result = latitude_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
+    result = longitude_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += coord_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += country_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
     result += country_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
