@@ -26,12 +26,14 @@ import pandas as pd
 def get_dataset_personal_identifiable_information(summary: dict, metadata: dict):
     pii = summary['pii']
     rows = []
+    # {'person_name': [{'surname': 50.0}], 'person_detail': [{'age': 50.0}, {'gender': 50.0}, {'rownumber': 100.0}]}
     for key, value in pii.items():
         for item in value:
+            (i, k) = next(enumerate(item))
             rows.append(
                 {
-                    "name": f'<a class="anchor" href="#pp_var_{hash(item)}"><code>{item}</code></a> <span style="font-weight:normal">is classified as <strong>{key}</strong> with score of <code>60%</code></span> ',
-                    "value": '<span class ="label label-primary"> Sensitive </span>',
+                    "name": f'<a class="anchor" href="#pp_var_{hash(k)}"><code>{k}</code></a> <span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code> basis </span> ',
+                    "value": f'<span class ="label label-primary"> {key} </span>',
                     "fmt": "raw",
                 }
             )
