@@ -136,27 +136,27 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     STREAM=generate_script(filename,pii)
     STREAM = json.dumps(STREAM, indent=3)
 
-    script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
-    
-    <div style="margin:10px">
-    <pre>
-    <code>
-    STREAM = {
-                STREAM
-             }
-                </code>
-                </pre>
-                </div>
-    """)
+    # script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
+    #
+    # <div style="margin:10px">
+    # <pre>
+    # <code>
+    # STREAM = {
+    #             STREAM
+    #          }
+    #             </code>
+    #             </pre>
+    #             </div>
+    # """)
     directory=filename
     filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
 
     with open(f'{get_reports_home()}/{directory}/script_{filename}.py', 'w') as o:
         o.write('STREAM=' + STREAM)
 
-    return Container(
-        [script], name="Configuration", anchor_id="script", sequence_type="sections",
-    )
+    # return Container(
+    #     [script], name="Configuration", anchor_id="script", sequence_type="sections",
+    # )
 
 
 def get_dataset_items(summary: dict, warnings: list) -> list:
@@ -177,19 +177,20 @@ def get_dataset_items(summary: dict, warnings: list) -> list:
         get_dataset_personal_identifiable_information(summary, metadata),
     ]
 
+    get_dataset_proposed_masking_script(summary, metadata)
     return items
 
 
-def render_configuration(summary: dict, warnings: list) -> list:
-    metadata = {
-        key: config["dataset"][key].get(str) for key in config["dataset"].keys()
-    }
-
-    items = [
-        get_dataset_proposed_masking_script(summary, metadata),
-    ]
-
-    return items
+# def render_configuration(summary: dict, warnings: list) -> list:
+#     metadata = {
+#         key: config["dataset"][key].get(str) for key in config["dataset"].keys()
+#     }
+#
+#     items = [
+#         get_dataset_proposed_masking_script(summary, metadata),
+#     ]
+#
+#     return items
 
 
 def get_report_structure(summary: dict) -> Renderable:
@@ -213,12 +214,6 @@ def get_report_structure(summary: dict) -> Renderable:
                 sequence_type="list",
                 name="Personally Identifiable Information (PII)",
                 anchor_id="personal_identifiable_information",
-            ),
-            Container(
-                render_configuration(summary, warnings=[]),
-                sequence_type="list",
-                name="",
-                anchor_id="configuration",
             )
         ]
 
