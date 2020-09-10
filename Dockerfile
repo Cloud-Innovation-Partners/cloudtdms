@@ -14,7 +14,7 @@ COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 # Copy selected subdirectories only
-RUN mkdir scripts
+RUN mkdir config
 RUN mkdir system
 COPY system/dags system/dags
 COPY system/airflow.cfg system/airflow.cfg
