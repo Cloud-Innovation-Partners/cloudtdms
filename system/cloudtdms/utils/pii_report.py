@@ -35,7 +35,7 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
             rows.append(
                 {
                     "name": f'<a class="anchor" href="#pp_var_{hash(k)}"><code>{k}</code></a> <span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code> basis </span> ',
-                    "value": f'<span class ="label label-primary"> {key} </span>',
+                    "value": f'<span class ="label label-primary"> {str(key).replace("_", " ").title()} </span>',
                     "fmt": "raw",
                 }
             )
