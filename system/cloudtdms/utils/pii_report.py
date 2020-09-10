@@ -23,7 +23,7 @@ from pandas_profiling.report.presentation.flavours.html.html import HTMLHTML
 config = Config()
 
 import pandas as pd
-
+from system.dags import get_reports_home
 
 def get_dataset_personal_identifiable_information(summary: dict, metadata: dict):
     pii = summary['pii']
@@ -135,6 +135,7 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     filename=summary['file_name']
     STREAM=generate_script(filename,pii)
     STREAM = json.dumps(STREAM, indent=3)
+
     script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
     
     <div style="margin:10px">
@@ -147,6 +148,11 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
                 </pre>
                 </div>
     """)
+    directory=filename
+    filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
+
+    with open(f'{get_reports_home()}/{directory}/script_{filename}.py', 'w') as o:
+        o.write('STREAM=' + STREAM)
 
     return Container(
         [script], name="Configuration", anchor_id="script", sequence_type="sections",
