@@ -22,39 +22,39 @@ blood_group_sensitive_column_headers = ['bg','blood group','blood_group','blood 
 
 def age_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0,  'match': 'Age', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in age_sensitive_column_headers]
+    matched_columns = [{f: 90,  'match': 'Age', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in age_sensitive_column_headers]
     return matched_columns
 
 
 def gender_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0,  'match': 'Gender', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in gender_sensitive_column_headers]
+    matched_columns = [{f: 90,  'match': 'Gender', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in gender_sensitive_column_headers]
     return matched_columns
 
 
 def email_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0,  'match': 'Email', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in email_sensitive_column_headers]
+    matched_columns = [{f: 90,  'match': 'Email','sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in email_sensitive_column_headers]
     return matched_columns
 
 def dob_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Date of Birth', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in dob_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Date of Birth', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in dob_sensitive_column_headers]
     return matched_columns
 
 def cc_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Credit Card', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in credit_card_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Credit Card', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in credit_card_sensitive_column_headers]
     return matched_columns
 
 def ssn_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in ssn_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in ssn_sensitive_column_headers]
     return matched_columns
 
 def blood_group_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Blood Group', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in blood_group_sensitive_column_headers]
+    matched_columns = [{f: 90, 'match': 'Blood Group', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in blood_group_sensitive_column_headers]
     return matched_columns
 
 def gender_search_on_data_basis(data_frame, matched):
@@ -71,21 +71,21 @@ def gender_search_on_data_basis(data_frame, matched):
     # Load Sample Data
     df_1 = pd.DataFrame({'gender':['male', 'female']})
     df_2 = pd.DataFrame({'gender':['m','f']})
-    df_3 = pd.DataFrame({'gender':['Male', 'Female']})
-    df_4 = pd.DataFrame({'gender':['M','F']})
+
     statistic_match = []
 
     for column in columns:
-        df_1_intersection = reduce(np.intersect1d, [data_frame[column], df_1['gender']])
-        df_2_intersection = reduce(np.intersect1d, [data_frame[column], df_2['gender']])
-        df_3_intersection = reduce(np.intersect1d, [data_frame[column], df_3['gender']])
-        df_4_intersection = reduce(np.intersect1d, [data_frame[column], df_4['gender']])
-        if len(df_1_intersection) == 2 or len(df_2_intersection) == 2\
-                or len(df_3_intersection) == 2 or len(df_4_intersection) == 2:
-            score = (len(df_1_intersection) + len(df_2_intersection) + len(df_3_intersection) +
-                     len(df_4_intersection)/ len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'Gender', 'sensitvity': 'high', 'basis' : 'column_data'})
 
+        df = pd.DataFrame(data_frame[column].drop_duplicates())
+        df[column] = df[column].apply(lambda x: str(x).lower())
+        mask1 = pd.Series(df[column]).isin(pd.Series(df_1['gender']))
+        mask2 = pd.Series(df[column]).isin(pd.Series(df_2['gender']))
+
+        sum1 = mask1.sum()
+        sum2 = mask2.sum()
+        score = max(sum1,sum2)/len(df)*100
+        if score > 5:
+            statistic_match.append({column: int(score), 'match': 'Gender', 'basis' : 'column_data'})
     return statistic_match
 
 
@@ -102,8 +102,8 @@ def age_search_on_data_basis(data_frame, matched):
         age_intersection = reduce(np.intersect1d, [data_frame[column], df['age']])
         if len(age_intersection) >= 63:
             score = (len(age_intersection) / len(df)) * 100
-            statistic_match.append({column: score, 'match': 'Age', 'sensitvity': 'high', 'basis' : 'column_data'})
-
+            if score > 5:
+                statistic_match.append({column: int(score), 'match': 'Age', 'sensitvity': 'high', 'basis' : 'column_data'})
     return statistic_match
 
 
@@ -126,8 +126,8 @@ def email_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'Email', 'sensitvity': 'high', 'basis' : 'column_data'})
-
+            if score > 5:
+                statistic_match.append({column: int(score), 'match': 'Email', 'sensitvity': 'high', 'basis' : 'column_data'})
     return statistic_match
 
 def _is_valid_dob(dob):
@@ -152,7 +152,8 @@ def dob_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'Date Of Birth', 'sensitvity': 'high', 'basis' : 'column_data'})
+            if score > 5:
+                statistic_match.append({column: int(score), 'match': 'Date Of Birth','sensitvity': 'high', 'basis' : 'column_data'})
 
     return statistic_match
 
@@ -183,7 +184,8 @@ def cc_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: sum, 'match': 'Credit Card', 'sensitvity': 'high', 'basis' : 'column_data'})
+            if score > 5:
+                statistic_match.append({column: int(score), 'match': 'Credit Card', 'sensitvity': 'high', 'basis' : 'column_data'})
 
     return statistic_match
 
@@ -209,8 +211,8 @@ def ssn_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column:score, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis' : 'column_data'})
-
+            if score > 5:
+                statistic_match.append({column:score, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis' : 'column_data'})
     return statistic_match
 
 def _is_valid_blood_group(blood_group):
@@ -235,8 +237,8 @@ def blood_group_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'Blood Group', 'sensitvity': 'high', 'basis' : 'column_data'})
-
+            if score > 5:
+                statistic_match.append({column: int(score), 'match': 'Blood Group','sensitvity': 'high',  'basis' : 'column_data'})
     return statistic_match
 
 def search(data_frame):

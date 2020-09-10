@@ -21,9 +21,10 @@ COPY system/airflow.cfg system/airflow.cfg
 COPY system/cloudtdms system/cloudtdms
 COPY system/__init__.py system/__init__.py
 COPY __init__.py .
+COPY config_default.yaml .
 RUN mkdir user-data
 RUN mkdir data
-RUN mkdir reports
+RUN mkdir profiling_reports
 
 # Environment
 ENV AIRFLOW_HOME="/opt/cloudtdms/system"

@@ -57,6 +57,19 @@ def get_user_data_home():
     return f"{get_cloudtdms_home()}/user-data"
 
 
+def get_config_default_path():
+    """
+    Returns `config_default.yaml` file path
+    :return: str
+    """
+    return f"{get_cloudtdms_home()}/config_default.yaml"
+
+
+def get_reports_home():
+
+    return f"{get_cloudtdms_home()}/profiling_reports"
+
+
 def delete_dag(dag_id):
     p = subprocess.Popen([f"airflow delete_dag -y {dag_id}"],executable="/bin/bash",
                          universal_newlines=True, shell=True)
