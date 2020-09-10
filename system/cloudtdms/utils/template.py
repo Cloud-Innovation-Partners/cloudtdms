@@ -157,7 +157,7 @@ def generate_sensitive_data_profile():
     columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = PIIReport(
-        df, title=f"Sensitive Data Discovery Report of the data-set {dag.params.get('data_file')}", explorative=True
+        df,filename=dag.params.get('data_file'), title=f"Sensitive Data Discovery Report of the data-set {dag.params.get('data_file')}", explorative=True
     )
     path = f"{reports_home}/{dag.params.get('data_file')}"
     try:

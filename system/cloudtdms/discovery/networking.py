@@ -28,7 +28,7 @@ hardware_serial_sensitive_column_headers=['Serial Number','Serial_Number','seria
 
 def ip_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'IP', 'basis' : 'column_name'} for f in column_headers if f in ip_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'IP', 'sensitvity': 'high', 'basis' : 'column_name'} for f in column_headers if f in ip_sensitive_column_headers]
     return matched_columns
 
 
@@ -55,7 +55,7 @@ def ip_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 50:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'IP', 'basis': 'column_data'})
+            statistic_match.append({column: score, 'match': 'IP', 'sensitvity': 'high', 'basis': 'column_data'})
 
 
     return statistic_match
@@ -63,7 +63,7 @@ def ip_search_on_data_basis(data_frame, matched):
 
 def mac_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'MAC', 'basis' : 'column_name'}  for f in column_headers if f in mac_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'MAC', 'sensitvity': 'high', 'basis' : 'column_name'}  for f in column_headers if f in mac_sensitive_column_headers]
     return matched_columns
 
 
@@ -91,24 +91,24 @@ def mac_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 50:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'MAC', 'basis': 'column_data'})
+            statistic_match.append({column: score, 'match': 'MAC', 'sensitvity': 'high', 'basis': 'column_data'})
 
 
     return statistic_match
 
 def msisdn_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'MSISDN', 'basis' : 'column_name'}  for f in column_headers if f in msisdn_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'MSISDN', 'sensitvity': 'high', 'basis' : 'column_name'}  for f in column_headers if f in msisdn_sensitive_column_headers]
     return matched_columns
 
 def imsi_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'IMSI', 'basis' : 'column_name'}  for f in column_headers if f in imsi_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'IMSI', 'sensitvity': 'high', 'basis' : 'column_name'}  for f in column_headers if f in imsi_sensitive_column_headers]
     return matched_columns
 
 def guid_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'GUID', 'basis' : 'column_name'}  for f in column_headers if f in guid_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'GUID', 'sensitvity': 'high', 'basis' : 'column_name'}  for f in column_headers if f in guid_sensitive_column_headers]
     return matched_columns
 
 def _is_valid_guid(guid):
@@ -134,14 +134,14 @@ def guid_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 50:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'GUID', 'basis': 'column_data'})
+            statistic_match.append({column: score, 'match': 'GUID', 'sensitvity': 'high', 'basis': 'column_data'})
 
 
     return statistic_match
 
 def hardware_serial_search_on_column_basis(data_frame, matched):
     column_headers = data_frame.columns
-    matched_columns = [{f: 90.0, 'match': 'Hardware_Serial', 'basis' : 'column_name'}  for f in column_headers if f in hardware_serial_sensitive_column_headers]
+    matched_columns = [{f: 90.0, 'match': 'Hardware_Serial', 'sensitvity': 'high', 'basis' : 'column_name'}  for f in column_headers if f in hardware_serial_sensitive_column_headers]
     return matched_columns
 
 def _is_valid_sn(sn):
@@ -167,7 +167,7 @@ def hardware_serial_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 50:
             score = (sum / len(data_frame)) * 100
-            statistic_match.append({column: score, 'match': 'Hardware_Serial', 'basis': 'column_data'})
+            statistic_match.append({column: score, 'match': 'Hardware_Serial', 'sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match
 

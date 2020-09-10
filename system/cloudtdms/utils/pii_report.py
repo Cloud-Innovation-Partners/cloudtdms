@@ -5,6 +5,8 @@ from pandas_profiling.profile_report import ProfileReport
 from pandas_profiling.report.presentation.core.renderable import Renderable
 from pandas_profiling.config import Config
 from pandas_profiling.version import __version__
+import random
+import json
 
 from tqdm import tqdm
 from typing import List, Optional
@@ -48,30 +50,99 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
     )
 
 
-def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
+def generate_script(filename, pii):
+    pii=dict(pii) # pii is string, convert it into dict and make list of dict below
+    results = []
+    for key in pii:
+        result = pii[key]
+        results.extend(result)
 
-    script = HTMLHTML(name="Synthetic Data Configuration", content="""
+    STREAM = {'number': 1000, "title": 'Stream6', "source": filename, "format": "csv", "frequency": "once"}
+
+    enc_type = {'high': 'mask_out', 'mid': 'ceasar', 'low': 'substitute'}
+
+    subtitute_mapping_values = {
+        'FirstName': {'type': 'personal.first_name'},
+        'LastName': {'type': 'personal.last_name'},
+        'Name': {'type': 'personal.full_name'},
+        'Gender': {'type': 'personal.gender'},
+        'Email': {'type': 'personal.email_address'},
+        'City': {'type': 'location.city'},
+        'Latitude': {'type': 'location.latitude'},
+        'Longitude': {'type': 'location.longtitude'},
+        'Phone': {'type': 'location.phone'},
+        'State': {'type': 'location.state'},
+        'Municipality': {'type': 'location.municipality'},
+        'Postal_code': {'type': 'location.postal_code'},
+        'Country': {'type': 'location.country'},
+        'Dob': {"type": "date.dates", "format": "mm-dd-YYYY", "start": "12-07-2020", "end": "12-08-2023"},
+        'Age': {'type': "basics.random_number", "start": 18, "end": 80},
+        'Guid': {"type": "basics.guid"},
+    }
+
+    with_ = ['*', '$', '@', '!', '^']
+    from_ = ['start', 'mid', 'end']
+    high_sensi_cols = []
+    mid_sensi_cols = []
+    low_sensi_cols = []
+    substitute_dict = {}
+    delete_subs_cols = []
+    updated_result = []
+    sensiH=sensiM=''
+
+    # substitute
+    for result in results:
+        match = result['match']
+        match = match.title()
+        if match in subtitute_mapping_values:
+            substitute_dict[match] = subtitute_mapping_values[match]
+            delete_subs_cols.append(match.lower())
+        else:
+            updated_result.append(result)
+
+    STREAM['substitute'] = substitute_dict
+
+    for result in updated_result:
+        if result['sensitvity'] == 'high':
+            high_sensi_cols.append(result['match'])
+            typeH = enc_type['high']
+            sensiH = result['sensitvity']
+        if result['sensitvity'] == 'mid':
+            mid_sensi_cols.append(result['match'])
+            typeM = enc_type['mid']
+            sensiM = result['sensitvity']
+        if result['sensitvity'] == 'low':
+            low_sensi_cols.append(result['match'])
+            typeL = enc_type['low']
+            sensiL = result['sensitvity']
+
+    if sensiH == 'high':
+        STREAM['mask_out'] = {k: {"with": with_[random.randint(0, len(with_) - 1)], "characters": 6,
+                                  "from": from_[random.randint(0, len(from_) - 1)]} for k in high_sensi_cols}
+
+    if sensiM == 'mid':
+        STREAM['encrypt'] = {
+            "columns": mid_sensi_cols,
+            "type": typeM,
+            "encryption_key": random.randint(10, 99)
+        }
+
+    return STREAM
+
+
+def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
+    pii=summary['pii']
+    filename=summary['file_name']
+    STREAM=generate_script(filename,pii)
+    STREAM = json.dumps(STREAM, indent=3)
+    script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
     
     <div style="margin:10px">
     <pre>
     <code>
     STREAM = {
-                "number": 1000,
-                "title": 'Stream6',
-                "source": 'Churn-Modeling',
-                "substitute": {
-                "Surname": {"type" : "personal.last_name"},
-                "Gender": {"type": "personal.gender"},
-                "Geography": {"type" : "location.country"}
-                },
-                "encrypt": {
-                "columns": ["EstimatedSalary", "Balance"],
-                "type": "caesar",
-                "encryption_key": 56789
-                },
-                "format": "csv",
-                "frequency": "once"
-                }
+                STREAM
+             }
                 </code>
                 </pre>
                 </div>
@@ -217,8 +288,9 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
 
 
 class PIIReport(ProfileReport):
-    def __init__(self, df, **kwargs):
+    def __init__(self, df,filename=None, **kwargs):
         super().__init__(df)
+        self._file_name=filename
 
     @property
     def report(self):
@@ -230,4 +302,5 @@ class PIIReport(ProfileReport):
     def description_set(self):
         if self._description_set is None:
             self._description_set = describe_df(self.title, self.df, self._sample)
+            self._description_set['file_name']=self._file_name
         return self._description_set
