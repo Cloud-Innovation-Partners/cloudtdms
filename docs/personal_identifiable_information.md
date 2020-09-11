@@ -54,45 +54,29 @@ again each column entry will be tested to its existence in sample data and a sco
  
 + `on column_name basis` : Following list of synonym words are used for searching `Age` PII in data-set
 ```python
-[
-'age', 'maturity',
- 'seniority', 'years',
- 'duration', 'age_group',
- 'oldness'
-]
+['age', 'maturity', 'seniority', 'years', 'duration', 'age_group', 'oldness']
 ```
-+ `on column_data basis` : Following sample data is being used to identify the `Age` PII.
-```python
-"'age': range(18, 81)"
-```
++ `on column_data basis` : Any column data whose values are within the range [18,81] will be tagged as `Age` PII
+
 
 2. **Gender :**
  
 + `on column_name basis` : Following list of synonym words are used for searching `Gender` PII in data-set
 ```python
-[
-'gender', 'sex', 
-'kind', 'sexuality',
- 'male', 'female',
- 'identity', 'neuter'
-]
+['gender', 'sex', 'kind', 'sexuality', 'male', 'female', 'identity', 'neuter']
 ```
 + `on column_data basis` : Following sample data is being used to identify the `Gender` PII.
 ```python
-{'gender':['male', 'female']}
-{'gender':['m','f']}
+['male', 'female']
+['m','f']
 ```
 
 3. **Email :**
  
 + `on column_name basis` : Following list of synonym words are used for searching `Email` PII in data-set
 ```python
-[
-'email', 'mail', 'e-mail',
-'message', 'electronic_mail', 'post', 
-'correspondence','send', 'mailing', 
-'memo', 'mailbox', 'write'
-]
+['email', 'mail', 'e-mail', 'message', 'electronic_mail', 'post', 
+'correspondence','send', 'mailing', 'memo', 'mailbox', 'write']
 ```
 + `on column_data basis` : Following regular-expression is being used to identify the `Email` PII.
 ```python
@@ -170,10 +154,7 @@ again each column entry will be tested to its existence in sample data and a sco
 'ipaddress', 'ip address', 'ip_address', 'ipadd', 
 'ip add', 'ip_add','Internet Protocol address','Internet_Protocol_address',
 'host identity', 'host_identity', 'IP number', 'IP_number','network identity',
-'network_identity', 'network identification','network_identification',
-'Mobile Station International Subscriber Directory Number',
-'Mobile_Station_International_Subscriber_Directory_Number',
-'msobile_station_international_subscriber_directory_number'
+'network_identity', 'network identification','network_identification'
 ]
 ```
 + `on column_data basis` :  Following regular-expression is being used to identify the `IP address` PII.
@@ -217,7 +198,7 @@ again each column entry will be tested to its existence in sample data and a sco
 ]
 ```
 
-4. **GUID :**
+5. **GUID :**
  
 + `on column_name basis` : Following list of synonym words are used for searching `GUID` PII in data-set
 ```python
@@ -234,7 +215,7 @@ again each column entry will be tested to its existence in sample data and a sco
 '^{?[0-9a-f]{8}-?[0-9a-f]{4}-?[1-5][0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}}?$'
 ```
 
-5. **Hardware Serial :**
+6. **Hardware Serial :**
  
 + `on column_name basis` : Following list of synonym words are used for searching `Hardware Serial` PII in data-set
 ```python
