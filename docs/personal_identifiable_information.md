@@ -1,7 +1,7 @@
 ## Search Methods
 Searching **Personally Identifiable Information (PII)** in a data-set is acheived in two ways by `CloudTDMS`:
-1. Searching on `column_name` basis
-2. Searching on `column_data` basis
+1. Searching on **`column_name`** basis
+2. Searching on **`column_data`** basis
 
 **Searching On `column_name` Basis :**
 
@@ -247,7 +247,113 @@ again each column entry will be tested to its existence in sample data and a sco
 ```
 + `on column_data basis` :  Following regular-expression is being used to identify the `Hardware Serial` PII.
 ```python
-'^([0-9a-z]|[0-9]){8,12}$'
+'^{?[0-9a-f]{8}-?[0-9a-f]{4}-?[1-5][0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}}?$'
+```
+### Phone Number
+
+1. **Phone Number :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Phone Number` PII in data-set
+```python
+[
+'phone_number', 'phone number',
+ 'contact', 'contact_number',
+'contact number','number'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `Phone Number` PII.
+```python
+'^((\+)?([0-9]{,3}))?(-|\s)?(\()?[0-9]{3}(\))?(-|\s)?[0-9]{3}(-|\s)?[0-9]{4}$'
 ```
 
+### Location
 
+1. **Latitude :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Latitude` PII in data-set
+```python
+[
+'latitude',
+'lat',
+'altitude'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `Latitude` PII.
+```python
+'^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$'
+```
+
+2. **Longitude :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Longitude` PII in data-set
+```python
+[
+'longitude',
+'long'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `Longitude` PII.
+```python
+'^\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$'
+```
+
+3. **Country :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Country` PII in data-set
+```python
+[
+'country','homeland',
+'native land','native_land',
+'grass roots','grass_roots',
+'land'
+]
+```
++ `on column_data basis` : Following Sample data is being used to identify the `Country` PII [Sample Data](../system/cloudtdms/providers/location/airport.csv) 
+
+
+4. **City :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `City` PII in data-set
+```python
+[
+'city','capital','center',
+'metropolis','downtown',
+'place','port','polis','urbs'
+]
+```
++ `on column_data basis` : Following Sample data is being used to identify the `City` PII [Sample Data](../system/cloudtdms/providers/location/airport.csv) 
+
+5. **Municipality :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Municipality` PII in data-set
+```python
+[
+'municipality','community',
+'district','town','township'
+,'village','borough','precinct'
+]
+```
++ `on column_data basis` : Following Sample data is being used to identify the `Municipality` PII [Sample Data](../system/cloudtdms/providers/location/airport.csv) 
+
+6. **Postal Code  :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Postal Code` PII in data-set
+```python
+[
+'zip','pincode','pin_code',
+'pin code','postalcode', 
+'postal_code','postal code', 
+'post'
+]
+```
++ `on column_data basis` : Following Sample data is being used to identify the `State` PII [Sample Data](../system/cloudtdms/providers/location/airport.csv) 
+
+7. **State  :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `State` PII in data-set
+```python
+[
+'state'
+]
+```
++ `on column_data basis` : Following Sample data is being used to identify the `State` PII [Sample Data](../system/cloudtdms/providers/location/airport.csv) 
