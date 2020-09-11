@@ -154,10 +154,7 @@ again each column entry will be tested to its existence in sample data and a sco
 'ipaddress', 'ip address', 'ip_address', 'ipadd', 
 'ip add', 'ip_add','Internet Protocol address','Internet_Protocol_address',
 'host identity', 'host_identity', 'IP number', 'IP_number','network identity',
-'network_identity', 'network identification','network_identification',
-'Mobile Station International Subscriber Directory Number',
-'Mobile_Station_International_Subscriber_Directory_Number',
-'mobile_station_international_subscriber_directory_number'
+'network_identity', 'network identification','network_identification'
 ]
 ```
 + `on column_data basis` :  Following regular-expression is being used to identify the `IP address` PII.
