@@ -9,3 +9,4 @@ email:
   smtp_ssl: False
   username: "shahbaz.ali03@gmail.com"
   password: "ryfczhpcdsfwybjc"
+  subject: "Data Profiling"

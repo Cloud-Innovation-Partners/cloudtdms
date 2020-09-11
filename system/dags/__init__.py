@@ -26,7 +26,7 @@ def get_scripts_home():
     Returns `scripts` directory path
     :return: str
     """
-    return f"{get_cloudtdms_home()}/scripts"
+    return f"{get_cloudtdms_home()}/config"
 
 
 def get_providers_home():
@@ -88,7 +88,7 @@ modules = []
 
 for s in scripts:
     try:
-        modules.append((importlib.import_module(f'scripts.{s}'), s))
+        modules.append((importlib.import_module(f'config.{s}'), s))
 
     except SyntaxError as se:
         LoggingMixin().log.error(f"SyntaxError: You script {se.filename} does not have valid syntax!", exc_info=True)

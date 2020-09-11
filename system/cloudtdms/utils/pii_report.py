@@ -35,7 +35,7 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
             rows.append(
                 {
                     "name": f'<a class="anchor" href="#pp_var_{hash(k)}"><code>{k}</code></a> <span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code> basis </span> ',
-                    "value": f'<span class ="label label-primary"> {key} </span>',
+                    "value": f'<span class ="label label-primary"> {str(key).replace("_", " ").title()} </span>',
                     "fmt": "raw",
                 }
             )
@@ -136,18 +136,18 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     STREAM=generate_script(filename,pii)
     STREAM = json.dumps(STREAM, indent=3)
 
-    script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
-    
-    <div style="margin:10px">
-    <pre>
-    <code>
-    STREAM = {
-                STREAM
-             }
-                </code>
-                </pre>
-                </div>
-    """)
+    # script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
+    #
+    # <div style="margin:10px">
+    # <pre>
+    # <code>
+    # STREAM = {
+    #             STREAM
+    #          }
+    #             </code>
+    #             </pre>
+    #             </div>
+    # """)
     directory=filename
     filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
 
@@ -155,9 +155,9 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
         o.write('''#This is the Configuration data, save this file as file_name.py and place it under config directory. 
                 \nSTREAM=''' + STREAM)
 
-    return Container(
-        [script], name="Configuration", anchor_id="script", sequence_type="sections",
-    )
+    # return Container(
+    #     [script], name="Configuration", anchor_id="script", sequence_type="sections",
+    # )
 
 
 def get_dataset_items(summary: dict, warnings: list) -> list:
@@ -178,19 +178,20 @@ def get_dataset_items(summary: dict, warnings: list) -> list:
         get_dataset_personal_identifiable_information(summary, metadata),
     ]
 
+    get_dataset_proposed_masking_script(summary, metadata)
     return items
 
 
-def render_configuration(summary: dict, warnings: list) -> list:
-    metadata = {
-        key: config["dataset"][key].get(str) for key in config["dataset"].keys()
-    }
-
-    items = [
-        get_dataset_proposed_masking_script(summary, metadata),
-    ]
-
-    return items
+# def render_configuration(summary: dict, warnings: list) -> list:
+#     metadata = {
+#         key: config["dataset"][key].get(str) for key in config["dataset"].keys()
+#     }
+#
+#     items = [
+#         get_dataset_proposed_masking_script(summary, metadata),
+#     ]
+#
+#     return items
 
 
 def get_report_structure(summary: dict) -> Renderable:
@@ -214,12 +215,6 @@ def get_report_structure(summary: dict) -> Renderable:
                 sequence_type="list",
                 name="Personally Identifiable Information (PII)",
                 anchor_id="personal_identifiable_information",
-            ),
-            Container(
-                render_configuration(summary, warnings=[]),
-                sequence_type="list",
-                name="",
-                anchor_id="configuration",
             )
         ]
 

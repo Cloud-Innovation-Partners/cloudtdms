@@ -16,7 +16,7 @@ services:
       timeout: 30s
       retries: 3
     volumes:
-    - ./scripts:/opt/cloudtdms/scripts
+    - ./config:/opt/cloudtdms/config
     - ./data:/opt/cloudtdms/data
     - ./user-data:/opt/cloudtdms/user-data
     - ./profiling_reports:/opt/cloudtdms/profiling_reports
