@@ -17,10 +17,12 @@ data generation, `CloudTDMS` can be used as a potential tool for data masking an
 With `CloudTDMS` you can?
 + Generate Realistic Synthetic Data
 + Generate Synthetic Data From Custom Seed File
-+ Anonymize Personal Identifiable Information (PII) In Data
++ Identify Personally Identifiable Information In Data
++ Anonymize Personally Identifiable Information (PII) In Data
 + Mask Sensitive Data To Ensure Compliance & Security
 + Encrypt Private Data 
 + Generate Synthetic Data In Real-Time.
++ Generate Data Profiling Reports
 
 # Table of Contents
 
@@ -39,6 +41,7 @@ With `CloudTDMS` you can?
 * **[Configuration Script](docs/configuration_script.md)**
 * **[Providers](docs/providers.md)**
 * **[Data Masking](docs/data_masking.md)**
+* **[Data Profiling](docs/data_profiling.md)**
 
 
 
