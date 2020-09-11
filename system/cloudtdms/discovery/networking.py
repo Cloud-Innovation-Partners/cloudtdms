@@ -9,9 +9,7 @@ ip_sensitive_column_headers = ['ipaddress', 'ip address', 'ip_address', 'ipadd',
                                'Internet_Protocol_address', 'host identity', 'host_identity', 'IP number', 'IP_number',
                                'network identity', 'network_identity', 'network identification',
                                'network_identification',
-                               'Mobile Station International Subscriber Directory Number',
-                               'Mobile_Station_International_Subscriber_Directory_Number',
-                               'msobile_station_international_subscriber_directory_number']
+                               ]
 
 mac_sensitive_column_headers = ['mac', 'mac address', 'mac_address', 'mac_add']
 msisdn_sensitive_column_headers=['imeis','msidn','iccids','tmsis','msidsn','msidsns','esns','msin','misdn','MSISDN']
