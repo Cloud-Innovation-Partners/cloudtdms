@@ -48,5 +48,206 @@ again each column entry will be tested to its existence in sample data and a sco
 + `on column_data basis` : Following Sample data is being used to identify the `Name` PII [Sample Data](../system/cloudtdms/providers/personal/person.csv) 
 
 
+### Person Detail
+
+1. **Age :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Age` PII in data-set
+```python
+[
+'age', 'maturity',
+ 'seniority', 'years',
+ 'duration', 'age_group',
+ 'oldness'
+]
+```
++ `on column_data basis` : Following sample data is being used to identify the `Age` PII.
+```python
+"'age': range(18, 81)"
+```
+
+2. **Gender :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Gender` PII in data-set
+```python
+[
+'gender', 'sex', 
+'kind', 'sexuality',
+ 'male', 'female',
+ 'identity', 'neuter'
+]
+```
++ `on column_data basis` : Following sample data is being used to identify the `Gender` PII.
+```python
+{'gender':['male', 'female']}
+{'gender':['m','f']}
+```
+
+3. **Email :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Email` PII in data-set
+```python
+[
+'email', 'mail', 'e-mail',
+'message', 'electronic_mail', 'post', 
+'correspondence','send', 'mailing', 
+'memo', 'mailbox', 'write'
+]
+```
++ `on column_data basis` : Following regular-expression is being used to identify the `Email` PII.
+```python
+'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+```
+
+4. **DOB :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `DOB` PII in data-set
+```python
+[
+'dob','date_of_birth',
+'birth_date','birth date',
+'date of birth','D.O.B',
+'DOB'
+]
+```
++ `on column_data basis` : Following regular-expression is being used to identify the `DOB` PII.
+```python
+'^\d{,2}[-/.]\d{,2}[-/.](17|18|19|20)\\d\\d$'
+```
+
+5. **Credit Card :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Credit Card` PII in data-set
+```python
+[
+'credt_card_num','credit_card_number',
+'credit_card','credit card'
+]
+```
++ `on column_data basis` : Following regular-expression is being used to identify the `Credit Card` PII.
+```python
+'^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$'
+```
+
+6. **Social Security Number :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Social Security Number` PII in data-set
+```python
+[
+'ssn','social_security_number',
+'social security number','National ID number',
+'National_ID_number',' national id number',
+'national_id_number'
+]
+```
++ `on column_data basis` : Following regular-expression is being used to identify the `Social Security Number` PII.
+```python
+'^(?!666|000|9\\d{2})\\d{3}(-)?(?!00)\\d{2}(-)?(?!0{4})\\d{4}$'
+```
+
+7. **Blood Group :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Blood Group` PII in data-set
+```python
+[
+'bg','blood group',
+'blood_group','blood Group',
+'Blood_Group'
+]
+```
++ `on column_data basis` : Following regular-expression is being used to identify the `Blood Group` PII.
+```python
+'^(A|B|AB|O)[+-]$'
+```
+
+### Networking
+
+1. **IP address :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `IP address` PII in data-set
+```python
+[
+'ipaddress', 'ip address', 'ip_address', 'ipadd', 
+'ip add', 'ip_add','Internet Protocol address','Internet_Protocol_address',
+'host identity', 'host_identity', 'IP number', 'IP_number','network identity',
+'network_identity', 'network identification','network_identification',
+'Mobile Station International Subscriber Directory Number',
+'Mobile_Station_International_Subscriber_Directory_Number',
+'msobile_station_international_subscriber_directory_number'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `IP address` PII.
+```python
+'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'
+```
+
+2. **MAC address :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `MAC address` PII in data-set
+```python
+[
+'mac', 'mac address', 
+'mac_address', 'mac_add'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `MAC address` PII.
+```python
+'[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$'
+```
+
+3. **MSISDN :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `MSISDN` PII in data-set
+```python
+[
+'imeis','msidn','iccids',
+'tmsis','msidsn','msidsns',
+'esns','msin','misdn','MSISDN'
+]
+```
+
+4. **IMSI :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `IMSI` PII in data-set
+```python
+['imsi','IMSI','International Mobile Subscriber Identity',
+'International_Mobile_Subscriber_Identity',
+'international mobile subscriber identity',
+'international_mobile_subscriber_identity'
+]
+```
+
+4. **GUID :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `GUID` PII in data-set
+```python
+[
+'guid','GUID','Globally_Unique_Identifier',
+'Globally Unique Identifier',
+'GloballyUniqueIdentifier',
+'globally_unique_identifier',
+'globally unique identifier'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `GUID` PII.
+```python
+'^{?[0-9a-f]{8}-?[0-9a-f]{4}-?[1-5][0-9a-f]{3}-?[89ab][0-9a-f]{3}-?[0-9a-f]{12}}?$'
+```
+
+5. **Hardware Serial :**
+ 
++ `on column_name basis` : Following list of synonym words are used for searching `Hardware Serial` PII in data-set
+```python
+[
+'Serial Number','Serial_Number','serial_number'
+,'serial number', 'hardware_serial_number',
+'hardware serial number','Hardware_Serial_Number',
+'Hardware Serial Number'
+]
+```
++ `on column_data basis` :  Following regular-expression is being used to identify the `Hardware Serial` PII.
+```python
+'^([0-9a-z]|[0-9]){8,12}$'
+```
 
 
