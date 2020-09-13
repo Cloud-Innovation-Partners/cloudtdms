@@ -89,6 +89,27 @@ STREAM = {
            **`location`** provider. A list of all the **providers** and available generators can be found in the [Providers](docs/providers.md) section
        
 ---
+
+**Generate Profiling Report :**
+
+In order to generate profiling reports for your data, you simply need to place your `CSV` data file inside the `user-data`
+directory of the project. `CloudTDMS` will stage the data for profiling and generate reports inside the `profiling_reports`
+directory. Please refer [Data Profiling](docs/data_profiling.md) section for details about the types of reports generated.
+
+>Note : profiling reports are generated for CSV data only, CloudTDMS supports CSV files only in current version
+
+**Perform Data Masking :**
+With `CloudTDMS` you can perform various data masking operations besides generating synthetic data. You can:
+
++ Anonymize sensitive data with synthetic data
++ Encrypt data with available encryption techniques
++ Perform masking using pseudo characters
++ Shuffle data
++ Perform nullying and deletion operations
+
+Please refer [Data Masking](docs/data_masking.md) section for details about the usage and different masking operations available.
+
+
 # License
 Copyright 2020 [Cloud Innovation Partners](http://cloudinp.com)
 
