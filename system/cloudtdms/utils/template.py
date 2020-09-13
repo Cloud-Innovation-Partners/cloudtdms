@@ -115,7 +115,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.configuration import get_airflow_home
 from airflow.utils.log.logging_mixin import LoggingMixin
 sys.path.append(os.path.dirname(get_airflow_home()))
-from system.dags import get_user_data_home, get_cloudtdms_home, get_config_default_path, get_reports_home
+from system.dags import get_profiling_data_home, get_cloudtdms_home, get_config_default_path, get_reports_home
 from system.cloudtdms.discovery import discover
 from pandas_profiling import ProfileReport
 from system.cloudtdms.utils.pii_report import PIIReport
@@ -139,7 +139,7 @@ dag = DAG(
 
 
 def generate_eda_profile():
-    df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
+    df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
     columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = ProfileReport(
@@ -153,7 +153,7 @@ def generate_eda_profile():
     profile.to_file(f"{path}/profiling_{dag.params.get('data_file')}.html")
 
 def generate_sensitive_data_profile():
-    df = pd.read_csv(f"{get_user_data_home()}/{dag.params.get('data_file')}.csv")
+    df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
     columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = PIIReport(

@@ -25,6 +25,7 @@ COPY config_default.yaml .
 RUN mkdir user-data
 RUN mkdir data
 RUN mkdir profiling_reports
+RUN mkdir profiling_data
 
 # Environment
 ENV AIRFLOW_HOME="/opt/cloudtdms/system"

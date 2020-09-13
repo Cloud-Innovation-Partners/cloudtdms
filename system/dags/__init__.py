@@ -49,6 +49,18 @@ def get_output_data_home():
     return path
 
 
+def get_profiling_data_home():
+    """
+    Returns `profiling_data` directory path
+    :return: str
+    """
+    path = f"{get_cloudtdms_home()}/profiling_data"
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    return path
+
+
 def get_user_data_home():
     """
     Returns `user-data` directory path
@@ -243,11 +255,11 @@ for (module, name) in modules:
 
 # list files in user-data
 
-user_data_files = [f[:-4] for f in os.listdir(get_user_data_home()) if f.endswith('.csv') and not f == '__init__.py']
+profiling_data_files = [f[:-4] for f in os.listdir(get_profiling_data_home()) if f.endswith('.csv') and not f == '__init__.py']
 
 # create dag for profiling user data
 
-for file in user_data_files:
+for file in profiling_data_files:
     template = Template(DISCOVER)
     output = template.render(
         data={
@@ -275,7 +287,7 @@ loaded_dags = settings.Session.query(DagModel.dag_id, DagModel.fileloc).all()
 for l_dag in loaded_dags:
     (dag_id, fileloc) = l_dag
     filename = os.path.basename(fileloc)[:-3]
-    if filename not in scripts + user_data_files:
+    if filename not in scripts + profiling_data_files:
         print(filename)
         try:
             if os.path.exists(fileloc):

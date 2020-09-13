@@ -20,6 +20,7 @@ services:
     - ./data:/opt/cloudtdms/data
     - ./user-data:/opt/cloudtdms/user-data
     - ./profiling_reports:/opt/cloudtdms/profiling_reports
+    - ./profiling_data:/opt/cloudtdms/profiling_data
     ports:
     - "8080:8080"
 
