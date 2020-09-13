@@ -90,7 +90,7 @@ STREAM = {
        
 ### Data Profiling
 
-In order to generate profiling reports for your data, you simply need to place your `CSV` data file inside the `user-data`
+In order to generate profiling reports for your data, you simply need to place your `CSV` data file inside the `profiling-data`
 directory of the project. `CloudTDMS` will stage the data for profiling and generate reports inside the `profiling_reports`
 directory. Please refer [Data Profiling](docs/data_profiling.md) section for details about the types of reports generated.
 

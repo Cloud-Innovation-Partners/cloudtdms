@@ -84,10 +84,10 @@ categories. To learn more about the process used to identify PII's in data pleas
 
 ### How To Use ?
 
-In order to generate profiling reports for your data, you simply need to place your `CSV` data file inside the `user-data`
+In order to generate profiling reports for your data, you simply need to place your `CSV` data file inside the `profiling-data`
 directory of the project. `CloudTDMS` will stage the data for profiling and generate reports inside the `profiling_reports`
 directory. You can also choose to receive the reports in email, for that you need to provide the `SMTP` details inside 
-[`config_default.yaml`]() file. 
+[`config_default.yaml`](../config_default.yaml) file. 
 
 In the `to` option of the `email` section of `config_default.yaml` file provide the email
 address to which the profiling reports need to be sent. Other options such as `smtp_host`, `smtp_port`, `smtp_starttls`, `smtp_ssl`,
