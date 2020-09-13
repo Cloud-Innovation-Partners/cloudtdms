@@ -151,8 +151,9 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     directory=filename
     filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
 
-    with open(f'{get_reports_home()}/{directory}/script_{filename}.py', 'w') as o:
-        o.write('STREAM=' + STREAM)
+    with open(f'{get_reports_home()}/{directory}/script_{filename}.txt', 'w') as o:
+        o.write('''#This is the Configuration data, save this file as file_name.py and place it under config directory. 
+                \nSTREAM=''' + STREAM)
 
     # return Container(
     #     [script], name="Configuration", anchor_id="script", sequence_type="sections",
