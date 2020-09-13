@@ -143,7 +143,7 @@ def generate_eda_profile():
     columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = ProfileReport(
-        df.loc[0:10000], title=f"Exploratory Data Analysis of the data-set {dag.params.get('data_file')}", explorative=True
+        df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
     )
     path = f"{get_reports_home()}/{dag.params.get('data_file')}"
     try:
@@ -157,7 +157,7 @@ def generate_sensitive_data_profile():
     columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = PIIReport(
-        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"Sensitive Data Discovery Report of the data-set {dag.params.get('data_file')}", explorative=True
+        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True
     )
     path = f"{get_reports_home()}/{dag.params.get('data_file')}"
     try:

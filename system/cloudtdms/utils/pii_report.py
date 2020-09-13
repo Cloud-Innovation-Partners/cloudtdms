@@ -222,7 +222,7 @@ def get_report_structure(summary: dict) -> Renderable:
         pbar.update()
 
     footer = HTML(
-        content='Report generated with <a href="https://github.com/Cloud-Innovation-Partners/cloudtdms">cloudtdms</a>.'
+        content=''
     )
 
     return Root("Root", sections, footer)
@@ -290,9 +290,10 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
 
 
 class PIIReport(ProfileReport):
-    def __init__(self, df,filename=None, **kwargs):
+    def __init__(self, df, filename=None, **kwargs):
         super().__init__(df)
-        self._file_name=filename
+        self._file_name = filename
+        self._title = kwargs['title']
 
     @property
     def report(self):
