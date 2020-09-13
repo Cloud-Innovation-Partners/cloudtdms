@@ -86,6 +86,16 @@ class SMTPEmail():
         else:
             raise KeyError('config_default.yaml has no email entry')
 
+    @staticmethod
+    def availability():
+        try:
+            email = SMTPEmail.get_email_config_default()
+            if email.get('to') == "" or email.get('username') == "" or email.get('password') == "":
+                return False
+        except KeyError:
+            return False
+        return True
+
     def add_attachments(self, directory_path: str, file_format='.html'):
         # Create a multipart message and set headers
         message = self.message

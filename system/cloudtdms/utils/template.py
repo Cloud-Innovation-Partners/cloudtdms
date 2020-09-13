@@ -174,9 +174,12 @@ def email_reports():
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 eda_stream = PythonOperator(task_id="ExploratoryDataProfiling", python_callable=generate_eda_profile, dag=dag)
-send_email = PythonOperator(task_id="EmailReports", python_callable=email_reports, dag=dag)
 sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
-start >> [eda_stream, sensitive_data_profile]>> send_email >> end
+if SMTPEmail.availability():
+    send_email = PythonOperator(task_id="EmailReports", python_callable=email_reports, dag=dag)
+    start >> [eda_stream, sensitive_data_profile]>> send_email >> end
+else:
+    start >> [eda_stream, sensitive_data_profile]>> end
 
 
 """
