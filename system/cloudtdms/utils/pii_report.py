@@ -57,7 +57,9 @@ def generate_script(filename, pii):
         result = pii[key]
         results.extend(result)
 
-    STREAM = {'number': 1000, "title": 'Stream6', "source": filename, "format": "csv", "frequency": "once"}
+    title_filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
+
+    STREAM = {'number': 1000, "title": title_filename, "source": filename, "format": "csv", "frequency": "once"}
 
     enc_type = {'high': 'mask_out', 'mid': 'ceasar', 'low': 'substitute'}
 
