@@ -115,9 +115,8 @@ for s in scripts:
 
 for (module, name) in modules:
 
-    stream = getattr(module, 'STREAM')
-
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
+        stream = getattr(module, 'STREAM')
         meta_data = get_active_meta_data()
         stream['format'] = 'csv'
 
@@ -253,7 +252,7 @@ for (module, name) in modules:
 
         LoggingMixin().log.info(f"Creating DAG: {name}")
     else:
-        LoggingMixin().log.warn(f"No `STREAM` attribute found in script {name}.py")
+        LoggingMixin().log.error(f"No `STREAM` attribute found in script {name}.py")
 
 # list files in user-data
 
