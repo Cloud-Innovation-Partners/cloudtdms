@@ -151,8 +151,11 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     directory=filename
     filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
 
-    with open(f'{get_reports_home()}/{directory}/script_{filename}.txt', 'w') as o:
-        o.write('''#This is the Configuration data, save this file as file_name.py and place it under config directory. 
+    with open(f'{get_reports_home()}/{directory}/config_{filename}.txt', 'w') as o:
+        o.write('''
+        # This is a proposed cloudtdms data masking configuration file for your data set.
+        # Save this file with '.py' extension inside 'config` folder.
+         
                 \nSTREAM=''' + STREAM)
 
     # return Container(
