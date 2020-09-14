@@ -208,7 +208,9 @@ for (module, name) in modules:
             remaining = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                             "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
             schema += remaining
-
+        
+        stream['schema'] = schema
+        
         if not schema:
             LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
             continue
