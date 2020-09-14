@@ -140,8 +140,8 @@ dag = DAG(
 
 def generate_eda_profile():
     df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
-    columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
-    df.columns = columns
+    # columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    # df.columns = columns
     profile = ProfileReport(
         df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
     )
@@ -154,10 +154,12 @@ def generate_eda_profile():
 
 def generate_sensitive_data_profile():
     df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
-    columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
+    columns =  list(column_mapping.keys()) #list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
     profile = PIIReport(
-        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True
+        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
+        column_mapping = column_mapping
     )
     path = f"{get_reports_home()}/{dag.params.get('data_file')}"
     try:
