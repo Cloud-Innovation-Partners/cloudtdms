@@ -101,3 +101,85 @@ stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator
 start >> stream >> end
 
 """
+
+# --------------------------------- Discovery ----------------------------------------
+
+DISCOVER = """
+import sys
+import os
+from datetime import datetime, timedelta
+import pandas as pd
+from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.configuration import get_airflow_home
+from airflow.utils.log.logging_mixin import LoggingMixin
+sys.path.append(os.path.dirname(get_airflow_home()))
+from system.dags import get_profiling_data_home, get_cloudtdms_home, get_config_default_path, get_reports_home
+from system.cloudtdms.discovery import discover
+from pandas_profiling import ProfileReport
+from system.cloudtdms.utils.pii_report import PIIReport
+from system.cloudtdms.utils.smtp_email import SMTPEmail
+
+dag = DAG(
+    dag_id={{ "'"~data.dag_id|string~"'" }},
+    schedule_interval={{"'@"~data.frequency~"'"}},
+    catchup=False,
+    default_args={
+        'owner': 'CloudTDMS',
+        'depends_on_past': False,
+        'start_date': datetime(2020, 7, 8),
+        'retries': 1,
+        'retry_delay': timedelta(minutes=1)
+    },
+    params={
+       'data_file' : {{ "'"~data.data_file|string~"'" }}
+    }
+)
+
+
+def generate_eda_profile():
+    df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
+    columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    df.columns = columns
+    profile = ProfileReport(
+        df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
+    )
+    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        pass
+    profile.to_file(f"{path}/profiling_{dag.params.get('data_file')}.html")
+
+def generate_sensitive_data_profile():
+    df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
+    columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    df.columns = columns
+    profile = PIIReport(
+        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True
+    )
+    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        pass
+    profile.to_file(f"{path}/pii_{dag.params.get('data_file')}.html")
+
+def email_reports():
+    email = SMTPEmail()
+    email.add_attachments(directory_path=f"{get_reports_home()}/{dag.params.get('data_file')}", file_format='.html')
+    email.send_email()        
+        
+start = DummyOperator(task_id="start", dag=dag)
+end = DummyOperator(task_id="end", dag=dag)
+eda_stream = PythonOperator(task_id="ExploratoryDataProfiling", python_callable=generate_eda_profile, dag=dag)
+sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
+if SMTPEmail.availability():
+    send_email = PythonOperator(task_id="EmailReports", python_callable=email_reports, dag=dag)
+    start >> [eda_stream, sensitive_data_profile]>> send_email >> end
+else:
+    start >> [eda_stream, sensitive_data_profile]>> end
+
+
+"""

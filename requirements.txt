@@ -3,3 +3,4 @@ faker
 cryptography
 onetimepad
 pycrypto
+pandas_profiling

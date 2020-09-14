@@ -1,0 +1,12 @@
+# Default config file
+
+# For sending reports to email
+email:
+  to: ""
+  smtp_host: "smtp.gmail.com"
+  smtp_port: 465
+  smtp_starttls: True
+  smtp_ssl: False
+  username: ""
+  password: ""
+  subject: "Data Profiling"

@@ -13,7 +13,6 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.configuration import get_airflow_home
 from airflow.exceptions import AirflowException
 
-
 def get_cloudtdms_home():
     """
     Returns `cloudtdms` HOME directory path
@@ -27,7 +26,7 @@ def get_scripts_home():
     Returns `scripts` directory path
     :return: str
     """
-    return f"{get_cloudtdms_home()}/scripts"
+    return f"{get_cloudtdms_home()}/config"
 
 
 def get_providers_home():
@@ -50,6 +49,38 @@ def get_output_data_home():
     return path
 
 
+def get_profiling_data_home():
+    """
+    Returns `profiling_data` directory path
+    :return: str
+    """
+    path = f"{get_cloudtdms_home()}/profiling_data"
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    return path
+
+
+def get_user_data_home():
+    """
+    Returns `user-data` directory path
+    :return: str
+    """
+    return f"{get_cloudtdms_home()}/user-data"
+
+
+def get_config_default_path():
+    """
+    Returns `config_default.yaml` file path
+    :return: str
+    """
+    return f"{get_cloudtdms_home()}/config_default.yaml"
+
+
+def get_reports_home():
+
+    return f"{get_cloudtdms_home()}/profiling_reports"
+
 
 def delete_dag(dag_id):
     p = subprocess.Popen([f"airflow delete_dag -y {dag_id}"],executable="/bin/bash",
@@ -59,8 +90,9 @@ def delete_dag(dag_id):
 
 sys.path.append(get_cloudtdms_home())
 
-from system.cloudtdms.utils.template import TEMPLATE
+from system.cloudtdms.utils.template import TEMPLATE, DISCOVER
 from system.cloudtdms.providers import get_active_meta_data
+from system.cloudtdms.utils import validation
 
 scripts = [f[:-3] for f in os.listdir(get_scripts_home()) if os.path.isfile(f"{get_scripts_home()}/{f}")
            and f.endswith('.py') and not f.startswith('__')]
@@ -68,7 +100,7 @@ modules = []
 
 for s in scripts:
     try:
-        modules.append((importlib.import_module(f'scripts.{s}'), s))
+        modules.append((importlib.import_module(f'config.{s}'), s))
 
     except SyntaxError as se:
         LoggingMixin().log.error(f"SyntaxError: You script {se.filename} does not have valid syntax!", exc_info=True)
@@ -82,21 +114,39 @@ for s in scripts:
 # Create a dag for each `script` in scripts directory
 
 for (module, name) in modules:
+
+    stream = getattr(module, 'STREAM')
+
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
-        stream = getattr(module, 'STREAM')
         meta_data = get_active_meta_data()
+        stream['format'] = 'csv'
 
         # check 'source' attribute is present
-        source = f'{get_cloudtdms_home()}/user-data/{stream["source"]}.csv' if 'source' in stream else None
+        source = f'{get_user_data_home()}/{stream["source"]}.csv' if 'source' in stream else None
+
+        if not validation.check_mandatory_field(stream, name): # means false
+            continue
+
+        if not validation.check_schema_type(stream, name):
+            continue
+
+        # if not validation.check_source(stream, name):
+        #     continue
+
+        if not validation.check_delete(stream,name):
+            continue
 
         # columns in data-file
         all_columns = []
         if source is not None:
-            with open(source, 'r') as f:
-                columns = f.readline()
-                columns = columns.replace('\n', '')
-            all_columns = str(columns).split(',')
-
+            try:
+                with open(source, 'r') as f:
+                    columns = f.readline()
+                    columns = columns.replace('\n', '')
+                all_columns = str(columns).split(',')
+            except FileNotFoundError:
+                LoggingMixin().log.error(f'ValueError: File {source} not found')
+                continue
         # get columns to delete
         delete = stream['delete'] if 'delete' in stream else []
 
@@ -107,6 +157,8 @@ for (module, name) in modules:
 
         # check 'substitute' attribute is present along with 'source'
         if 'substitute' in stream and source is not None:
+            if not validation.check_substitute(stream,name):
+                continue
             substitutions = []
             for k, v in stream['substitute'].items():
                 v['field_name'] = k
@@ -117,6 +169,8 @@ for (module, name) in modules:
         # check 'encrypt' attribute is present along with 'source'
 
         if 'encrypt' in stream and source is not None:
+            if not validation.check_encrypt(stream, name):
+                continue
             encryption = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                            "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
                           for v in stream['encrypt']['columns'] if v in all_columns]
@@ -133,6 +187,8 @@ for (module, name) in modules:
         # check 'shuffle' attribute is present along with 'source'
 
         if 'shuffle' in stream and source is not None:
+            if not validation.check_shuffle(stream, name):
+                continue
             shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                         "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
             schema += shuffle
@@ -140,6 +196,8 @@ for (module, name) in modules:
         # check 'nullying' attribute is present along with 'source'
 
         if 'nullying' in stream and source is not None:
+            if not validation.check_nullying(stream,name):
+                continue
             nullify = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                         "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
             schema += nullify
@@ -151,8 +209,10 @@ for (module, name) in modules:
                             "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
             schema += remaining
 
-        stream['schema'] = schema
-        
+        if not schema:
+            LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+            continue
+
         attributes = {}
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
         for scheme in schema:
@@ -193,6 +253,27 @@ for (module, name) in modules:
     else:
         LoggingMixin().log.warn(f"No `STREAM` attribute found in script {name}.py")
 
+# list files in user-data
+
+profiling_data_files = [f[:-4] for f in os.listdir(get_profiling_data_home()) if f.endswith('.csv') and not f == '__init__.py']
+
+# create dag for profiling user data
+
+for file in profiling_data_files:
+    template = Template(DISCOVER)
+    output = template.render(
+        data={
+            'dag_id': str(f"profile_{file}").replace('-', '_').replace(' ', '_').replace(':','_'),
+            'frequency': 'once',
+            'data_file': file
+        }
+    )
+    dag_file_path = f"{get_airflow_home()}/dags/{file}.py"
+    with open(dag_file_path, 'w') as f:
+        f.write(output)
+
+    LoggingMixin().log.info(f"Creating DAG: profile_{file}.py")
+
 # fetch all dags in directory
 
 dags = [f[:-3] for f in os.listdir(os.path.dirname(__file__)) if f.endswith('.py') and not f == '__init__.py']
@@ -206,7 +287,8 @@ loaded_dags = settings.Session.query(DagModel.dag_id, DagModel.fileloc).all()
 for l_dag in loaded_dags:
     (dag_id, fileloc) = l_dag
     filename = os.path.basename(fileloc)[:-3]
-    if filename not in scripts:
+    if filename not in scripts + profiling_data_files:
+        print(filename)
         try:
             if os.path.exists(fileloc):
                 os.remove(fileloc)
