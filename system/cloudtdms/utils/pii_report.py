@@ -20,13 +20,16 @@ from pandas_profiling.report.presentation.core import (
     Table,
 )
 from pandas_profiling.report.presentation.flavours.html.html import HTMLHTML
+
 config = Config()
 
 import pandas as pd
 from system.dags import get_reports_home
 
+
 def get_dataset_personal_identifiable_information(summary: dict, metadata: dict):
     pii = summary['pii']
+    column_mapping = summary['column_mapping']
     rows = []
     # {'person_name': [{'surname': 50.0}], 'person_detail': [{'age': 50.0}, {'gender': 50.0}, {'rownumber': 100.0}]}
     for key, value in pii.items():
@@ -34,7 +37,7 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
             (i, k) = next(enumerate(item))
             rows.append(
                 {
-                    "name": f'<a class="anchor" href="#pp_var_{hash(k)}"><code>{k}</code></a> <span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code> basis </span> ',
+                    "name": f'<code>{column_mapping.get(k)}</code><span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code> basis </span> ',
                     "value": f'<span class ="label label-primary"> {str(key).replace("_", " ").title()} </span>',
                     "fmt": "raw",
                 }
@@ -50,14 +53,15 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
     )
 
 
-def generate_script(filename, pii):
-    pii=dict(pii) # pii is string, convert it into dict and make list of dict below
+def generate_script(filename, pii, column_mapping):
+    pii = dict(pii)  # pii is string, convert it into dict and make list of dict below
     results = []
     for key in pii:
         result = pii[key]
         results.extend(result)
 
-    title_filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
+    title_filename = str(filename).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$',
+                                                                                                                   '_')
 
     STREAM = {'number': 1000, "title": title_filename, "source": filename, "format": "csv", "frequency": "once"}
 
@@ -90,12 +94,13 @@ def generate_script(filename, pii):
     substitute_dict = {}
     delete_subs_cols = []
     updated_result = []
-    sensiH=sensiM=''
+    sensiH = sensiM = ''
 
     # substitute
     for result in results:
         column_key = set(result.keys()) - set(['match', 'sensitvity', 'basis'])
         column = list(column_key).pop()
+        column = column_mapping.get(column)
         match = result['match']
         match = match.title()
         if match in subtitute_mapping_values:
@@ -109,6 +114,7 @@ def generate_script(filename, pii):
     for result in updated_result:
         column_key = set(result.keys()) - set(['match', 'sensitvity', 'basis'])
         column = list(column_key).pop()
+        column = column_mapping.get(column)
         if result['sensitvity'] == 'high':
             high_sensi_cols.append(column)
             typeH = enc_type['high']
@@ -137,9 +143,10 @@ def generate_script(filename, pii):
 
 
 def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
-    pii=summary['pii']
-    filename=summary['file_name']
-    STREAM=generate_script(filename,pii)
+    pii = summary['pii']
+    filename = summary['file_name']
+    column_mapping = summary['column_mapping']
+    STREAM = generate_script(filename, pii, column_mapping)
     STREAM = json.dumps(STREAM, indent=3)
 
     # script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
@@ -154,8 +161,8 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     #             </pre>
     #             </div>
     # """)
-    directory=filename
-    filename=str(filename).replace('-','_').replace(' ','_').replace(':','_').replace(';','_').replace('$','_')
+    directory = filename
+    filename = str(filename).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$', '_')
 
     with open(f'{get_reports_home()}/{directory}/config_{filename}.txt', 'w') as o:
         o.write('''
@@ -217,7 +224,6 @@ def get_report_structure(summary: dict) -> Renderable:
     with tqdm(
             total=1, desc="Generate report structure", disable=disable_progress_bar
     ) as pbar:
-
         section_items: List[Renderable] = [
             Container(
                 get_dataset_items(summary, warnings=[]),
@@ -289,12 +295,12 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
     # Start PII discovery
 
     return {
-        #Analysis
-        "analysis" : analysis,
-        #Package
+        # Analysis
+        "analysis": analysis,
+        # Package
         "package": package,
         # PII
-        "pii" : pii
+        "pii": pii
     }
 
 
@@ -303,6 +309,7 @@ class PIIReport(ProfileReport):
         super().__init__(df)
         self._file_name = filename
         self._title = kwargs['title']
+        self._column_mapping = kwargs['column_mapping']
 
     @property
     def report(self):
@@ -314,5 +321,6 @@ class PIIReport(ProfileReport):
     def description_set(self):
         if self._description_set is None:
             self._description_set = describe_df(self.title, self.df, self._sample)
-            self._description_set['file_name']=self._file_name
+            self._description_set['file_name'] = self._file_name
+            self._description_set['column_mapping'] = self._column_mapping
         return self._description_set
