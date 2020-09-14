@@ -5,6 +5,7 @@ import random
 import string
 import os
 import uuid
+import math
 
 from airflow import LoggingMixin
 from faker import Faker
@@ -341,7 +342,10 @@ def number_range(data_frame, number, args=None):
         range_list_len = len(range_list)
         if range_list_len < number:
             diff = number - range_list_len
-            range_list = range_list * diff
+            diff = math.ceil(number / diff)
+            range_list += range_list * diff
+            range_list = range_list[:number]
+        elif range_list_len > number:
             range_list = range_list[:number]
 
         data_frame[data_frame_col_name] = range_list
