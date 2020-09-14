@@ -48,13 +48,13 @@ installation of `docker-engine` and `docker-compose` please refer to [Docker Sit
          
 3. Build and run the service using following command
 
-         docker-compose up --build
+         sudo docker-compose up --build
          
 4. Once you have container running, you can access airflow webserver at http://127.0.0.1:8080        
          
 5. To stop the container your either press `CTRL+C` or run following command
 
-         docker-compose down   
+         sudo docker-compose down   
                         
          
 ### Installation Script
