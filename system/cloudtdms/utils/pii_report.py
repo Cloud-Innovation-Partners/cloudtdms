@@ -69,7 +69,7 @@ def generate_script(filename, pii):
         'Email': {'type': 'personal.email_address'},
         'City': {'type': 'location.city'},
         'Latitude': {'type': 'location.latitude'},
-        'Longitude': {'type': 'location.longtitude'},
+        'Longitude': {'type': 'location.longitude'},
         'Phone': {'type': 'location.phone'},
         'State': {'type': 'location.state'},
         'Municipality': {'type': 'location.municipality'},
@@ -92,10 +92,12 @@ def generate_script(filename, pii):
 
     # substitute
     for result in results:
+        column_key = set(result.keys()) - set(['match', 'sensitvity', 'basis'])
+        column = list(column_key).pop()
         match = result['match']
         match = match.title()
         if match in subtitute_mapping_values:
-            substitute_dict[match] = subtitute_mapping_values[match]
+            substitute_dict[column] = subtitute_mapping_values[match]
             delete_subs_cols.append(match.lower())
         else:
             updated_result.append(result)
@@ -103,16 +105,18 @@ def generate_script(filename, pii):
     STREAM['substitute'] = substitute_dict
 
     for result in updated_result:
+        column_key = set(result.keys()) - set(['match', 'sensitvity', 'basis'])
+        column = list(column_key).pop()
         if result['sensitvity'] == 'high':
-            high_sensi_cols.append(result['match'])
+            high_sensi_cols.append(column)
             typeH = enc_type['high']
             sensiH = result['sensitvity']
         if result['sensitvity'] == 'mid':
-            mid_sensi_cols.append(result['match'])
+            mid_sensi_cols.append(column)
             typeM = enc_type['mid']
             sensiM = result['sensitvity']
         if result['sensitvity'] == 'low':
-            low_sensi_cols.append(result['match'])
+            low_sensi_cols.append(column)
             typeL = enc_type['low']
             sensiL = result['sensitvity']
 
