@@ -52,7 +52,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
         },
         "encrypt": {
             "columns": ["EstimatedSalary", "Balance"],
-            "type" : "ceaser",
+            "type" : "caesar",
             "encryption_key": "Jd28hja8HG9wkjw89yd"
         },
         "mask_out": {
@@ -141,7 +141,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
 
     "encrypt": {
             "columns": ["EstimatedSalary", "Balance"],
-            "type" : "ceaser",
+            "type" : "caesar",
             "encryption_key": "Jd28hja8HG9wkjw89yd"
     }
     }
@@ -156,7 +156,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     | Name                               | value       |
     |------------------------------------|-------------|
     | Fernet (Symmetric Encryption)      |`fernet`     |
-    | Caesar Cipher                      |`ceasar`     |
+    | Caesar Cipher                      |`caesar`     |
     | One Time Pad                       | `onetimepad`|
     | Mono-Alphabetic Cipher             |`monoalpha`  |
     | Advanced Encryption Standard (AES) |`fernet`     |
