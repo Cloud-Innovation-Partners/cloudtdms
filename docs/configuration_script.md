@@ -12,7 +12,7 @@ Each `script` file must have a variable named `STREAM` defined in it, This varia
 variable that represents a configuration for synthetic data generation and masking. This variable contains `configuration`
 attributes as key value pair. 
 
-**`./scripts/example.py`**
+**`./config/example.py`**
 
 ```python
 STREAM = {
