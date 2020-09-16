@@ -191,6 +191,7 @@ currency_symbols = {
         'XCD': '\u0024', 'YER': '\uFDFC', 'ZWD': '\u0024',
 }
 
+
 def commerce(data_frame, number, args):
     field_names = {}
     for k in args:
@@ -208,7 +209,7 @@ def commerce(data_frame, number, args):
         mod(data_frame, number, field_names.get(col))
 
 
-def card_number(data_frame, number,args=None):
+def credit_card(data_frame, number,args=None):
     """
       Generator function for credit card number
      :param number: Number of records to generate
@@ -217,7 +218,7 @@ def card_number(data_frame, number,args=None):
     credit_card_number_list=[]
     digits = list(string.digits * 3)
 
-    dcols = [f for f in data_frame.columns if f.startswith("card_number")]
+    dcols = [f for f in data_frame.columns if f.startswith("credit_card")]
     for column_name, data_frame_col_name in zip(args, dcols):
         for _ in range(number):
             random.shuffle(digits)
@@ -227,6 +228,8 @@ def card_number(data_frame, number,args=None):
         data_frame[data_frame_col_name] =  credit_card_number_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
+
+# TODO To be removed in next version
 def cvv(data_frame, number,args=None):
     """
     Generator function for cvv number
@@ -246,7 +249,8 @@ def cvv(data_frame, number,args=None):
         data_frame[data_frame_col_name]= cvv_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
-def network(data_frame, number,args=None):
+
+def credit_card_type(data_frame, number,args=None):
     """
     Generator function for network
     :param number: Number of records to generate
@@ -254,11 +258,13 @@ def network(data_frame, number,args=None):
      """
     networks=['Master Card','Visa','American Express','Maestro','Visa Electron']
 
-    dcols = [f for f in data_frame.columns if f.startswith("network")]
+    dcols = [f for f in data_frame.columns if f.startswith("credit_card_type")]
     for column_name, data_frame_col_name in zip(args, dcols):
         data_frame[data_frame_col_name]= random.choices(population=networks, k=number)
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
+
+# TODO To be removed in next version
 def expiry_date(data_frame, number,args=None):
     """
     Generator function for expiry date
@@ -281,6 +287,7 @@ def expiry_date(data_frame, number,args=None):
 
         data_frame[data_frame_col_name] = expiry_dates
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def currency(data_frame, number,args=None):
     """
@@ -305,6 +312,7 @@ def currency(data_frame, number,args=None):
 
         data_frame[data_frame_col_name] = currencies_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def currency_code(data_frame, number,args=None):
     """

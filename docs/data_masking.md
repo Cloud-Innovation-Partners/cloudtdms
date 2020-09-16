@@ -159,7 +159,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     | Caesar Cipher                      |`caesar`     |
     | One Time Pad                       | `onetimepad`|
     | Mono-Alphabetic Cipher             |`monoalpha`  |
-    | Advanced Encryption Standard (AES) |`fernet`     |
+    | Advanced Encryption Standard (AES) |`aes`     |
     
     Let's discuss each cipher techniques briefly:
     

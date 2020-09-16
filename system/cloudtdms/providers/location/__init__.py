@@ -71,6 +71,7 @@ def location(data_frame, number, args):
                     data_frame.rename(columns={f"{item}{i}" : column_names[i]}, inplace=True)
                     random.shuffle(data_frame[column_names[i]])
 
+
 def country(number):
     """
         Generator function for countries
@@ -176,7 +177,6 @@ def phone_number(data_frame, number, args=None):
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-
 def postal_code(number):
     """
     Generator function for post codes
@@ -195,6 +195,7 @@ def country_code(number):
         :return: list
     """
     raise NotImplemented
+
 
 def address(data_frame, number, args=None):
     addresses=[]
@@ -223,13 +224,13 @@ def address(data_frame, number, args=None):
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-
-
 def airport(number):
     raise NotImplemented
 
+
 def municipality(number):
     raise NotImplemented
+
 
 def timezone(number):
     """

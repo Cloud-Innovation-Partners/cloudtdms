@@ -30,7 +30,10 @@ def encryption(record, key):
 
 def caesar(record, key):
     result = ""
-    key=int(key)
+    if type(key) is str:
+        key = sum(map(lambda x: ord(str(x)), key))
+    else:
+        key = int(key)
     record = str(record)
     # transverse the plain text
     for i in range(len(record)):
@@ -47,7 +50,7 @@ def caesar(record, key):
 def monoalpha_cipher(record):
     monoalpha_cipher_list = {'a': 'm', 'A': 'M', 'b': 'n', 'B': 'N', 'c': 'b', 'C': 'B', 'd': 'v', 'D': 'V', 'e': 'c', 'E': 'C', 'f': 'x', 'F': 'X', 'g': 'z', 'G': 'Z', 'h': 'a', 'H': 'A', 'i': 's', 'I': 'S', 'j': 'd', 'J': 'D', 'k': 'f', 'K': 'F', 'l': 'g', 'L': 'G', 'm': 'h', 'M': 'H', 'n': 'j', 'N': 'J', 'o': 'k', 'O': 'K', 'p': 'l', 'P': 'L', 'q': 'p', 'Q': 'P', 'r': 'o', 'R': 'O', 's': 'i', 'S': 'I', 't': 'u', 'T': 'U', 'u': 'y', 'U': 'Y', 'v': 't', 'V': 'T', 'w': 'r', 'W': 'R', 'x': 'e', 'X': 'E', 'y': 'w', 'Y': 'W', 'z': 'q', 'Z': 'Q', ' ': ' '}
     updated_record=''
-    for i in record:
+    for i in str(record):
         updated_record+= monoalpha_cipher_list.get(i,i)
     return updated_record
 
@@ -88,7 +91,7 @@ def encrypt(data_frame, column, key, type):
         data_frame[column]=data_frame[column].apply(encryption, key=key)
     elif type == 'caesar':
         data_frame[column] = data_frame[column].apply(caesar, key=key)
-    elif type == 'monoaplha':
+    elif type == 'monoalpha':
         data_frame[column] = data_frame[column].apply(monoalpha_cipher)
     elif type == 'onetimepad':
         data_frame[column] = data_frame[column].apply(onetime, key=key)

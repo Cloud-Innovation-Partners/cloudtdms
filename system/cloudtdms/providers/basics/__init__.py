@@ -10,6 +10,7 @@ import math
 from airflow import LoggingMixin
 from faker import Faker
 
+
 def basics(data_frame, number, args):
     field_names = {}
     for k in args:
@@ -56,6 +57,7 @@ def basics(data_frame, number, args):
         if col == 'number_range':
             number_range(data_frame, number, field_names.get('number_range'))
 
+
 def boolean(data_frame, number, args=None):
     """
     Generator function for boolean values
@@ -96,7 +98,6 @@ def frequency(data_frame, number, args=None):
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
-
 def color(data_frame, number, args=None):
     """
     Generator function for color values
@@ -128,6 +129,7 @@ def color(data_frame, number, args=None):
             data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
 
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def words(data_frame, number, args=None):
     """
@@ -161,6 +163,7 @@ def words(data_frame, number, args=None):
         data_frame[data_frame_col_name] = words_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
+
 def sentence(data_frame, number, args=None):
     """
     Generator function for sentences
@@ -172,6 +175,9 @@ def sentence(data_frame, number, args=None):
     """
 
     sentence_list = []
+    path = os.path.dirname(__file__) + "/words.txt"
+    words = open(path).read().splitlines()
+    fake = Faker()
     dcols = [f for f in data_frame.columns if f.startswith("sentence")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
@@ -184,16 +190,14 @@ def sentence(data_frame, number, args=None):
         else:
             atleast = 1
             atmost = 3
-        path = os.path.dirname(__file__)+"/words.txt"
-        words = open(path).read().splitlines()
+
         for _ in range(number):
-            random.shuffle(words)
             how_many = random.randint(atleast, atmost)
-            sentence = [(' '.join(words[:4]) + ". ", random.shuffle(words)) for _ in range(how_many)]
-            sentence = list(map(lambda x: x[0][0].upper() + x[0][1:], sentence))
-            sentence_list.append(' '.join(sentence))
+            sentence_list.append(' '.join(fake.sentences(nb=how_many)))
+
         data_frame[data_frame_col_name] = sentence_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def blank(data_frame, number, args=None):
     """
@@ -215,10 +219,11 @@ def guid(data_frame, number, args=None):
       :type int
       :return: list
     """
-    dcols = [f for f in data_frame.columns if f.startswith("blank")]
+    dcols = [f for f in data_frame.columns if f.startswith("guid")]
     for column_name, data_frame_col_name in zip(args, dcols):
         data_frame[data_frame_col_name] = [str(uuid.uuid4()) for _ in range(number)]
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def password(data_frame, number, args=None):
     """
@@ -248,6 +253,7 @@ def password(data_frame, number, args=None):
         data_frame[data_frame_col_name] =passwords
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
+
 def auto_increment(data_frame, number, args=None):
     """
        Generator function for auto increment
@@ -265,14 +271,6 @@ def auto_increment(data_frame, number, args=None):
             inc = int(args.get(column_name).get('increment', 1))
             prefix = args.get(column_name).get('prefix', '')
             suffix = args.get(column_name).get('suffix', '')
-            # if start == 0:
-            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `start`")
-            # if inc == 1:
-            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `inc`")
-            # if len(prefix) == 0:
-            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `prefix`")
-            # if len(suffix) == 0:
-            #     LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `suffix`")
 
         else:
             start = 0
@@ -292,6 +290,7 @@ def auto_increment(data_frame, number, args=None):
         range_list = [prefix + str(i) + suffix if len(prefix) > 0 or len(suffix) > 0 else i for i in range_list]
         data_frame[data_frame_col_name]= range_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def random_number(data_frame, number, args=None):
     """
@@ -338,15 +337,13 @@ def number_range(data_frame, number, args=None):
             start = 0
             end = 20
 
-        range_list = list(range(start, end + 1))
+        range_list = list(range(start, end))
         range_list_len = len(range_list)
         if range_list_len < number:
-            diff = number - range_list_len
-            diff = math.ceil(number / diff)
-            range_list += range_list * diff
+            diff = math.ceil(float(number) / float(range_list_len))
+            range_list += range_list * int(diff)
             range_list = range_list[:number]
-        elif range_list_len > number:
+        else:
             range_list = range_list[:number]
-
         data_frame[data_frame_col_name] = range_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)

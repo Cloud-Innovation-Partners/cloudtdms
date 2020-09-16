@@ -60,7 +60,7 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name" :  "captcha", "type" :  "basics.word", "atleast" :  "5", "atmost" :  "15"}
+    {"field_name" :  "captcha", "type" :  "basics.words", "atleast" :  "5", "atmost" :  "15"}
     ```
     
 5. **sentence :** This generates a collection of sentences, such as
@@ -240,7 +240,7 @@ generation process.
     ```json
     {"field_name":  "long", "type" :  "location.longitude"}
     ```
-5. **phone :** Generates a random `phone` number, based on the format value specified. phone numbers generated can be atmost 15 digit
+5. **phone_number :** Generates a random `phone` number, based on the format value specified. phone numbers generated can be atmost 15 digit
     long. you can specify the format value using `#` (hashs) few format options are listed below for your reference. 
 
     + *format* : takes a string of `#` as a value each `#` will be replaced by positive integer to generate a phone number.
@@ -256,7 +256,7 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name" :  "mobile", "type" :  "location.phone", "format" :  "###-###-####"}
+    {"field_name" :  "mobile", "type" :  "location.phone_number", "format" :  "###-###-####"}
     ```
     
 6. **state :** Generates a random state or province name such as `Stockholm, Quebec, New York...` etc
@@ -295,11 +295,11 @@ generation process.
     ```json
     {"field_name" :  "tz", "type" :  "location.timezone"}
     ```
-11. **airports :** Generates a random airport name.
+11. **airport :** Generates a random airport name.
 
     *syntax*:
     ```json
-    {"field_name" :  "airport", "type" :  "personal.airport"}
+    {"field_name" :  "airport", "type" :  "location.airport"}
     ```
 12. **municipality :** Generates  a random municipality name
 
@@ -415,9 +415,9 @@ generation process.
     ```json
     {"field_name" :  "domain", "type" :  "it.domain_name"}
     ```
-### Date
+### Dates
 
-1. **date :** Generates a random `dates` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
+1. **date :** Generates a random `date` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
     Few format options are listed below for your reference. 
 
     + *format* : takes a format string as a value
@@ -433,34 +433,34 @@ generation process.
     
     *syntax*:
     ```json
-    {"field_name" :  "date", "type" :  "date.dates","format":"mm-dd-YYYY","start":"12-07-2020","end":"12-08-2023"}
+    {"field_name" :  "date", "type" :  "dates.date","format":"mm-dd-YYYY","start":"12-07-2020","end":"12-08-2023"}
     ```
   
 2. **day :** Generates a list of weekdays. Such as `Fri, Sat, Thu... `etc.
    
     *syntax*:
     ```json
-    {"field_name" :  "day", "type" :  "date.day"}
+    {"field_name" :  "day", "type" :  "dates.day"}
     ```
 3.  **month :** Generates a list of months. Such as `September, November, February... `etc.
    
     *syntax*:
     ```json
-    {"field_name" :  "month", "type" :  "date.month"}
+    {"field_name" :  "month", "type" :  "dates.month"}
     ```
    
 4. **time :** Generates a list of time. Such as `19:30:24, 13:44:13, 20:56:28... `etc.
    
     *syntax*:
     ```json
-    {"field_name" :  "time", "type" :  "date.time"}
+    {"field_name" :  "time", "type" :  "dates.time"}
     ```
    
  5. **timestamp :** Generates a list of timestamps. Such as `2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
    
     *syntax*:
     ```json
-    {"field_name" :  "timestamp", "type" :  "date.timestamp"}
+    {"field_name" :  "timestamp", "type" :  "dates.timestamp"}
     ```
 
 
@@ -573,7 +573,7 @@ generation process.
         "name" :  "my_data_set", 
         "column" :  "4", 
         "ignore_headers" :  "yes", 
-        "mask_out" : {"with" : "*", "character" : 5, "from" : "start"}
+        "mask_out" : {"with" : "*", "characters" : 5, "from" : "start"}
         }
         ```
    + *shuffle* : This option takes a boolean  value, specifying whether the data in the column should be shuffled or not.
