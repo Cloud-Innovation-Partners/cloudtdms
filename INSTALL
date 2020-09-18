@@ -13,6 +13,7 @@
 import sys
 import os
 import pwd
+import shutil
 import subprocess
 
 figlet = """
@@ -24,7 +25,7 @@ figlet = """
 
 """
 
-AIRFLOW_HOME = f"{os.path.abspath(os.path.dirname(__file__))}/system"
+AIRFLOW_HOME = f"/home/cloudtdms/system"
 
 TEMPLATE = """
 #
@@ -128,7 +129,7 @@ def create_service_user_group():
                      executable='/bin/bash').communicate()
 
     print('Creating user cloudtdms...')
-    subprocess.Popen(["useradd --shell=/bin/false --no-create-home -g cloudtdms -r cloudtdms"],
+    subprocess.Popen(["useradd --shell=/bin/false -g cloudtdms -r cloudtdms"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
@@ -139,7 +140,7 @@ def create_service_user_group():
 
 
 def change_ownership_permissions():
-    dirname = os.getcwd()
+    dirname = '/home/cloudtdms'
     subprocess.Popen([f"chown -R cloudtdms:cloudtdms {dirname} & chmod -R ug+rw {dirname}"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
@@ -207,9 +208,26 @@ def start_airflow():
 def modify_configuration():
     print("replacing values in configuration...")
     basepath = os.path.abspath(os.path.dirname(__file__))
-    subprocess.Popen(["sed -i 's|/opt/cloudtdms|{}|g' system/airflow.cfg".format(basepath)],
+    subprocess.Popen(["sed -i 's|/opt/cloudtdms|/home/cloudtdms|g' /home/cloudtdms/system/airflow.cfg"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
+
+
+def copy():
+    cwd = os.getcwd()
+    directories = ['config', 'data', 'user-data', 'profiling_data', 'profiling_reports']
+    for d in directories:
+        try:
+            os.makedirs(f"/home/cloudtdms/{d}")
+        except FileExistsError:
+            print(f"{d} : File exists already !")
+
+    shutil.copy("config_default.yaml", "/home/cloudtdms/")
+    shutil.copy("__init__.py", "/home/cloudtdms/")
+    try:
+        shutil.copytree("system", "/home/cloudtdms/system")
+    except FileExistsError:
+        print("system : Folder exists already!")
 
 
 if __name__ == "__main__":
@@ -217,9 +235,12 @@ if __name__ == "__main__":
     print(figlet)
     check_python_version()
     install_packages_from_requirement_file()
+
+    create_service_user_group()
+    copy()
     set_airflow_home_as_environment()
     modify_configuration()
-    create_service_user_group()
+
     change_ownership_permissions()
     if os.path.exists(f"{AIRFLOW_HOME}/airflow.db"):
         airflow_resetdb()
