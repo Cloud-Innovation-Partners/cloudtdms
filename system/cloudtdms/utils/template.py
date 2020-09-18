@@ -87,7 +87,7 @@ def data_generator():
                 methods = [(getattr(mod, m), m) for m in attributes[attrib]]
                 generate_iterator(data_frame, methods,args_array)
     
-    file_name = f"{stream['title']}_{datetime.strftime(datetime.now(), '%Y-%m-%d_%H:%M:%S')}.csv"
+    file_name = f"{stream['title']}_{datetime.strftime(datetime.now(), '%Y-%m-%d_%H%M%S')}.csv"
     try:
         data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
     except FileNotFoundError:
