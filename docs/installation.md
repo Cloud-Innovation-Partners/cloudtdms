@@ -14,6 +14,10 @@ Once you have airflow running as a service you can access apache-airflow webserv
 `CloudTDMS` requires `python3` and `pip3` for installation, in-case you have `python2` please follow the steps specified to install `python3`
 
 **Install python3 on Ubuntu18.04**
++ Run update command
+
+        sudo apt update
+        
 + If you are using Ubuntu18.04, there is a possibility you already have `python3` installed. By default Ubuntu has `python2` as default python
   interpreter but it also has `python3` installed. In case `python3` is not available you can install it with following command
         
