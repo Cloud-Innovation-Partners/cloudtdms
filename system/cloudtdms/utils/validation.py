@@ -52,7 +52,7 @@ def check_schema_attribs(schema, name):
             result=False
         else:
             if 'field_name' not in sch:
-                LoggingMixin().log.error(f'AttributeError: `field_type` attribute not present in `schema` in {name}.py')
+                LoggingMixin().log.error(f'AttributeError: `field_name` attribute not present in `schema` in {name}.py')
                 result=False
             if 'type' not in sch:
                 LoggingMixin().log.error(f'AttributeError: `type` attribute not present in `schema` in {name}.py')
