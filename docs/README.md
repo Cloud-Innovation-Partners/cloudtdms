@@ -50,15 +50,15 @@ With `CloudTDMS` you can?
 
 ### Synthetic Data Generation
 
-Create a file with `.py` extension inside the `scripts` directory of `cloudtdms`. This file will serve as a configuration 
+Create a file with `.py` extension inside the `config` directory of `cloudtdms`. This file will serve as a configuration 
 to generate synthetic data. `CloudTDMS` expects a python script with a `STREAM` variable of type dictionary containing key-value 
-pairs of configuration attributes defining your data generation scheme. Below is an example script containing various
+pairs of configuration attributes defining your data generation scheme. Below is an example configuration containing various
 configuration attributes that are used to define the data generation process. You can find the details of all the configuration
 attributes supported by this version of cloudtdms in the [Configuration Attributes](configuration_script.md) section.
 
-Here we shall quickly go through the example script below to get the idea of data generation script.  
+Here we shall quickly go through the example configuration below to get the idea of data generation script.  
 
-**example script**
+**example configuration**
    
 ```python
 STREAM = {
