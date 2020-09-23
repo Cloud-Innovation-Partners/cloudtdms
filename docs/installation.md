@@ -4,11 +4,13 @@
 of `CloudTDMS` requires installation of apache airflow. `CloudTDMS` has helper scripts associated for installation, You can
 choose any mode of installation that suits your requirement. We recommend docker installation as its simple and easy to use.
 
-Each installation method will run apache airflow `webserver` and `scheduler` in background as a container or as a service 
+Each installation method will run apache airflow `scheduler` in background as a container or as a service 
 depending upon the type of installation you choose.
 
-Once you have airflow running as a service you can access apache-airflow webserver @ http://127.0.0.1:8080  
-
+`CloudTDMS` runs Apache Airflow scheduler in background. Airflow webserver is not started by default. You can start the 
+webserver if you desire to, In that case please ensure port 8080 is secured by firewall configuration. For more details
+please refer [Advanced Users & Troubleshooting](installation.md#advanced-users--troubleshooting) section.   
+  
 ## Pre-Requisite 
 
 `CloudTDMS` requires `python3` and `pip3` for installation, in-case you have `python2` please follow the steps specified to install `python3`
@@ -23,7 +25,7 @@ Once you have airflow running as a service you can access apache-airflow webserv
         
         sudo apt install python3
         
-+ Once `python3` is intalled you need to set it as default python, for this hit the following commands inside your terminal with `sudo` privileges
++ Once `python3` is installed you need to set it as default python, for this hit the following commands inside your terminal with `sudo` privileges
 
         sudo mv /usr/bin/python /usr/bin/python_bk
         sudo ln -s /usr/bin/python3 /usr/bin/python

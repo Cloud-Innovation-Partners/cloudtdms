@@ -1,14 +1,14 @@
-# Configuration script version 0.1 reference
+# CloudTDMS configuration version 0.1 reference
 
 ### Reference and guidelines
 
-These topics describe `version 0.1` of the configuration script file format. This is the newest version.
+These topics describe `version 0.1` of the configuration file format. This is the newest version.
 
 ### Configuration Reference
-The `CloudTDMS` script file is a `python` file that defines what type of data is to be generated.
+The `CloudTDMS` configuration file is a `python` file that defines what type of data is to be generated.
 
-The default path for a `script` file is `./scripts/<file_name>.py`. 
-Each `script` file must have a variable named `STREAM` defined in it, This variable must be of type `dictionary`. It's this
+The default path for a `configuration` file is `./config/<file_name>.py`. 
+Each `configuration` file must have a variable named `STREAM` defined in it, This variable must be of type `dictionary`. It's this
 variable that represents a configuration for synthetic data generation and masking. This variable contains `configuration`
 attributes as key value pair. 
 
@@ -20,7 +20,7 @@ STREAM = {
 }
 ```
 
-A `script` file represents a stream of data. When a script is defined it must have some mandatory attributes defined in it
+A `configuration` file represents a stream of data. When a configuration is defined it must have some mandatory attributes defined in it
 like, `frequency`. frequency defines how often data is to be generated. If a stream has frequency `hourly` it means that data would be 
 generated each hour, With this approach user can generate data in streams. Like `frequency`  there are other mandatory attributes
 that must be defined in order to get data generated. In the subsequent sections we shall define all the configuration attributes
@@ -32,7 +32,7 @@ This section contains a list of all configuration options supported by `CloudTDM
 
 **Mandatory Attributes :**
 
-Following configuration attributes are mandatory for a `script` file, Absence of any one of the attributes will not lead to 
+Following configuration attributes are mandatory for a `configuration` file, Absence of any one of the attributes will not lead to 
 data generation.
 
 + **`number`** : This attribute defines how many number of records need to be generated. The generated output file will have 
@@ -61,13 +61,13 @@ STREAM = {
  }
  ```   
 + **`frequency`** : This attribute is used to specify how often should data be generated, `CloudTDMS` uses scheduler to 
-                    to run scripts inside the `scripts` folder. `frequency` defines how often should scheduler run your
-                    script to generate random data for you. It can take cron values like
+                    to run configurations inside the `config` folder. `frequency` defines how often should scheduler run your
+                    configuration to generate random data for you. It can take cron values like
                     
-    - `once` : This will run script only once
-    - `hourly` : This will run script each hour
-    - `daily` : This will run script daily at `00:00:00` hours.
-    - `monthly` : This will run script on 1st of every month at `00:00:00` hours
+    - `once` : This will run configuration only once
+    - `hourly` : This will run configuration each hour
+    - `daily` : This will run configuration daily at `00:00:00` hours.
+    - `monthly` : This will run configuration on 1st of every month at `00:00:00` hours
 ```python
 STREAM = {
     "frequency" : "once"
@@ -169,7 +169,7 @@ Following are the configuration attributes required for generating realistic syn
                  which generate corresponding synthetic data. Please refer to [Providers](providers.md) sections to get a
                  list of all `providers` and corresponding `generator` functions available in `CloudTDMS`.
 
-**example script**
+**example configuration**
    
 ```python
 STREAM = {
@@ -202,7 +202,7 @@ data generation settings.
 In the example above we are generating `id` which is an integer value starting from 2000 and for each record it will be 
 incremented by 1. Similarly we have `fname` which is generated using `first_name` function and like wise other are defined.
 
-The output of the above script would be something like this:
+The output of the above configuration would be something like this:
 
 |id    | fname | lname | sex | email | country | city |
 |------|-------|-------|-----|-------|---------|------|                

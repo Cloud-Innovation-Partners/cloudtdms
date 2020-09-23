@@ -34,11 +34,11 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
 1. Place your data file inside **`user-data`** folder of the `cloutdms`. Only `csv` data files are allowed, for any
    other file type system will throw exception.
    
-2. Create a script inside **`scripts`** folder with name say `example.py`. Now we shall create a **`STREAM`** variable 
-   which represents a python dictionary for specifying our configuration. `cloudtdms` will load your script and start the 
+2. Create a configuration inside **`config`** folder with name say `example.py`. Now we shall create a **`STREAM`** variable 
+   which represents a python dictionary for specifying our configuration. `cloudtdms` will load your configuration and start the 
    data generation process. You can find your generated data inside **`data`** folder of `cloudtdms`.
    
-   Following is an example script.
+   Following is an example configuration.
    
     ```
     STREAM = {
@@ -85,7 +85,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
    provider from the list of providers in the `cloudtdms`. Once you have found a compatible provider, you can use that to
    generate substitute value for your real data. For example, in case of bank data example mentioned above. The PII are 
    `Surname`, `Gender`, `Country`. In order to anonymize PII's in the data file we use **`substitute`** attribute in our 
-   script. The substitute attribute takes a dictionary as value, where `key` represents the column in the data
+   configuration. The substitute attribute takes a dictionary as value, where `key` represents the column in the data
    file and `value` represents a `cloudtdms` provider to be used as substitute value. 
    
    In the below code snippet we took `last_name` provider from the `personal` category of the `cloudtdms` to be used as a 

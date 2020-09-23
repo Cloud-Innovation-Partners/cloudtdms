@@ -103,15 +103,15 @@ for s in scripts:
         modules.append((importlib.import_module(f'config.{s}'), s))
 
     except SyntaxError as se:
-        LoggingMixin().log.error(f"SyntaxError: You script {se.filename} does not have valid syntax!", exc_info=True)
+        LoggingMixin().log.error(f"SyntaxError: You configuration {se.filename} does not have valid syntax!", exc_info=True)
 
     except ImportError:
-        LoggingMixin().log.error("ImportError: Invalid script found, unable to import", exc_info=True)
+        LoggingMixin().log.error("ImportError: Invalid configuration found, unable to import", exc_info=True)
 
     except Exception:
         LoggingMixin().log.error("Unknown Exception Occurred!", exc_info=True)
 
-# Create a dag for each `script` in scripts directory
+# Create a dag for each `configuration` in config directory
 
 for (module, name) in modules:
 
@@ -252,7 +252,7 @@ for (module, name) in modules:
 
         LoggingMixin().log.info(f"Creating DAG: {name}")
     else:
-        LoggingMixin().log.error(f"No `STREAM` attribute found in script {name}.py")
+        LoggingMixin().log.error(f"No `STREAM` attribute found in configuration {name}.py")
 
 # list files in user-data
 
