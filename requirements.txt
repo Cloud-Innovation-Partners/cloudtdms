@@ -66,6 +66,7 @@ marshmallow-sqlalchemy==0.23.1
 matplotlib==3.3.2
 missingno==0.4.2
 mistune==0.8.4
+numpy==1.19.2
 natsort==7.0.1
 nbclient==0.5.0
 nbconvert==6.0.2
@@ -74,7 +75,6 @@ nest-asyncio==1.4.0
 networkx==2.5
 notebook==6.1.4
 numba==0.51.2
-numpy==1.19.2
 onetimepad==1.4
 packaging==20.4
 pandas==1.1.2
