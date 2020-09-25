@@ -225,7 +225,7 @@ In such case you can follow few steps to identify the problem.
        
    In logs you should check If there are any `ERROR` message logged.
    
-3. Check the Airflow Task logs. Hit https://127.0.0.1:8080 inside your browser you will get Airflow UI.
+3. Check the Airflow Task logs. Hit http://127.0.0.1:8080 inside your browser you will get Airflow UI.
    click on the DAG which has DAG_ID same as `title` of your configuration file. click on the `GraphView` tab, 
    This shows you a DAG for your configuration. If any of the tasks in DAG is bordered RED that means failure
    has occurred at Task level. click on the red bordered task a pop will appear click on the `ViewLog` tab
