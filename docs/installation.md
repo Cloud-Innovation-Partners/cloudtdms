@@ -182,7 +182,15 @@ To stop the webserver use following command
 #### Docker Image
 If you are using docker then you can start the webserver by following commands
 
-    $ docker run -it <IMAGE_NAME> webserver
+    $ docker exec -it <container_id> airflow webserver
+
+You can get the running container list using following command
+
+    $ docker ps
+
+Example:
+
+    $ docker exec -it 257fe4b4b9ee airflow webserver
 
 To stop the container use `docker stop <container_id>` command
 
