@@ -17,15 +17,15 @@ export \
   AIRFLOW__CORE__LOAD_EXAMPLES \
 
 case "$1" in
-  webserver)
+  scheduler)
     airflow initdb
     if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ] || [ "$AIRFLOW__CORE__EXECUTOR" = "SequentialExecutor" ]; then
       # With the "Local" and "Sequential" executors it should all run in one container.
-      airflow scheduler &
+      airflow scheduler
     fi
-    exec airflow webserver
+    # exec airflow webserver
     ;;
-  worker|scheduler)
+  worker|webserver)
     # Give the webserver time to run initdb.
     sleep 10
     exec airflow "$@"

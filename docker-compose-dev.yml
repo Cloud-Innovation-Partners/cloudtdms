@@ -3,18 +3,18 @@ services:
 
   webserver:
     build: .
-    command: "webserver"
+    command: "scheduler"
     environment:
       - AIRFLOW_HOME=/opt/cloudtdms/system
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__CORE__DAGS_FOLDER=/opt/cloudtdms/system/dags
       - AIRFLOW__CORE__BASE_LOG_FOLDER=/opt/cloudtdms/system/logs
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f /opt/cloudtdms/airflow-webserver.pid ]"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /opt/cloudtdms/airflow-webserver.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
     volumes:
     - ./config:/opt/cloudtdms/config
     - ./data:/opt/cloudtdms/data

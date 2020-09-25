@@ -31,4 +31,4 @@ RUN mkdir profiling_data
 ENV AIRFLOW_HOME="/opt/cloudtdms/system"
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["webserver"]
+CMD ["scheduler"]
