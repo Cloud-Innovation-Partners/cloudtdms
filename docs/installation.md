@@ -11,23 +11,34 @@ depending upon the type of installation you choose.
 webserver if you desire to, In that case please ensure port 8080 is secured by firewall configuration. For more details
 please refer [Advanced Users & Troubleshooting](installation.md#advanced-users--troubleshooting) section.   
   
+## Recommended Server Spec
+Its recommended to have a server with following specs
+
+**Operating system :** Linux (Ubuntu 18.04 / Ubuntu 20.04)
+
+**Size :** 1 vCPUs, 2 GiB memory, 10GiB storage
+
+If your server has less then 2GiB of RAM ensure you have `swap` space initialized.
+
+
 ## Pre-Requisite 
+
 
 `CloudTDMS` requires `python3` and `pip3` for installation, in-case you have `python2` please follow the steps specified to install `python3`
 
-**Install python3 on Ubuntu18.04**
+**Install python3 on Ubuntu 18.04 / 20.04**
 + Run update command
 
         sudo apt update
         
-+ If you are using Ubuntu18.04, there is a possibility you already have `python3` installed. By default Ubuntu has `python2` as default python
++ If you are using Ubuntu 18.04 or 20.04, there is a possibility you already have `python3` installed. By default Ubuntu has `python2` as default python
   interpreter but it also has `python3` installed. In case `python3` is not available you can install it with following command
         
         sudo apt install python3
         
 + Once `python3` is installed you need to set it as default python, for this hit the following commands inside your terminal with `sudo` privileges
 
-        sudo mv /usr/bin/python /usr/bin/python_bk
+        sudo unlink /usr/bin/python
         sudo ln -s /usr/bin/python3 /usr/bin/python
 
 + To install `pip3` hit the below command inside your terminal
@@ -65,11 +76,12 @@ installation of `docker-engine` and `docker-compose` please refer to [Docker Sit
          
 ### Installation Script
 
->**Note :** *Installation script is available for Ubuntu 18.04 only, In case you are using any other OS, you can go for either
+>**Note :** *Installation script is available for Ubuntu 18.04 and 20.04 use only, In case you are using any other OS, you can go for either
              manual or docker installation.*
              
-`CloudTDMS` accompanies an installation script that can be used to install and run the service on Ubuntu 18.04. The script
-will run as a service on ubuntu machine.
+The installation script is used to install and run `CloudTDMS` as a service on Ubuntu server. It will create a separate
+`user:group` named `cloudtdms` which will be used by the service to process and store your data. You need to place your
+`configuration` files and data in the corresponding directories under `/home/cloudtdms`
 
 1. Simply clone the repo from the github:
 
@@ -83,14 +95,12 @@ will run as a service on ubuntu machine.
 
          sudo ./INSTALL
          
-4. Check the status of the webserver and scheduler service using
+4. Check the status of the airflow scheduler service using
  
-         sudo service airflow-webserver status
          sudo service airflow-scheduler status
          
 5. You can stop the service using
 
-         sudo service airflow-webserver stop
          sudo service airflow-scheduler stop
    
    and `restart` by replacing `stop` with `start` in above command                          
@@ -143,15 +153,9 @@ will run as a service on ubuntu machine.
 
         airflow initdb
     
-6. Start airflow webserver
-
-        airflow webserver
-    
 7. Start airflow scheduler
 
         airflow scheduler
-
-8. You can now access the webserver of apache airflow @ http://127.0.0.1:8080        
 
 ### Advanced Users & Troubleshooting
 
@@ -161,15 +165,43 @@ any synthetic data process you can access airflow GUI via https://127.0.0.1:8080
 your `configuration` such as failure status and running processes etc. 
 
 Airflow uses port 8080 for its webserver component and it is an essential component for troubleshooting and monitoring the running
-processes and tasks. `CloudTDMS` as a part of its installation exposes 8080 port by starting webserver. Incase you are using this tool
-in private environment access to port `8080` must be restricted by filtering the incoming IPs using firewall setting etc.
+processes and tasks. `CloudTDMS` as a part of its installation does not start the airflow webserver service directly as it 
+will expose 8080 port on the machine. In case you want to access airflow webserver UI, access to port `8080` must be restricted 
+by filtering the inbound connections to your machine using firewall setting and port mapping.
+
+Depending on your type of installation, use following commands to run the webserver
+
+#### Installation Script
+Installation script creates a service entry for airflow-webserver but it does not start it by default. To start the airflow
+webserver you can use below command
+
+    $ sudo service airflow-webserver start
+    
+To stop the webserver use following command
+
+    $ sudo service airflow-scheduler stop    
+    
+#### Docker Image
+If you are using docker then you can start the webserver by following commands
+
+    $ docker run -it <IMAGE_NAME> webserver
+
+To stop the container use `docker stop <container_id>` command
+
+#### Manual Installation
+If you have manually installed `CloudTDMS` than you can simple run following command to start the webserver
+
+    $ airflow webserver 
 
 #### Things To Do If Your Data or Profiling Reports are Not Generated
 
 In such case you can follow few steps to identify the problem.
 
 1. check your `configuration` file for syntax errors. This can be done by running your `configuration` file via a `validator`
-   script provided inside the project directory.
+   script provided under `validate` folder inside the project directory. place your configuration file inside the validate 
+   folder and run `validate.sh` with `configuration` file as argument
+   
+   > **Note :** You must place your configuration file inside `validate` directory before running the validate.sh
    
        $ ./validate.sh my_configuration.py
        
