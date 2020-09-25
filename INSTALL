@@ -84,7 +84,7 @@ for further details checkout the docs section
 def install_packages_from_requirement_file():
     print('Installing requirements...')
     basepath = os.path.abspath(os.path.dirname(__file__))
-    subprocess.check_call(["sudo", "-H", "/usr/bin/python", "-m", "pip", "install", "-r", f"{basepath}/requirements.txt"])
+    subprocess.check_call(["sudo", "-H", "/usr/bin/python", "-m", "pip", "install", "-r", f"{basepath}/ubuntu_requirements.txt"])
 
 
 def set_airflow_home_as_environment():
@@ -197,9 +197,9 @@ def reload_enable_airflow_scheduler_service():
 
 def start_airflow():
     print("starting CloudTDMS...")
-    subprocess.Popen(["service airflow-webserver start"],
-                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
-                     executable='/bin/bash').communicate()
+    # subprocess.Popen(["service airflow-webserver start"],
+    #                  universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+    #                  executable='/bin/bash').communicate()
     subprocess.Popen(["service airflow-scheduler start"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
@@ -308,7 +308,7 @@ if __name__ == "__main__":
     # install numpy
     os.system("sudo -H python -m pip install numpy==1.19.2")
 
-    if os.path.exists('requirements.txt'):
+    if os.path.exists('ubuntu_requirements.txt'):
         try:
             install_packages_from_requirement_file()
         except subprocess.CalledProcessError:
@@ -332,7 +332,7 @@ if __name__ == "__main__":
         os.system("sudo -H python -m pip install --ignore-installed urllib3==1.25.10")
         os.system("sudo -H python -m pip install --ignore-installed zope.deprecation==4.4.0")
     else:
-        print('requirements.txt NotFound !')
+        print('ubuntu_requirements.txt NotFound !')
         print('Aborting...')
         exit()
     # install_packages_from_requirement_file()
