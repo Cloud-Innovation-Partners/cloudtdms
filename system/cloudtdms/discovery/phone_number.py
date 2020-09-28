@@ -32,7 +32,7 @@ def phone_number_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 50:
             score = (sum / len(data_frame)) * 100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score), 'match': 'Phone_Number','sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match

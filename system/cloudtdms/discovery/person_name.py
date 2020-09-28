@@ -35,7 +35,7 @@ def search_on_data_basis(data_frame, matched):
         l_intersection = reduce(np.intersect1d, [data_frame[column], df['last_name']])
         if len(f_intersection) > 100 or len(l_intersection) > 100:
             score = (len(f_intersection)+len(l_intersection) / len(df))*100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score),  'match': 'Name','sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match

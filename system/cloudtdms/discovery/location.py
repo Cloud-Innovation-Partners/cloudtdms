@@ -50,7 +50,7 @@ def coord_search_on_data_basis(data_frame, matched):
         sum=mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score), 'match': 'Latitude', 'sensitvity': 'high', 'basis': 'column_data'})
 
     # search for longitude
@@ -60,7 +60,7 @@ def coord_search_on_data_basis(data_frame, matched):
         sum = mask.sum()
         if sum > 100:
             score = (sum / len(data_frame)) * 100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score), 'match': 'Longitude', 'sensitvity': 'high', 'basis': 'column_data'})
 
     # statistic_match = list(set(statistic_match))
@@ -94,7 +94,7 @@ def country_search_on_data_basis(data_frame, matched):
         sum=mask.sum()
         # country_intersection = reduce(np.intersect1d, [data_frame[column], df['country']])
         score = (sum/ len(data_frame)) * 100
-        if score > 5:
+        if score > 50:
             statistic_match.append({column: int(score), 'match': 'Country', 'sensitvity': 'high','basis': 'column_data'})
 
     return statistic_match
@@ -125,7 +125,7 @@ def city_search_on_data_basis(data_frame, matched):
         city_intersection = reduce(np.intersect1d, [data_frame[column], df['city']])
         if len(city_intersection) >100:
             score = (len(city_intersection) / len(data_frame)) * 100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score), 'match': 'City','sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match
@@ -157,7 +157,7 @@ def municipality_search_on_data_basis(data_frame, matched):
         mun_intersection = reduce(np.intersect1d, [data_frame[column], df['municipality']])
         if len(mun_intersection) >100:
             score = (len(mun_intersection) / len(data_frame)) * 100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score), 'match': 'Municipality','sensitvity': 'high', 'basis': 'column_data'})
     return statistic_match
 
@@ -188,7 +188,7 @@ def state_search_on_data_basis(data_frame, matched):
         state_intersection = reduce(np.intersect1d, [data_frame[column], df['state']])
         if len(state_intersection) >100:
             score = (len(state_intersection) / len(data_frame)) * 100
-            if score > 5:
+            if score > 50:
                 statistic_match.append({column: int(score), 'match': 'State', 'sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match
