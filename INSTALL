@@ -228,6 +228,10 @@ def copy():
         shutil.copytree("system", "/home/cloudtdms/system")
     except FileExistsError:
         print("system : Folder exists already!")
+        print("Updating system folder..")
+        shutil.rmtree("/home/cloudtdms/system")
+        shutil.copytree("system", "/home/cloudtdms/system")
+
 
 def install_pre_requisite():
     import apt
