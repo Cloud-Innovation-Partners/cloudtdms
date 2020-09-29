@@ -108,12 +108,12 @@ class SMTPEmail():
         # Add body to email
         self.reports_path = directory_path
         self.report_files = [f for f in os.listdir(directory_path) if str(f).startswith('pii_') or
-                     str(f).startswith('profiling_') or str(f).startswith('script_')]
+                     str(f).startswith('profiling_') or str(f).startswith('config_')]
 
         message.attach(MIMEText(self.body, "html"))
 
         for file in [f for f in os.listdir(directory_path) if str(f).startswith('pii_') or
-                     str(f).startswith('profiling_') or str(f).startswith('script_')]:
+                     str(f).startswith('profiling_') or str(f).startswith('config_')]:
             with open(f"{directory_path}/{file}", "rb") as attachment:
                 # Add file as application/octet-stream
                 # Email client can usually download this automatically as attachment
