@@ -96,6 +96,18 @@ def personal(data_frame, number, args):
     func = lambda x: random.choice(title['Male']) if x == 'Male' else random.choice(title['Female'])
     data_frame['title'] = data_frame['gender'].apply(func)
 
+    # setval for gender
+    set_val_male = 'Male'
+    set_val_female = 'Female'
+    for k, v in field_names.get('gender', {}).items():
+        if 'set_val' in v:
+            set_val = v.get('set_val')
+            set_val_male = str(set_val).split(',', 2)[0]
+            set_val_female = str(set_val).split(',', 2)[1]
+            break
+
+    data_frame['gender'] = data_frame['gender'].apply(lambda x: set_val_male if x == 'Male' else set_val_female)
+
     if 'university' in columns:
         if os.path.exists(f"{os.path.dirname(__file__)}/{locale}/university.csv"):
             univ = pd.read_csv(f'{os.path.dirname(__file__)}/{locale}/university.csv', usecols=['university'])
