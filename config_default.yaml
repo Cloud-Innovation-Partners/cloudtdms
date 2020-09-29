@@ -2,11 +2,11 @@
 
 # For sending reports to email
 email:
-  to: "shahbaz.ali@cloudinp.com"                    # Receiver Email Address
-  from: "no-reply@cloudinp.com"                     # Sender Email Address
-  smtp_host: "in-v3.mailjet.com"                    # SMTP Host Address
+  to: ""                    # Receiver Email Address
+  from: ""                     # Sender Email Address
+  smtp_host: ""                    # SMTP Host Address
   smtp_port: 587                                    # SMTP PORT, 465 (SSL), 587(Legacy) or 25 (some providers block port 25)
   smtp_ssl: False                                   # IF Smtp_port is 465 then set smtp_ssl to True
-  username: "aa7f438f56e868ee7074db1b76355313"
-  password: "d5f080a2e809dc2bb1d43e0779ee239d"
+  username: ""
+  password: ""
   subject: "Data Profiling"
