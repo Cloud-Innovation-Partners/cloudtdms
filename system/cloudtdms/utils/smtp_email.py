@@ -3,7 +3,9 @@
 
 import os
 import yaml
-import smtplib, ssl, email
+import smtplib
+import ssl
+import email
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -132,11 +134,15 @@ class SMTPEmail():
 
     def send_email(self):
         text = self.message.as_string()
-
-        # Log in to server using secure context and send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTPEmail.get_email_config_default().get('smtp_host'),
-                              SMTPEmail.get_email_config_default().get('smtp_port'), context=context) as server:
-            server.login(self.username, self.password)
-            server.sendmail(self.username, self.to, text)
+        if SMTPEmail.get_email_config_default().get('smtp_ssl'):
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(SMTPEmail.get_email_config_default().get('smtp_host'),
+                                  SMTPEmail.get_email_config_default().get('smtp_port'), context=context) as server:
+                server.login(self.username, self.password)
+                server.sendmail(self.username, self.to, text)
+        else:
+            with smtplib.SMTP(SMTPEmail.get_email_config_default().get('smtp_host'),
+                                  SMTPEmail.get_email_config_default().get('smtp_port')) as server:
+                server.login(self.username, self.password)
+                server.sendmail(self.username, self.to, text)
 
