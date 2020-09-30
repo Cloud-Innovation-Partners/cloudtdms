@@ -246,7 +246,7 @@ for (module, name) in modules:
                 'attributes' : attributes
             }
         )
-        dag_file_path = f"{get_airflow_home()}/dags/{name}.py"
+        dag_file_path = f"{get_airflow_home()}/dags/config_{name}.py"
         with open(dag_file_path, 'w') as f:
             f.write(output)
 
@@ -269,7 +269,7 @@ for file in profiling_data_files:
             'data_file': file
         }
     )
-    dag_file_path = f"{get_airflow_home()}/dags/{file}.py"
+    dag_file_path = f"{get_airflow_home()}/dags/profile_{file}.py"
     with open(dag_file_path, 'w') as f:
         f.write(output)
 
@@ -288,7 +288,7 @@ loaded_dags = settings.Session.query(DagModel.dag_id, DagModel.fileloc).all()
 for l_dag in loaded_dags:
     (dag_id, fileloc) = l_dag
     filename = os.path.basename(fileloc)[:-3]
-    if filename not in scripts + profiling_data_files:
+    if filename not in [f"config_{f}" for f in scripts] + [f"profile_{f}" for f in profiling_data_files]:
         print(filename)
         try:
             if os.path.exists(fileloc):
