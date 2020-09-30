@@ -42,8 +42,8 @@ With `CloudTDMS` you can?
 * **[Providers](providers.md)**
 * **[Data Masking](data_masking.md)**
 * **[Data Profiling](data_profiling.md)**
-* **[Email Notifications](docs/email_notify.md)
-* **[Advanced Users & Troubshooting](docs/installation.md#advanced-users--troubleshooting)
+* **[Email Notifications](docs/email_notify.md)**
+* **[Advanced Users & Troubshooting](docs/installation.md#advanced-users--troubleshooting)**
 
 
 
