@@ -38,10 +38,11 @@ With `CloudTDMS` you can?
 **Getting Started**
 
 * **[How To Use](README.md#how-to-use-)**
-* **[Configuration Script](docs/configuration_script.md)**
+* **[Configuration](docs/configuration_script.md)**
 * **[Providers](docs/providers.md)**
 * **[Data Masking](docs/data_masking.md)**
 * **[Data Profiling](docs/data_profiling.md)**
+* **[Email Notifications](docs/email_notify.md)
 * **[Advanced Users & Troubshooting](docs/installation.md#advanced-users--troubleshooting)**
 
 

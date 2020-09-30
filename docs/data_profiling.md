@@ -90,5 +90,5 @@ directory. You can also choose to receive the reports in email, for that you nee
 [`config_default.yaml`](../config_default.yaml) file. 
 
 In the `to` option of the `email` section of `config_default.yaml` file provide the email
-address to which the profiling reports need to be sent. Other options such as `smtp_host`, `smtp_port`, `smtp_starttls`, `smtp_ssl`,
-`username` and `password` are specific to SMTP server.
+address to which the profiling reports need to be sent. Other options such as `smtp_host`, `smtp_port`, `smtp_ssl`,
+`username` and `password` are specific to SMTP server. Please refer [Email Notification](email_notify.md) section for more details.
