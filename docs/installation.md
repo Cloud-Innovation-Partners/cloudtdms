@@ -16,7 +16,7 @@ Its recommended to have a server with following specs
 
 **Operating system :** Linux (Ubuntu 18.04 / Ubuntu 20.04)
 
-**Size :** 1 vCPUs, 2 GiB memory, 10GiB storage
+**Size :** 2 vCPUs, 2 GiB - 4GiB memory, 10GiB storage
 
 If your server has less then 2GiB of RAM ensure you have `swap` space initialized.
 
