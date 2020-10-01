@@ -159,7 +159,7 @@ The installation script is used to install and run `CloudTDMS` as a service on U
 
 `CloudTDMS` uses [Apache Airflow](http://airflow.apache.org/) in the backend to schedule and run your data generation scripts (`configuration`)
 For each configuration file a DAG is created to run the data profiling and synthetic data generation tasks. In order to troubleshoot or rerun 
-any synthetic data process you can access airflow GUI via https://127.0.0.1:8080 where you can access the logs and details about
+any synthetic data process you can access airflow GUI via http://127.0.0.1:8080 where you can access the logs and details about
 your `configuration` such as failure status and running processes etc. 
 
 Airflow uses port 8080 for its webserver component and it is an essential component for troubleshooting and monitoring the running
