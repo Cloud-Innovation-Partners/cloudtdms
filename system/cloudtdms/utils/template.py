@@ -89,6 +89,7 @@ def data_generator():
     
     file_name = f"{stream['title']}_{datetime.strftime(datetime.now(), '%Y-%m-%d_%H%M%S')}.csv"
     try:
+        data_frame = data_frame[stream['original_order_of_columns']]
         data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
     except FileNotFoundError:
         os.makedirs(f"{get_output_data_home()}/{stream['title']}")

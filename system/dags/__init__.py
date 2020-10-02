@@ -215,6 +215,7 @@ for (module, name) in modules:
             continue
 
         attributes = {}
+        stream['original_order_of_columns'] = [f['field_name'] for f in schema]
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
         for scheme in schema:
             data, column = scheme['type'].split('.')
