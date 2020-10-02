@@ -31,12 +31,19 @@ def search_on_data_basis(data_frame, matched):
     statistic_match = []
 
     for column in columns:
-        f_intersection = reduce(np.intersect1d, [data_frame[column], df['first_name']])
-        l_intersection = reduce(np.intersect1d, [data_frame[column], df['last_name']])
-        if len(f_intersection) > 100 or len(l_intersection) > 100:
-            score = (len(f_intersection)+len(l_intersection) / len(df))*100
-            if score > 50:
-                statistic_match.append({column: int(score),  'match': 'Name','sensitvity': 'high', 'basis': 'column_data'})
+        if len(df) > len(data_frame):
+            f_mask = df['first_name'].isin(data_frame[column])
+            l_mask = df['last_name'].isin(data_frame[column])
+            total = sum(f_mask) + sum(l_mask)
+            factor = total / (len(df)*2)
+        else:
+            f_mask = data_frame[column].isin(df['first_name'])
+            l_mask = data_frame[column].isin(df['last_name'])
+            total = sum(f_mask) + sum(l_mask)
+            factor = total / (len(data_frame)*2)
+        score = factor*100
+        if score > 50:
+            statistic_match.append({column: int(score),  'match': 'Name','sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match
 
