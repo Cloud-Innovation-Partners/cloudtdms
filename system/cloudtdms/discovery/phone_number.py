@@ -20,14 +20,12 @@ def _is_valid_phone_number(number):
 
 
 def phone_number_search_on_data_basis(data_frame, matched):
-    print(data_frame.info())
     try:
         data_frame.drop(matched, inplace=True, axis=1)
     except KeyError:
         print("No columns available for drop operation!")
 
     data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-    print(data_frame.info())
     columns = data_frame.columns
 
     # Load Sample Data
@@ -36,8 +34,6 @@ def phone_number_search_on_data_basis(data_frame, matched):
         mask = data_frame[column].apply(_is_valid_phone_number)
         total = mask.sum()
         score = (total / len(data_frame)) * 100
-        print(score)
-        print(total)
         if score >= 50:
             statistic_match.append(
                 {column: int(score), 'match': 'Phone_Number', 'sensitvity': 'high', 'basis': 'column_data'})
