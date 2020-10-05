@@ -53,7 +53,7 @@ With `CloudTDMS` you can?
 
 Create a file with `.py` extension inside the `config` directory of `cloudtdms`. 
 
->**Note :** `config` directory can be found inside the `cloudtdms` project folder, But if you have installed the solution via INSTALLATION script. The `config` directory will be present @ '/home/cloudtdms'
+>**Note :** `config` directory can be found inside the `cloudtdms` project folder, But if you have installed the solution via INSTALLATION script. The `config` directory will be present @ `/home/cloudtdms`
 
 This file will serve as a configuration 
 to generate synthetic data. `CloudTDMS` expects a python script with a `STREAM` variable of type dictionary containing key-value 
@@ -103,7 +103,7 @@ directory. Please refer [Data Profiling](docs/data_profiling.md) section for det
 >Note : profiling reports are generated for CSV data only, CloudTDMS supports CSV files only in current version
 
 
->**Note :** `profiling_data` directory can be found inside the `cloudtdms` project folder, But if you have installed the solution via INSTALLATION script. The `profiling_data` directory will be present @ '/home/cloudtdms'
+>**Note :** `profiling_data` directory can be found inside the `cloudtdms` project folder, But if you have installed the solution via INSTALLATION script. The `profiling_data` directory will be present @ `/home/cloudtdms`
 
 ### Data Masking
 
