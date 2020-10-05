@@ -17,8 +17,10 @@ from pandas_profiling.report.presentation.core.root import Root
 from pandas_profiling.report.presentation.core import (
     HTML,
     Container,
-    Table,
+    Table
 )
+from pandas_profiling.report.presentation.core import Sample as p_Sample
+from pandas_profiling.model.sample import Sample, get_sample
 from pandas_profiling.report.presentation.flavours.html.html import HTMLHTML
 
 config = Config()
@@ -209,6 +211,24 @@ def get_dataset_items(summary: dict, warnings: list) -> list:
 #
 #     return items
 
+def get_sample_items(sample: dict):
+    """Create the list of sample items
+
+    Args:
+        sample: dict of samples
+
+    Returns:
+        List of sample items to show in the interface.
+    """
+    items = []
+    for obj in sample:
+        items.append(
+            p_Sample(
+                sample=obj.data, name=obj.name, anchor_id=obj.id, caption=obj.caption
+            )
+        )
+    return items
+
 
 def get_report_structure(summary: dict) -> Renderable:
     """Generate a HTML report from summary statistics and a given sample.
@@ -232,6 +252,17 @@ def get_report_structure(summary: dict) -> Renderable:
                 anchor_id="personal_identifiable_information",
             )
         ]
+
+        sample_items = get_sample_items(summary["sample"])
+        if len(sample_items) > 0:
+            section_items.append(
+                Container(
+                    items=sample_items,
+                    sequence_type="list",
+                    name="Sample",
+                    anchor_id="sample",
+                )
+            )
 
         sections = Container(section_items, name="Root", sequence_type="sections")
         pbar.update()
@@ -278,6 +309,21 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
         pii = discover(df)
         pbar.update()
 
+        # Sample
+        pbar.set_postfix_str("Take sample")
+        if sample is None:
+            samples = get_sample(df)
+        else:
+            if "name" not in sample:
+                sample["name"] = None
+            if "caption" not in sample:
+                sample["caption"] = None
+
+            samples = [
+                Sample("custom", sample["data"], sample["name"], sample["caption"])
+            ]
+        pbar.update()
+
     date_end = datetime.utcnow()
 
     package = {
@@ -300,7 +346,9 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
         # Package
         "package": package,
         # PII
-        "pii": pii
+        "pii": pii,
+        # Sample
+        "sample": samples
     }
 
 
@@ -324,3 +372,14 @@ class PIIReport(ProfileReport):
             self._description_set['file_name'] = self._file_name
             self._description_set['column_mapping'] = self._column_mapping
         return self._description_set
+
+    def get_sample(self, df=None) -> dict:
+        """Get head/tail samples based on the configuration
+
+        Args:
+            df: Deprecated, for compatibility
+
+        Returns:
+            A dict with the head and tail samples.
+        """
+        return self.description_set["sample"]
