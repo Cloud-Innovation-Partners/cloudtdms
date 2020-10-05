@@ -96,7 +96,7 @@ def gender_search_on_data_basis(data_frame, matched):
         sum1 = mask1.sum()
         sum2 = mask2.sum()
         score = max(sum1, sum2) / len(df) * 100
-        if score > 50:
+        if score >= 50:
             statistic_match.append({column: int(score), 'match': 'Gender', 'basis': 'column_data'})
     return statistic_match
 
@@ -114,16 +114,11 @@ def age_search_on_data_basis(data_frame, matched):
         if data_frame[column].dtype == 'int64' or data_frame[column].dtype == 'int32':
             if not max(data_frame[column]) > 100 and min(data_frame[column]) != 0:
                 if not sorted(data_frame[column]) == list(range(min(data_frame[column]), max(data_frame[column]) + 1)):
-                    if len(df) > len(data_frame):
-                        age_mask = df['age'].isin(data_frame[column])
-                        total = sum(age_mask)
-                        factor = total / len(df)
-                    else:
-                        age_mask = data_frame[column].isin(df['age'])
-                        total = sum(age_mask)
-                        factor = total / len(data_frame)
+                    mask = data_frame[column].isin(df['age'])
+                    total = sum(mask)
+                    factor = total / len(data_frame)
                 score = factor * 100
-                if score > 0:
+                if score >= 50:
                     statistic_match.append(
                         {column: int(score), 'match': 'Age', 'sensitvity': 'high', 'basis': 'column_data'})
 
@@ -149,7 +144,7 @@ def email_search_on_data_basis(data_frame, matched):
         total = mask.sum()
 
         score = (total / len(data_frame)) * 100
-        if score > 50:
+        if score >= 50:
             statistic_match.append(
                 {column: int(score), 'match': 'Email', 'sensitvity': 'high', 'basis': 'column_data'})
     return statistic_match
@@ -177,7 +172,7 @@ def dob_search_on_data_basis(data_frame, matched):
         mask = data_frame[column].apply(_is_valid_dob)
         total = mask.sum()
         score = (total / len(data_frame)) * 100
-        if score > 50:
+        if score >= 50:
             statistic_match.append(
                 {column: int(score), 'match': 'Date Of Birth', 'sensitvity': 'high', 'basis': 'column_data'})
 
@@ -210,7 +205,7 @@ def cc_search_on_data_basis(data_frame, matched):
         mask = data_frame[column].apply(_is_valid_cc)
         total = mask.sum()
         score = (total / len(data_frame)) * 100
-        if score > 50:
+        if score >= 50:
             statistic_match.append(
                 {column: int(score), 'match': 'Credit Card', 'sensitvity': 'high', 'basis': 'column_data'})
 
@@ -239,7 +234,7 @@ def ssn_search_on_data_basis(data_frame, matched):
         mask = data_frame[column].apply(_is_valid_ssn)
         total = mask.sum()
         score = (total / len(data_frame)) * 100
-        if score > 50:
+        if score >= 50:
             statistic_match.append(
                 {column: score, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis': 'column_data'})
     return statistic_match
@@ -267,7 +262,7 @@ def blood_group_search_on_data_basis(data_frame, matched):
         mask = data_frame[column].apply(_is_valid_blood_group)
         total = mask.sum()
         score = (total / len(data_frame)) * 100
-        if score > 50:
+        if score >= 50:
             statistic_match.append(
                 {column: int(score), 'match': 'Blood Group', 'sensitvity': 'high', 'basis': 'column_data'})
     return statistic_match

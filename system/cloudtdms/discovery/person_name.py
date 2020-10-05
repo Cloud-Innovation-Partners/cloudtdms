@@ -27,22 +27,17 @@ def search_on_data_basis(data_frame, matched):
     columns = data_frame.columns
 
     # Load Sample Data
-    df = pd.read_csv(f'{get_providers_home()}/personal/person.csv')
+    df = pd.read_csv(f'{get_providers_home()}/personal/person.csv', usecols=['first_name', 'last_name'])
+    name = pd.DataFrame(df['first_name'].append(df['last_name']), columns=['name'])
+
     statistic_match = []
 
     for column in columns:
-        if len(df) > len(data_frame):
-            f_mask = df['first_name'].isin(data_frame[column])
-            l_mask = df['last_name'].isin(data_frame[column])
-            total = sum(f_mask) + sum(l_mask)
-            factor = total / (len(df)*2)
-        else:
-            f_mask = data_frame[column].isin(df['first_name'])
-            l_mask = data_frame[column].isin(df['last_name'])
-            total = sum(f_mask) + sum(l_mask)
-            factor = total / (len(data_frame)*2)
+        mask = data_frame[column].isin(name['name'])
+        total = sum(mask)
+        factor = total / (len(data_frame))
         score = factor*100
-        if score > 50:
+        if score >= 50:
             statistic_match.append({column: int(score),  'match': 'Name','sensitvity': 'high', 'basis': 'column_data'})
 
     return statistic_match
