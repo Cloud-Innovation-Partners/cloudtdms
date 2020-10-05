@@ -312,7 +312,9 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
         # Sample
         pbar.set_postfix_str("Take sample")
         if sample is None:
-            samples = get_sample(df)
+            sample_df = df.copy()
+            sample_df.columns = map(lambda x: str(x).title(), df.columns)
+            samples = get_sample(sample_df)
         else:
             if "name" not in sample:
                 sample["name"] = None
