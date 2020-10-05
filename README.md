@@ -51,7 +51,11 @@ With `CloudTDMS` you can?
 
 ### Synthetic Data Generation
 
-Create a file with `.py` extension inside the `config` directory of `cloudtdms`. This file will serve as a configuration 
+Create a file with `.py` extension inside the `config` directory of `cloudtdms`. 
+
+>**Note :** `config` directory can be found inside the `cloudtdms` project folder, But if you have installed the solution via INSTALLATION script. The `config` directory will be present @ '/home/cloudtdms'
+
+This file will serve as a configuration 
 to generate synthetic data. `CloudTDMS` expects a python script with a `STREAM` variable of type dictionary containing key-value 
 pairs of configuration attributes defining your data generation scheme. Below is an example configuration containing various
 configuration attributes that are used to define the data generation process. You can find the details of all the configuration
@@ -97,6 +101,9 @@ directory of the project. `CloudTDMS` will stage the data for profiling and gene
 directory. Please refer [Data Profiling](docs/data_profiling.md) section for details about the types of reports generated.
 
 >Note : profiling reports are generated for CSV data only, CloudTDMS supports CSV files only in current version
+
+
+>**Note :** `profiling_data` directory can be found inside the `cloudtdms` project folder, But if you have installed the solution via INSTALLATION script. The `profiling_data` directory will be present @ '/home/cloudtdms'
 
 ### Data Masking
 
