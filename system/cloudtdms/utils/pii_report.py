@@ -39,7 +39,7 @@ def get_dataset_personal_identifiable_information(summary: dict, metadata: dict)
             (i, k) = next(enumerate(item))
             rows.append(
                 {
-                    "name": f'<code>{column_mapping.get(k)}</code><span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code> basis </span> ',
+                    "name": f'<code>{column_mapping.get(k)}</code><span style="font-weight:normal">is classified as <strong>{item["match"]}</strong> with score of <code>{item[k]}%</code> on <code>{item["basis"]}</code></span> ',
                     "value": f'<span class ="label label-primary"> {str(key).replace("_", " ").title()} </span>',
                     "fmt": "raw",
                 }
@@ -100,7 +100,7 @@ def generate_script(filename, pii, column_mapping):
 
     # substitute
     for result in results:
-        column_key = set(result.keys()) - set(['match', 'sensitvity', 'basis'])
+        column_key = set(result.keys()) - set(['match', 'sensitivity', 'basis'])
         column = list(column_key).pop()
         column = column_mapping.get(column)
         match = result['match']
@@ -114,21 +114,21 @@ def generate_script(filename, pii, column_mapping):
     STREAM['substitute'] = substitute_dict
 
     for result in updated_result:
-        column_key = set(result.keys()) - set(['match', 'sensitvity', 'basis'])
+        column_key = set(result.keys()) - set(['match', 'sensitivity', 'basis'])
         column = list(column_key).pop()
         column = column_mapping.get(column)
-        if result['sensitvity'] == 'high':
+        if result['sensitivity'] == 'high':
             high_sensi_cols.append(column)
             typeH = enc_type['high']
-            sensiH = result['sensitvity']
-        if result['sensitvity'] == 'mid':
+            sensiH = result['sensitivity']
+        if result['sensitivity'] == 'mid':
             mid_sensi_cols.append(column)
             typeM = enc_type['mid']
-            sensiM = result['sensitvity']
-        if result['sensitvity'] == 'low':
+            sensiM = result['sensitivity']
+        if result['sensitivity'] == 'low':
             low_sensi_cols.append(column)
             typeL = enc_type['low']
-            sensiL = result['sensitvity']
+            sensiL = result['sensitivity']
 
     if sensiH == 'high':
         STREAM['mask_out'] = {k: {"with": with_[random.randint(0, len(with_) - 1)], "characters": 6,

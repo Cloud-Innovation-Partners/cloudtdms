@@ -6,11 +6,9 @@ phone_sensitive_column_headers = ['phone_number', 'phone number', 'contact', 'co
                                   'number']
 
 
-def phone_number_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Phone_Number', 'sensitvity': 'high', 'basis': 'column_name'} for f in
-                       column_headers if f in phone_sensitive_column_headers]
-    return matched_columns
+def phone_number_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in phone_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
 def _is_valid_phone_number(number):
@@ -19,30 +17,29 @@ def _is_valid_phone_number(number):
     return True if pattern.match(number) else False
 
 
-def phone_number_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        print("No columns available for drop operation!")
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
+def phone_number_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_phone_number)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: int(score), 'match': 'Phone_Number', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(_is_valid_phone_number)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
 
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
     return statistic_match
 
 
-def search(data_frame):
+def search(data_frame, pii_scale):
     result = []
-    result = phone_number_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += phone_number_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+
+    # PhoneNumber
+    phone_number_scores = list(map(pii_scale, phone_number_search_on_column_basis(data_frame), phone_number_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(phone_number_scores[i], 1), 'match': 'Phone_Number', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if phone_number_scores[i] > 1.0]
+
     return result
