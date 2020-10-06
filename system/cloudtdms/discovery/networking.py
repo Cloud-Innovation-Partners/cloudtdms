@@ -25,11 +25,9 @@ hardware_serial_sensitive_column_headers = ['Serial Number', 'Serial_Number', 's
                                             'Hardware_Serial_Number', 'Hardware Serial Number']
 
 
-def ip_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'IP', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers if
-                       f in ip_sensitive_column_headers]
-    return matched_columns
+def ip_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in ip_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
 def valid_ip(address):
@@ -38,32 +36,26 @@ def valid_ip(address):
     return True if pattern.search(address) else False
 
 
-def ip_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def ip_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(valid_ip)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append({column: int(score), 'match': 'IP', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(valid_ip)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
+
     return statistic_match
 
 
-def mac_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'MAC', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers if
-                       f in mac_sensitive_column_headers]
-    return matched_columns
+def mac_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in mac_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
 def _is_valid_mac(mac):
@@ -73,46 +65,44 @@ def _is_valid_mac(mac):
     return True if pattern.search(mac) else False
 
 
-def mac_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        print("No columns available for drop operation!")
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def mac_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_mac)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append({column: int(score), 'match': 'MAC', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(_is_valid_mac)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
+
     return statistic_match
 
 
-def msisdn_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'MSISDN', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers
-                       if f in msisdn_sensitive_column_headers]
-    return matched_columns
+def msisdn_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in msisdn_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def imsi_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'IMSI', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers if
-                       f in imsi_sensitive_column_headers]
-    return matched_columns
+def msisdn_search_on_data_basis(data_frame):
+    return [0.0]* len(data_frame.columns)
 
 
-def guid_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'GUID', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers if
-                       f in guid_sensitive_column_headers]
-    return matched_columns
+def imsi_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in imsi_sensitive_column_headers else 0, data_frame.columns)
+    return score
+
+
+def imsi_search_on_data_basis(data_frame):
+    return [0.0]*len(data_frame.columns)
+
+
+def guid_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in guid_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
 def _is_valid_guid(guid):
@@ -122,32 +112,25 @@ def _is_valid_guid(guid):
     return True if pattern.search(guid) else False
 
 
-def guid_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        print("No columns available for drop operation!")
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def guid_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_guid)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append({column: int(score), 'match': 'GUID', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(_is_valid_guid)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
     return statistic_match
 
 
-def hardware_serial_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Hardware_Serial', 'sensitvity': 'high', 'basis': 'column_name'} for f in
-                       column_headers if f in hardware_serial_sensitive_column_headers]
-    return matched_columns
+def hardware_serial_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in hardware_serial_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
 def _is_valid_sn(sn):
@@ -157,42 +140,54 @@ def _is_valid_sn(sn):
     return True if pattern.search(sn) else False
 
 
-def hardware_serial_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        print("No columns available for drop operation!")
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def hardware_serial_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_sn)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: int(score), 'match': 'Hardware_Serial', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(_is_valid_sn)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
+
     return statistic_match
 
 
-def search(data_frame):
+def search(data_frame, pii_scale):
     result = []
-    result = ip_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += guid_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += hardware_serial_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += msisdn_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += imsi_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += mac_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
 
-    result += ip_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += mac_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += guid_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += hardware_serial_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+    # IP
+    ip_scores = list(map(pii_scale, ip_search_on_column_basis(data_frame), ip_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(ip_scores[i], 1), 'match': 'IP', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if ip_scores[i] > 10.0]
 
-    # return list(set(result))
+    # GUID
+    guid_scores = list(map(pii_scale, guid_search_on_column_basis(data_frame), guid_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(guid_scores[i], 1), 'match': 'GUID', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if guid_scores[i] > 10.0]
+
+    # MAC
+    mac_scores = list(map(pii_scale, mac_search_on_column_basis(data_frame), mac_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(mac_scores[i], 1), 'match': 'MAC', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if mac_scores[i] > 10.0]
+
+    # # HardwareSerial
+    # hardware_serial_scores = list(map(pii_scale, hardware_serial_search_on_column_basis(data_frame), hardware_serial_search_on_data_basis(data_frame)))
+    # result += [{data_frame.columns[i]: round(hardware_serial_scores[i], 1), 'match': 'Hardware_Serial', 'sensitivity': 'high', 'basis': 'pii_scale'}
+    #            for i in range(len(data_frame.columns)) if hardware_serial_scores[i] > 10.0]
+
+    # MSISDN
+    msisdn_serial_scores = list(map(pii_scale, msisdn_search_on_column_basis(data_frame), msisdn_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(msisdn_serial_scores[i], 1), 'match': 'MSISDN', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if msisdn_serial_scores[i] > 10.0]
+
+    # IMSI
+    imsi_serial_scores = list(map(pii_scale, imsi_search_on_column_basis(data_frame), imsi_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(imsi_serial_scores[i], 1), 'match': 'IMSI', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if imsi_serial_scores[i] > 10.0]
 
     return result

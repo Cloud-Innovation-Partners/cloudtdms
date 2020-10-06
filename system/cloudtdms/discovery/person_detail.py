@@ -3,81 +3,56 @@
 
 # Contains Search Rules for Identifying Person Details in User Data
 
-import numpy as np
 import pandas as pd
 import re
-from functools import reduce
-
-# from airflow.utils.log.logging_mixin import LoggingMixin
 
 age_sensitive_column_headers = ['age', 'maturity', 'seniority', 'years', 'duration', 'age_group', 'oldness']
 gender_sensitive_column_headers = ['gender', 'sex', 'kind', 'sexuality', 'male', 'female', 'identity', 'neuter']
 email_sensitive_column_headers = ['email', 'mail', 'e-mail', 'message', 'electronic_mail', 'post', 'correspondence',
                                   'send', 'mailing', 'memo', 'mailbox', 'write']
 dob_sensitive_column_headers = ['dob', 'date_of_birth', 'birth_date', 'birth date', 'date of birth', 'D.O.B', 'DOB']
-credit_card_sensitive_column_headers = ['credt_card_num', 'credit_card_number', 'credit_card', 'credit card']
+credit_card_sensitive_column_headers = ['credit_card_num', 'credit_card_number', 'credit_card', 'credit card']
 ssn_sensitive_column_headers = ['ssn', 'social_security_number', 'social security number', 'National ID number',
                                 'National_ID_number', ' national id number', 'national_id_number']
 blood_group_sensitive_column_headers = ['bg', 'blood group', 'blood_group', 'blood Group', 'Blood_Group']
 
 
-def age_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Age', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers if
-                       f in age_sensitive_column_headers]
-    return matched_columns
+def age_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in age_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def gender_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Gender', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers
-                       if f in gender_sensitive_column_headers]
-    return matched_columns
+def gender_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in gender_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def email_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Email', 'sensitvity': 'high', 'basis': 'column_name'} for f in column_headers
-                       if f in email_sensitive_column_headers]
-    return matched_columns
+def email_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in email_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def dob_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Date of Birth', 'sensitvity': 'high', 'basis': 'column_name'} for f in
-                       column_headers if f in dob_sensitive_column_headers]
-    return matched_columns
+def dob_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in dob_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def cc_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Credit Card', 'sensitvity': 'high', 'basis': 'column_name'} for f in
-                       column_headers if f in credit_card_sensitive_column_headers]
-    return matched_columns
+def cc_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in credit_card_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def ssn_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis': 'column_name'} for f in
-                       column_headers if f in ssn_sensitive_column_headers]
-    return matched_columns
+def ssn_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in ssn_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def blood_group_search_on_column_basis(data_frame, matched):
-    column_headers = data_frame.columns
-    matched_columns = [{f: 90, 'match': 'Blood Group', 'sensitvity': 'high', 'basis': 'column_name'} for f in
-                       column_headers if f in blood_group_sensitive_column_headers]
-    return matched_columns
+def blood_group_search_on_column_basis(data_frame):
+    score = map(lambda x: 50 if x in blood_group_sensitive_column_headers else 0, data_frame.columns)
+    return score
 
 
-def gender_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def gender_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
@@ -87,23 +62,25 @@ def gender_search_on_data_basis(data_frame, matched):
     statistic_match = []
 
     for column in columns:
+        if data_frame.columns.dtype == 'object':
+            df = pd.DataFrame(data_frame[column].drop_duplicates())
+            df[column] = df[column].apply(lambda x: str(x).lower())
+            mask1 = pd.Series(df[column]).isin(pd.Series(df_1['gender']))
+            mask2 = pd.Series(df[column]).isin(pd.Series(df_2['gender']))
 
-        df = pd.DataFrame(data_frame[column].drop_duplicates())
-        df[column] = df[column].apply(lambda x: str(x).lower())
-        mask1 = pd.Series(df[column]).isin(pd.Series(df_1['gender']))
-        mask2 = pd.Series(df[column]).isin(pd.Series(df_2['gender']))
+            sum1 = mask1.sum()
+            sum2 = mask2.sum()
+            total = max(sum1, sum2)
+            factor = total/len(df)
+            score = factor*100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
 
-        sum1 = mask1.sum()
-        sum2 = mask2.sum()
-        score = max(sum1, sum2) / len(df) * 100
-        if score >= 50:
-            statistic_match.append({column: int(score), 'match': 'Gender', 'basis': 'column_data'})
     return statistic_match
 
 
-def age_search_on_data_basis(data_frame, matched):
-    data_frame.drop(matched, inplace=True, axis=1)
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == int).all(0)]]
+def age_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
@@ -118,21 +95,16 @@ def age_search_on_data_basis(data_frame, matched):
                     total = sum(mask)
                     factor = total / len(data_frame)
                 score = factor * 100
-                if score >= 50:
-                    statistic_match.append(
-                        {column: int(score), 'match': 'Age', 'sensitvity': 'high', 'basis': 'column_data'})
+                statistic_match.append(score)
+            else:
+                statistic_match.append(0.0)
+        else:
+            statistic_match.append(0.0)
 
     return statistic_match
 
 
-def email_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def email_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
@@ -140,48 +112,42 @@ def email_search_on_data_basis(data_frame, matched):
     regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
     r = re.compile(regex)
     for column in columns:
-        mask = data_frame[column].apply(lambda x: bool(r.match(x)))
-        total = mask.sum()
+        if data_frame[column].dtype == 'str':
+            mask = data_frame[column].apply(lambda x: bool(r.match(x)))
+            total = mask.sum()
 
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: int(score), 'match': 'Email', 'sensitvity': 'high', 'basis': 'column_data'})
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
+
     return statistic_match
 
 
-def _is_valid_dob(dob):
-    regex_dob = "^\d{,2}[-/.]\d{,2}[-/.](17|18|19|20)\\d\\d|(17|18|19|20)\\d\\d[-/.]\d{,2}[-/.]\d{,2}$"
-    pattern = re.compile(regex_dob)
-    return True if pattern.search(dob) else False
-
-
-def dob_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def dob_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
-    # Load Sample Data
+    regex_dob = "^\d{,2}[-/.]\d{,2}[-/.](17|18|19|20)\\d\\d|(17|18|19|20)\\d\\d[-/.]\d{,2}[-/.]\d{,2}$"
+    pattern = re.compile(regex_dob)
+
     statistic_match = []
+
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_dob)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: int(score), 'match': 'Date Of Birth', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object' or data_frame[column].dtype == 'datetime64[ns]':
+
+            mask = data_frame[column].apply(lambda x: True if pattern.search(str(x)) else False)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
 
     return statistic_match
 
 
 def _is_valid_cc(cc):
     new_cc = ''
-    for i in cc:
+    for i in str(cc):
         if i.isdigit():
             new_cc += i
     regex_dob = "^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$"
@@ -189,98 +155,97 @@ def _is_valid_cc(cc):
     return True if pattern.search(new_cc) else False
 
 
-def cc_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
+def cc_search_on_data_basis(data_frame):
     columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_cc)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: int(score), 'match': 'Credit Card', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(_is_valid_cc)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
 
     return statistic_match
 
 
-def _is_valid_ssn(ssn):
+def ssn_search_on_data_basis(data_frame):
+    columns = data_frame.columns
+
     regex_ssn = "^(?!666|000|9\\d{2})\\d{3}(-)?(?!00)\\d{2}(-)?(?!0{4})\\d{4}$"
     pattern = re.compile(regex_ssn)
-    return True if pattern.search(ssn) else False
-
-
-def ssn_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
-    columns = data_frame.columns
 
     # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_ssn)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: score, 'match': 'Social Security Number', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(lambda x: True if pattern.search(str(x)) else False)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
+
     return statistic_match
 
 
-def _is_valid_blood_group(blood_group):
+def blood_group_search_on_data_basis(data_frame):
+    columns = data_frame.columns
+
     regex_bg = "^(A|B|AB|O)[+-]$"
     pattern = re.compile(regex_bg)
-    return True if pattern.search(blood_group) else False
 
-
-def blood_group_search_on_data_basis(data_frame, matched):
-    try:
-        data_frame.drop(matched, inplace=True, axis=1)
-    except KeyError:
-        pass
-
-    data_frame = data_frame[data_frame.columns[(data_frame.applymap(type) == str).all(0)]]
-
-    columns = data_frame.columns
-
-    # Load Sample Data
     statistic_match = []
     for column in columns:
-        mask = data_frame[column].apply(_is_valid_blood_group)
-        total = mask.sum()
-        score = (total / len(data_frame)) * 100
-        if score >= 50:
-            statistic_match.append(
-                {column: int(score), 'match': 'Blood Group', 'sensitvity': 'high', 'basis': 'column_data'})
+        if data_frame[column].dtype == 'object':
+            mask = data_frame[column].apply(lambda x: True if pattern.search(str(x)) else False)
+            total = mask.sum()
+            score = (total / len(data_frame)) * 100
+            statistic_match.append(score)
+        else:
+            statistic_match.append(0.0)
+
     return statistic_match
 
 
-def search(data_frame):
+def search(data_frame, pii_scale: callable):
     result = []
-    result += age_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += gender_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += email_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += dob_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += cc_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += ssn_search_on_column_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += age_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += email_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += gender_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += dob_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += cc_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
-    result += ssn_search_on_data_basis(data_frame, [list(f.items())[0][0] for f in result])
+
+    # Age
+    age_scores = list(map(pii_scale, age_search_on_column_basis(data_frame), age_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(age_scores[i], 1), 'match': 'Age', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if age_scores[i] > 10.0]
+    # Gender
+    gender_scores = list(map(pii_scale, gender_search_on_column_basis(data_frame), gender_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(gender_scores[i], 1), 'match': 'Gender', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if gender_scores[i] > 10.0]
+
+    # Email
+    email_scores = list(map(pii_scale, email_search_on_column_basis(data_frame), email_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(email_scores[i], 1),  'match': 'Email', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if email_scores[i] > 10.0]
+
+    # DOB
+    dob_scores = list(map(pii_scale, dob_search_on_column_basis(data_frame), dob_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(dob_scores[i], 1), 'match': 'Date Of Birth', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if dob_scores[i] > 10.0]
+
+    # Credit Card
+    credit_card_scores = list(map(pii_scale, cc_search_on_column_basis(data_frame), cc_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(credit_card_scores[i], 1), 'match': 'Credit Card', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if credit_card_scores[i] > 10.0]
+
+    # SocialSecurity
+    social_security_scores = list(map(pii_scale, ssn_search_on_column_basis(data_frame), ssn_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(social_security_scores[i], 1), 'match': 'Social Security Number', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if social_security_scores[i] > 10.0]
+
+    # BloodGroup
+    blood_group_scores = list(map(pii_scale, blood_group_search_on_column_basis(data_frame), blood_group_search_on_data_basis(data_frame)))
+    result += [{data_frame.columns[i]: round(blood_group_scores[i], 1), 'match': 'Social Security Number', 'sensitivity': 'high', 'basis': 'pii_scale'}
+               for i in range(len(data_frame.columns)) if blood_group_scores[i] > 10.0]
 
     return result
