@@ -40,6 +40,6 @@ def search(data_frame, pii_scale):
     # PhoneNumber
     phone_number_scores = list(map(pii_scale, phone_number_search_on_column_basis(data_frame), phone_number_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(phone_number_scores[i], 1), 'match': 'Phone_Number', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if phone_number_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if phone_number_scores[i] > 10.0]
 
     return result

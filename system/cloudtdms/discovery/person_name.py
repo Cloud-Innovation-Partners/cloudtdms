@@ -42,5 +42,5 @@ def search_on_data_basis(data_frame):
 def search(data_frame, pii_scale: callable):
     name_scores = list(map(pii_scale, search_on_column_basis(data_frame), search_on_data_basis(data_frame)))
     result = [{data_frame.columns[i]: round(name_scores[i], 1), 'match': 'Name', 'sensitivity': 'high', 'basis': 'pii_scale'}
-              for i in range(len(data_frame.columns)) if name_scores[i] > 1.0]
+              for i in range(len(data_frame.columns)) if name_scores[i] > 10.0]
     return result

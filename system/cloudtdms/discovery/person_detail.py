@@ -217,35 +217,35 @@ def search(data_frame, pii_scale: callable):
     # Age
     age_scores = list(map(pii_scale, age_search_on_column_basis(data_frame), age_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(age_scores[i], 1), 'match': 'Age', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if age_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if age_scores[i] > 10.0]
     # Gender
     gender_scores = list(map(pii_scale, gender_search_on_column_basis(data_frame), gender_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(gender_scores[i], 1), 'match': 'Gender', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if gender_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if gender_scores[i] > 10.0]
 
     # Email
     email_scores = list(map(pii_scale, email_search_on_column_basis(data_frame), email_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(email_scores[i], 1),  'match': 'Email', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if email_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if email_scores[i] > 10.0]
 
     # DOB
     dob_scores = list(map(pii_scale, dob_search_on_column_basis(data_frame), dob_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(dob_scores[i], 1), 'match': 'Date Of Birth', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if dob_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if dob_scores[i] > 10.0]
 
     # Credit Card
     credit_card_scores = list(map(pii_scale, cc_search_on_column_basis(data_frame), cc_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(credit_card_scores[i], 1), 'match': 'Credit Card', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if credit_card_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if credit_card_scores[i] > 10.0]
 
     # SocialSecurity
     social_security_scores = list(map(pii_scale, ssn_search_on_column_basis(data_frame), ssn_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(social_security_scores[i], 1), 'match': 'Social Security Number', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if social_security_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if social_security_scores[i] > 10.0]
 
     # BloodGroup
     blood_group_scores = list(map(pii_scale, blood_group_search_on_column_basis(data_frame), blood_group_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(blood_group_scores[i], 1), 'match': 'Social Security Number', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if blood_group_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if blood_group_scores[i] > 10.0]
 
     return result

@@ -199,31 +199,31 @@ def search(data_frame, pii_scale):
     # Latitude
     latitude_scores = list(map(pii_scale, latitude_search_on_column_basis(data_frame), latitude_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(latitude_scores[i], 1), 'match': 'Latitude', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if latitude_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if latitude_scores[i] > 10.0]
 
     # Longitude
     longitude_scores = list(map(pii_scale, longitude_search_on_column_basis(data_frame), longitude_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(longitude_scores[i], 1), 'match': 'Longitude', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if longitude_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if longitude_scores[i] > 10.0]
 
     # Country
     country_scores = list(map(pii_scale, country_search_on_column_basis(data_frame), country_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(country_scores[i], 1), 'match': 'Country', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if country_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if country_scores[i] > 10.0]
 
     # City
     city_scores = list(map(pii_scale, city_search_on_column_basis(data_frame), city_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(city_scores[i], 1),  'match': 'City', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if city_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if city_scores[i] > 10.0]
 
     # Municipality
     municipality_scores = list(map(pii_scale, municipality_search_on_column_basis(data_frame), municipality_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(municipality_scores[i], 1), 'match': 'Municipality', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if municipality_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if municipality_scores[i] > 10.0]
 
     # State
     state_scores = list(map(pii_scale, state_search_on_column_basis(data_frame), state_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(state_scores[i], 1), 'match': 'State', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if state_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if state_scores[i] > 10.0]
 
     return result

@@ -163,31 +163,31 @@ def search(data_frame, pii_scale):
     # IP
     ip_scores = list(map(pii_scale, ip_search_on_column_basis(data_frame), ip_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(ip_scores[i], 1), 'match': 'IP', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if ip_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if ip_scores[i] > 10.0]
 
     # GUID
     guid_scores = list(map(pii_scale, guid_search_on_column_basis(data_frame), guid_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(guid_scores[i], 1), 'match': 'GUID', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if guid_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if guid_scores[i] > 10.0]
 
     # MAC
     mac_scores = list(map(pii_scale, mac_search_on_column_basis(data_frame), mac_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(mac_scores[i], 1), 'match': 'MAC', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if mac_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if mac_scores[i] > 10.0]
 
-    # HardwareSerial
-    hardware_serial_scores = list(map(pii_scale, hardware_serial_search_on_column_basis(data_frame), hardware_serial_search_on_data_basis(data_frame)))
-    result += [{data_frame.columns[i]: round(hardware_serial_scores[i], 1), 'match': 'Hardware_Serial', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if hardware_serial_scores[i] > 1.0]
+    # # HardwareSerial
+    # hardware_serial_scores = list(map(pii_scale, hardware_serial_search_on_column_basis(data_frame), hardware_serial_search_on_data_basis(data_frame)))
+    # result += [{data_frame.columns[i]: round(hardware_serial_scores[i], 1), 'match': 'Hardware_Serial', 'sensitivity': 'high', 'basis': 'pii_scale'}
+    #            for i in range(len(data_frame.columns)) if hardware_serial_scores[i] > 10.0]
 
     # MSISDN
     msisdn_serial_scores = list(map(pii_scale, msisdn_search_on_column_basis(data_frame), msisdn_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(msisdn_serial_scores[i], 1), 'match': 'MSISDN', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if msisdn_serial_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if msisdn_serial_scores[i] > 10.0]
 
     # IMSI
     imsi_serial_scores = list(map(pii_scale, imsi_search_on_column_basis(data_frame), imsi_search_on_data_basis(data_frame)))
     result += [{data_frame.columns[i]: round(imsi_serial_scores[i], 1), 'match': 'IMSI', 'sensitivity': 'high', 'basis': 'pii_scale'}
-               for i in range(len(data_frame.columns)) if imsi_serial_scores[i] > 1.0]
+               for i in range(len(data_frame.columns)) if imsi_serial_scores[i] > 10.0]
 
     return result
