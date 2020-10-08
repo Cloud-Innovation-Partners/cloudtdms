@@ -20,7 +20,7 @@ from system.cloudtdms import providers
 from system.dags import get_providers_home
 from system.dags import get_output_data_home
 {% if 'mysql' in data.destination %}
-from extras.mysql import upload 
+from system.cloudtdms.extras.mysql import upload
 {% endif %}
 
 
@@ -121,9 +121,7 @@ start >> stream >> s3_storage_operator >> end
 {% if 'mysql' in data.destination %}
 kwargs=dag.params.get('destination').get('mysql')
 kwargs['folder_title']=dag.params['stream']['title'] # for reading file
-mysql_storage_operator = PythonOperator(task_id="MySQL", python_callable=
-
-, op_kwargs=kwargs, dag=dag)
+mysql_storage_operator = PythonOperator(task_id="MySQL", python_callable=upload, op_kwargs=kwargs, dag=dag)
 {% if ('s3' not in data.destination) %}
 start >> stream >> mysql_storage_operator >> end
 {% else %}
