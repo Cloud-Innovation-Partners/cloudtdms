@@ -19,8 +19,16 @@ sys.path.append(os.path.dirname(get_airflow_home()))
 from system.cloudtdms import providers
 from system.dags import get_providers_home
 from system.dags import get_output_data_home
+
 {% if 'mysql' in data.destination %}
-from system.cloudtdms.extras.mysql import upload
+from system.cloudtdms.extras.mysql import mysql_upload
+
+{% elif 'servicenow' in data.destination %}
+from system.cloudtdms.extras.servicenow import service_now_upload
+
+{% elif 's3' in data.destination %}
+from system.cloudtdms.extras.amazons3 import s3_upload
+
 {% endif %}
 
 
@@ -98,59 +106,39 @@ def data_generator():
     except FileNotFoundError:
         os.makedirs(f"{get_output_data_home()}/{stream['title']}")
         data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
-
-def s3_operation():
-    pass
-    
-def mysql_operation():
-    pass
-    
-def servicenow_operation():
-    pass
-
+        
    
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, dag=dag)
 
+start >> stream >> end
+
 {% if 's3' in data.destination %}
-s3_storage_operator = PythonOperator(task_id="S3", python_callable=s3_operation, dag=dag)
-start >> stream >> s3_storage_operator >> end
+
+s3 = PythonOperator(task_id="AmazonS3", python_callable=s3_upload, dag=dag)
+s3.set_upstream(stream)
+s3.set_downstream(end)
+
 {% endif %}
 
 {% if 'mysql' in data.destination %}
+
 kwargs=dag.params.get('destination').get('mysql')
 kwargs['folder_title']=dag.params['stream']['title'] # for reading file
-mysql_storage_operator = PythonOperator(task_id="MySQL", python_callable=upload, op_kwargs=kwargs, dag=dag)
-{% if ('s3' not in data.destination) %}
-start >> stream >> mysql_storage_operator >> end
-{% else %}
-start >> stream >> [mysql_storage_operator,s3_storage_operator] >> end
-{% endif %}
+mysql = PythonOperator(task_id="MySQL", python_callable=mysql_upload, op_kwargs=kwargs, dag=dag)
+mysql.set_upstream(stream)
+mysql_set_downstream(end)
+
 {% endif %}
 
 {% if 'servicenow' in data.destination %}
-servicenow_storage_operator = PythonOperator(task_id="ServiceNow", python_callable=servicenow_operation, dag=dag)
 
-
-{% if ('s3' not in data.destination) and ('mysql' not in data.destination)  %}
-start >> stream >> servicenow_storage_operator >> end
-{% elif ('s3' in data.destination) and ('mysql' not in data.destination) %}
-start >> stream >> [s3_storage_operator,servicenow_storage_operator] >> end
-{% elif ('s3' not in data.destination) and ('mysql'  in data.destination) %}
-start >> stream >> [mysql_storage_operator,servicenow_storage_operator] >> end
-{% else %}
-start >> stream >> [mysql_storage_operator,s3_storage_operator,servicenow_storage_operator] >> end
-{% endif %}
+service_now = PythonOperator(task_id="ServiceNow", python_callable=service_now_upload, dag=dag)
+service_now.set_upstream(stream)
+service_now.set_downstream(end)
 
 {% endif %}
-
-
-{% if ('s3' not in data.destination) and  ('mysql' not in data.destination) and ('servicenow' not in data.destination)  %}
-start >> stream >> end
-{% endif %}
-
-
 
 
 
