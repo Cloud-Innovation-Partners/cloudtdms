@@ -10,3 +10,17 @@ email:
   username: ""
   password: ""
   subject: "Data Profiling"
+mysql:
+  dev:
+    host: "127.0.0.1"
+    username: "akeel"
+    password: "akeel"
+    table_name: "incident1"
+    port: "3306"
+
+  prod:
+    host: "127.0.0.1"
+    username: "akeel"
+    password: "akeel"
+    table_name: "incident2"
+    port: "3306"

@@ -19,6 +19,9 @@ sys.path.append(os.path.dirname(get_airflow_home()))
 from system.cloudtdms import providers
 from system.dags import get_providers_home
 from system.dags import get_output_data_home
+{% if 'mysql' in data.destination %}
+from extras.mysql import upload 
+{% endif %}
 
 
 dag = DAG(
@@ -34,7 +37,8 @@ dag_id={{ "'"~data.dag_id|string~"'" }},
         },
         params={
             'stream': {{ data.stream }},
-            'attributes': {{ data.attributes }}
+            'attributes': {{ data.attributes }},
+            'destination': {{ data.destination }}
         }
 )
 
@@ -94,12 +98,63 @@ def data_generator():
     except FileNotFoundError:
         os.makedirs(f"{get_output_data_home()}/{stream['title']}")
         data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
+
+def s3_operation():
+    pass
     
+def mysql_operation():
+    pass
+    
+def servicenow_operation():
+    pass
+
+   
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, dag=dag)
 
+{% if 's3' in data.destination %}
+s3_storage_operator = PythonOperator(task_id="S3", python_callable=s3_operation, dag=dag)
+start >> stream >> s3_storage_operator >> end
+{% endif %}
+
+{% if 'mysql' in data.destination %}
+kwargs=dag.params.get('destination').get('mysql')
+kwargs['folder_title']=dag.params['stream']['title'] # for reading file
+mysql_storage_operator = PythonOperator(task_id="MySQL", python_callable=
+
+, op_kwargs=kwargs, dag=dag)
+{% if ('s3' not in data.destination) %}
+start >> stream >> mysql_storage_operator >> end
+{% else %}
+start >> stream >> [mysql_storage_operator,s3_storage_operator] >> end
+{% endif %}
+{% endif %}
+
+{% if 'servicenow' in data.destination %}
+servicenow_storage_operator = PythonOperator(task_id="ServiceNow", python_callable=servicenow_operation, dag=dag)
+
+
+{% if ('s3' not in data.destination) and ('mysql' not in data.destination)  %}
+start >> stream >> servicenow_storage_operator >> end
+{% elif ('s3' in data.destination) and ('mysql' not in data.destination) %}
+start >> stream >> [s3_storage_operator,servicenow_storage_operator] >> end
+{% elif ('s3' not in data.destination) and ('mysql'  in data.destination) %}
+start >> stream >> [mysql_storage_operator,servicenow_storage_operator] >> end
+{% else %}
+start >> stream >> [mysql_storage_operator,s3_storage_operator,servicenow_storage_operator] >> end
+{% endif %}
+
+{% endif %}
+
+
+{% if ('s3' not in data.destination) and  ('mysql' not in data.destination) and ('servicenow' not in data.destination)  %}
 start >> stream >> end
+{% endif %}
+
+
+
+
 
 """
 

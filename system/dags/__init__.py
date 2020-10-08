@@ -262,13 +262,15 @@ for (module, name) in modules:
             else:
                 raise AirflowException(f"IOError: no data file found {data}.csv ")
 
+
         template = Template(TEMPLATE)
         output = template.render(
             data={
                 'dag_id': str(name),
                 'frequency': stream['frequency'],
                 'stream' : stream,
-                'attributes' : attributes
+                'attributes' : attributes,
+                'destination':stream['destination']
             }
         )
         dag_file_path = f"{get_airflow_home()}/dags/config_{name}.py"
