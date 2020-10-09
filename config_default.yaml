@@ -13,14 +13,12 @@ email:
 mysql:
   dev:
     host: "127.0.0.1"
-    username: "akeel"
-    password: "akeel"
-    table_name: "incident1"
+    username: "YWtlZWwK"
+    password: "YWtlZWwK"
     port: "3306"
 
   prod:
     host: "127.0.0.1"
-    username: "akeel"
-    password: "akeel"
-    table_name: "incident2"
+    username: "YWtlZWwK"
+    password: "YWtlZWwK"
     port: "3306"
