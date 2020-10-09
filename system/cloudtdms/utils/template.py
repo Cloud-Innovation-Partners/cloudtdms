@@ -22,13 +22,14 @@ from system.dags import get_output_data_home
 
 {% if 'mysql' in data.destination %}
 from system.cloudtdms.extras.mysql import mysql_upload
+{% endif %}
 
-{% elif 'servicenow' in data.destination %}
+{% if 'servicenow' in data.destination %}
 from system.cloudtdms.extras.servicenow import service_now_upload
+{% endif %}
 
-{% elif 's3' in data.destination %}
+{% if 's3' in data.destination %}
 from system.cloudtdms.extras.amazons3 import s3_upload
-
 {% endif %}
 
 
@@ -128,7 +129,7 @@ kwargs=dag.params.get('destination').get('mysql')
 kwargs['folder_title']=dag.params['stream']['title'] # for reading file
 mysql = PythonOperator(task_id="MySQL", python_callable=mysql_upload, op_kwargs=kwargs, dag=dag)
 mysql.set_upstream(stream)
-mysql_set_downstream(end)
+mysql.set_downstream(end)
 
 {% endif %}
 

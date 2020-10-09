@@ -112,9 +112,7 @@ for s in scripts:
         LoggingMixin().log.error("Unknown Exception Occurred!", exc_info=True)
 
 # Create a dag for each `configuration` in config directory
-#print(modules)
-#print(len(modules))
-#print('-'*20)
+
 for (module, name) in modules:
 
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
@@ -176,8 +174,6 @@ for (module, name) in modules:
                            "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
                           for v in stream['encrypt']['columns'] if v in all_columns]
             schema += encryption
-            #print('SCHEMA IN ENCRP')
-            #print(schema)
 
         # check 'mask_out' attribute is present along with 'source'
 
@@ -186,8 +182,7 @@ for (module, name) in modules:
                           "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
                          for k, v in stream['mask_out'].items() if k in all_columns]
             schema += mask_outs
-        #print('SCHEMA IN MASKOUT')
-        #print(schema)
+
         # check 'shuffle' attribute is present along with 'source'
 
         if 'shuffle' in stream and source is not None:
@@ -197,9 +192,6 @@ for (module, name) in modules:
                         "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
             schema += shuffle
 
-        #print('SCHEMA IN SHFFLE')
-        #print(schema)
-
         # check 'nullying' attribute is present along with 'source'
 
         if 'nullying' in stream and source is not None:
@@ -208,8 +200,7 @@ for (module, name) in modules:
             nullify = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
                         "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
             schema += nullify
-        #print('SCHEMA AT 209')
-        #print(schema)
+
         if source is not None:
             schema_fields = [f['field_name'] for f in schema]
             remaining_fields = list(set(all_columns) - set(schema_fields))
@@ -218,29 +209,26 @@ for (module, name) in modules:
             schema += remaining
         
         stream['schema'] = schema
-        #print('SCHEMA AFTER 210')
-        #print(schema)
-        
+
         if not schema:
             LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
             continue
 
-        #removes duplication
+        # Remove Duplicates In Schema
         new_schema = {}
         for s in schema:
             new_schema[s['field_name']] = s
-        schema=list(new_schema.values())
-        # print(schema)
+        schema = list(new_schema.values())
 
-        attributes = {}
         for col in [f['field_name'] for f in schema]:
             if col not in all_columns:
                 all_columns.append(col)
-        # ##print(all_columns)
 
         stream['original_order_of_columns'] = all_columns
-        # print(schema)
+
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
+
+        attributes = {}
         for scheme in schema:
             data, column = scheme['type'].split('.')
             if data in meta_data['data_files']:
@@ -262,15 +250,14 @@ for (module, name) in modules:
             else:
                 raise AirflowException(f"IOError: no data file found {data}.csv ")
 
-
         template = Template(TEMPLATE)
         output = template.render(
             data={
                 'dag_id': str(name),
                 'frequency': stream['frequency'],
-                'stream' : stream,
-                'attributes' : attributes,
-                'destination':stream['destination']
+                'stream': stream,
+                'attributes': attributes,
+                'destination': stream['destination'] if 'destination' in stream.keys() else {}
             }
         )
         dag_file_path = f"{get_airflow_home()}/dags/config_{name}.py"
