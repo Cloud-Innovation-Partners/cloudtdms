@@ -48,7 +48,6 @@ class CTDMS2ServiceNow:
                                     params={"sysparm_action": "insertMultiple", },
                                     headers=headers,
                                     data=self.data,
-                                    stream=True
                                     )
         # Throw an error for Bad Status Code
         response.raise_for_status()
