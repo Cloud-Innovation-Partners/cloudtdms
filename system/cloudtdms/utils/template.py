@@ -64,7 +64,7 @@ def generate_iterator(data_frame, methods,args_array):
         # data_frame[name] = pd.Series(result) 
         
 
-def data_generator():
+def data_generator(**kwargs):
     meta_data = providers.get_active_meta_data()
     stream = dag.params.get('stream')
     locale=dag.params.get('stream').get('locale')
@@ -99,8 +99,7 @@ def data_generator():
                 # args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
                 methods = [(getattr(mod, m), m) for m in attributes[attrib]]
                 generate_iterator(data_frame, methods,args_array)
-    
-    file_name = f"{stream['title']}_{datetime.strftime(datetime.now(), '%Y-%m-%d_%H%M%S')}.csv"
+    file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
     try:
         data_frame = data_frame[stream['original_order_of_columns']]
         data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
@@ -111,34 +110,59 @@ def data_generator():
    
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
-stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, dag=dag)
+stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, op_kwargs={'execution_date': {%raw%}"{{ execution_date }}"{%endraw%} }, dag=dag)
 
+start >> stream
+
+{% if 's3' in data.destination  and data.destination.s3%}
+
+{% for connection in data.destination.s3 %}
+# Initialize task for Amazon S3 {{connection.connection}} and bucket {{connection.bucket}}
+{{connection.connection}}_s3 = PythonOperator(task_id="AmazonS3_{{connection.connection}}", python_callable=s3_upload, dag=dag)
+{{connection.connection}}_s3.set_upstream(stream)
+{{connection.connection}}_s3.set_downstream(end)
+{% endfor %}
+
+{% endif %}
+
+
+{% if 'mysql' in data.destination and data.destination.mysql %}
+
+{% for connection in data.destination.mysql %}
+
+# Initialize task for MySQL db {{connection.connection}} and table {{connection.table}}
+{{connection.connection}}_kwargs = {} 
+{{connection.connection}}_kwargs['mysql']=dag.params.get('destination').get('mysql')
+{{connection.connection}}_kwargs['folder_title']=dag.params['stream']['title'] # for reading file
+{{connection.connection}}_mysql = PythonOperator(task_id="MySQL_{{connection.connection}}", python_callable=mysql_upload, op_kwargs={{connection.connection}}_kwargs, dag=dag)
+{{connection.connection}}_mysql.set_upstream(stream)
+{{connection.connection}}_mysql.set_downstream(end)
+
+{% endfor %}
+
+{% endif %}
+
+{% if 'servicenow' in data.destination and data.destination.servicenow %}
+
+{% for connection in data.destination.servicenow %}
+# Initialize task for ServiceNow Instance {{connection.connection}} and table {{connection.table}}
+{{connection.connection}}_op_kwargs = {} 
+{{connection.connection}}_op_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{connection.connection}}_op_kwargs['table_name'] = "{{connection.table}}"
+{{connection.connection}}_op_kwargs['instance'] = "{{connection.connection}}"
+{{connection.connection}}_op_kwargs['prefix'] = dag.params.get('stream').get('title')
+{{connection.connection}} = PythonOperator(task_id="ServiceNow_{{ connection.connection }}_{{ connection.table }}", python_callable=service_now_upload, op_kwargs={{connection.connection}}_op_kwargs, dag=dag)
+{{connection.connection}}.set_upstream(stream)
+{{connection.connection}}.set_downstream(end)
+
+{% endfor %}
+
+{% endif %}
+
+{% if 'mysql' not in data.destination  and 'servicenow' not in data.destination and 's3' not in data.destination %}
 start >> stream >> end
-
-{% if 's3' in data.destination %}
-
-s3 = PythonOperator(task_id="AmazonS3", python_callable=s3_upload, dag=dag)
-s3.set_upstream(stream)
-s3.set_downstream(end)
-
-{% endif %}
-
-{% if 'mysql' in data.destination %}
-
-kwargs=dag.params.get('destination').get('mysql')
-kwargs['folder_title']=dag.params['stream']['title'] # for reading file
-mysql = PythonOperator(task_id="MySQL", python_callable=mysql_upload, op_kwargs=kwargs, dag=dag)
-mysql.set_upstream(stream)
-mysql.set_downstream(end)
-
-{% endif %}
-
-{% if 'servicenow' in data.destination %}
-
-service_now = PythonOperator(task_id="ServiceNow", python_callable=service_now_upload, dag=dag)
-service_now.set_upstream(stream)
-service_now.set_downstream(end)
-
+{% elif data.destination.mysql | length == 0 and data.destination.s3 | length == 0 and data.destination.servicenow | length == 0%}
+start >> stream >> end
 {% endif %}
 
 
