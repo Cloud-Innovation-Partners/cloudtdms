@@ -22,7 +22,7 @@ class CTDMS2ServiceNow:
         self.table_name = table_name
         self.file_prefix = prefix
         self.data = None
-        self.file_name = f"{prefix}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+        self.file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
 
     def upload(self):
         """
