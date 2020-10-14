@@ -12,10 +12,10 @@ email:
   subject: "Data Profiling"
 csv:
   example:
-    file: "example.csv",    # Data file must be present in user-data folder of project
+    file: "example.csv"    # Data file must be present in user-data folder of project
 json:
   test:
-    file: "example.json",   # Data file must be present in user-data  folder of project
+    file: "example.json"   # Data file must be present in user-data  folder of project
 
 mysql:
   dev:                      # name must be data base name
