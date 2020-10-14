@@ -94,13 +94,41 @@ from system.cloudtdms.utils.template import TEMPLATE, DISCOVER
 from system.cloudtdms.providers import get_active_meta_data
 from system.cloudtdms.utils import validation
 
-scripts = [f[:-3] for f in os.listdir(get_scripts_home()) if os.path.isfile(f"{get_scripts_home()}/{f}")
-           and f.endswith('.py') and not f.startswith('__')]
+
+def create_profiling_dag(file_name, owner):
+    file_name = file_name[:-4]
+    dag_template = Template(DISCOVER)
+    dag_output = dag_template.render(
+        data={
+            'dag_id': str(f"profile_{file_name}").replace('-', '_').replace(' ', '_').replace(':', '_'),
+            'frequency': 'once',
+            'data_file': file_name,
+            'owner': owner.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ', '')
+        }
+    )
+    dag_file = f"{get_airflow_home()}/dags/profile_{file_name}.py"
+    with open(dag_file, 'w') as g:
+        g.write(dag_output)
+
+    LoggingMixin().log.info(f"Creating DAG: profile_{file_name}.py")
+
+
+scripts = []
 modules = []
 
-for s in scripts:
+for config in os.walk(f"{get_scripts_home()}"):
     try:
-        modules.append((importlib.import_module(f'config.{s}'), s))
+        root, dirs, files = config
+        if len(dirs) != 0:
+            for each_dir in dirs:
+                if '__init__.py' not in os.listdir(f"{root}/{each_dir}"):
+                    open(f"{root}/{each_dir}/__init__.py", 'w').close()
+        files = list(filter(lambda x: x.endswith('.py') and x != '__init__.py', files))
+        scripts += files
+        root = root.replace(f"{get_cloudtdms_home()}/", '').replace('/', '.')
+        packages = list(map(lambda x: f"{root}.{x}"[:-3], files))
+        root = os.path.basename(root.replace('.', '/')) if os.path.basename(root.replace('.', '/')) != 'config' else 'CloudTDMS'
+        modules += list(map(lambda x: (importlib.import_module(f'{x}'), x.rsplit('.', 1)[1], root), packages))
 
     except SyntaxError as se:
         LoggingMixin().log.error(f"SyntaxError: You configuration {se.filename} does not have valid syntax!", exc_info=True)
@@ -113,7 +141,7 @@ for s in scripts:
 
 # Create a dag for each `configuration` in config directory
 
-for (module, name) in modules:
+for (module, name, app) in modules:
 
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         stream = getattr(module, 'STREAM')
@@ -253,14 +281,15 @@ for (module, name) in modules:
         template = Template(TEMPLATE)
         output = template.render(
             data={
-                'dag_id': str(name),
+                'dag_id': f"data_{app}_{name}",
                 'frequency': stream['frequency'],
+                'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ',''),
                 'stream': stream,
                 'attributes': attributes,
                 'destination': stream['destination'] if 'destination' in stream.keys() else {}
             }
         )
-        dag_file_path = f"{get_airflow_home()}/dags/config_{name}.py"
+        dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
         with open(dag_file_path, 'w') as f:
             f.write(output)
 
@@ -270,24 +299,17 @@ for (module, name) in modules:
 
 # list files in user-data
 
-profiling_data_files = [f[:-4] for f in os.listdir(get_profiling_data_home()) if f.endswith('.csv') and not f == '__init__.py']
+profiling_data_files = []
 
 # create dag for profiling user data
 
-for file in profiling_data_files:
-    template = Template(DISCOVER)
-    output = template.render(
-        data={
-            'dag_id': str(f"profile_{file}").replace('-', '_').replace(' ', '_').replace(':','_'),
-            'frequency': 'once',
-            'data_file': file
-        }
-    )
-    dag_file_path = f"{get_airflow_home()}/dags/profile_{file}.py"
-    with open(dag_file_path, 'w') as f:
-        f.write(output)
-
-    LoggingMixin().log.info(f"Creating DAG: profile_{file}.py")
+for profile in os.walk(get_profiling_data_home()):
+    root, dirs, files = profile
+    files = list(filter(lambda x: x.endswith('.csv'), files))
+    root = root.replace(f"{get_cloudtdms_home()}/", '')
+    root = os.path.basename(root) if os.path.basename(root) != 'profiling_data' else 'CloudTDMS'
+    list(map(create_profiling_dag, files, [f'{root}']*len(files)))
+    profiling_data_files += files
 
 # fetch all dags in directory
 
@@ -302,7 +324,7 @@ loaded_dags = settings.Session.query(DagModel.dag_id, DagModel.fileloc).all()
 for l_dag in loaded_dags:
     (dag_id, fileloc) = l_dag
     filename = os.path.basename(fileloc)[:-3]
-    if filename not in [f"config_{f}" for f in scripts] + [f"profile_{f}" for f in profiling_data_files]:
+    if filename not in [f"data_{f}"[:-3] for f in scripts] + [f"profile_{f}"[:-4] for f in profiling_data_files]:
         try:
             if os.path.exists(fileloc):
                 os.remove(fileloc)

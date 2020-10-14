@@ -22,7 +22,7 @@ class CTDMS2ServiceNow:
         self.table_name = table_name
         self.file_prefix = prefix
         self.data = None
-        self.file_name = f"{prefix}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+        self.file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
 
     def upload(self):
         """
@@ -48,7 +48,6 @@ class CTDMS2ServiceNow:
                                     params={"sysparm_action": "insertMultiple", },
                                     headers=headers,
                                     data=self.data,
-                                    stream=True
                                     )
         # Throw an error for Bad Status Code
         response.raise_for_status()

@@ -38,7 +38,7 @@ dag_id={{ "'"~data.dag_id|string~"'" }},
         schedule_interval={{"'@"~data.frequency~"'"}},
         catchup=False,
         default_args={
-            'owner': 'CloudTDMS',
+            'owner': "{{ data.owner | string }}",
             'depends_on_past': False,
             'start_date': datetime(2020, 7, 8),
             'retries': 1,
@@ -102,10 +102,10 @@ def data_generator(**kwargs):
     file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
     try:
         data_frame = data_frame[stream['original_order_of_columns']]
-        data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
+        data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
     except FileNotFoundError:
-        os.makedirs(f"{get_output_data_home()}/{stream['title']}")
-        data_frame.to_csv(f"{get_output_data_home()}/{stream['title']}/{file_name}", index=False)
+        os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
+        data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
         
    
 start = DummyOperator(task_id="start", dag=dag)
@@ -150,7 +150,7 @@ start >> stream
 {{connection.connection}}_op_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
 {{connection.connection}}_op_kwargs['table_name'] = "{{connection.table}}"
 {{connection.connection}}_op_kwargs['instance'] = "{{connection.connection}}"
-{{connection.connection}}_op_kwargs['prefix'] = dag.params.get('stream').get('title')
+{{connection.connection}}_op_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
 {{connection.connection}} = PythonOperator(task_id="ServiceNow_{{ connection.connection }}_{{ connection.table }}", python_callable=service_now_upload, op_kwargs={{connection.connection}}_op_kwargs, dag=dag)
 {{connection.connection}}.set_upstream(stream)
 {{connection.connection}}.set_downstream(end)
@@ -193,7 +193,7 @@ dag = DAG(
     schedule_interval={{"'@"~data.frequency~"'"}},
     catchup=False,
     default_args={
-        'owner': 'CloudTDMS',
+        'owner': "{{ data.owner | string }}",
         'depends_on_past': False,
         'start_date': datetime(2020, 7, 8),
         'retries': 1,
@@ -206,13 +206,17 @@ dag = DAG(
 
 
 def generate_eda_profile():
-    df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
-    # columns = list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
-    # df.columns = columns
+    if dag.owner == 'CloudTDMS':
+        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
+        path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+    else:
+        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}.csv")
+        path = f"{get_reports_home()}/{dag.owner}/{dag.params.get('data_file')}"
+    
     profile = ProfileReport(
         df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
     )
-    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+    
     try:
         os.makedirs(path)
     except FileExistsError:
@@ -220,7 +224,13 @@ def generate_eda_profile():
     profile.to_file(f"{path}/profiling_{dag.params.get('data_file')}.html")
 
 def generate_sensitive_data_profile():
-    df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
+    if dag.owner == 'CloudTDMS':
+        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
+        path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+    else:
+        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}.csv")
+        path = f"{get_reports_home()}/{dag.owner}/{dag.params.get('data_file')}"
+        
     column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
     columns =  list(column_mapping.keys()) #list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
     df.columns = columns
@@ -228,7 +238,6 @@ def generate_sensitive_data_profile():
         df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
         column_mapping = column_mapping
     )
-    path = f"{get_reports_home()}/{dag.params.get('data_file')}"
     try:
         os.makedirs(path)
     except FileExistsError:
