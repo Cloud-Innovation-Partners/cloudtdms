@@ -132,8 +132,10 @@ start >> stream
 
 # Initialize task for MySQL db {{connection.connection}} and table {{connection.table}}
 {{connection.connection}}_kwargs = {} 
-{{connection.connection}}_kwargs['mysql']=dag.params.get('destination').get('mysql')
+{{connection.connection}}_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{connection.connection}}_kwargs['databases']=dag.params.get('destination').get('mysql')
 {{connection.connection}}_kwargs['folder_title']=dag.params['stream']['title'] # for reading file
+{{connection.connection}}_kwargs['prefix'] = dag.params.get('stream').get('title')
 {{connection.connection}}_mysql = PythonOperator(task_id="MySQL_{{connection.connection}}", python_callable=mysql_upload, op_kwargs={{connection.connection}}_kwargs, dag=dag)
 {{connection.connection}}_mysql.set_upstream(stream)
 {{connection.connection}}_mysql.set_downstream(end)
