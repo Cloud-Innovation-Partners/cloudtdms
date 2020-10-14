@@ -10,17 +10,21 @@ email:
   username: ""
   password: ""
   subject: "Data Profiling"
+csv:
+  example:
+    file: "example.csv",    # Data file must be present in user-data folder of project
+json:
+  test:
+    file: "example.json",   # Data file must be present in user-data  folder of project
+
 mysql:
-  dev:
-    host: "127.0.0.1"
-    username: "akeel"
-    password: "akeel"
-    table_name: "incident1"
+  dev:                      # name must be data base name
+    host: "localhost"
+    username: "root"
+    password: ""
     port: "3306"
 
-  prod:
-    host: "127.0.0.1"
-    username: "akeel"
-    password: "akeel"
-    table_name: "incident2"
-    port: "3306"
+servicenow:
+  dev1234:                  # name must be ServiceNow instance name
+    username: ""
+    password: ""
