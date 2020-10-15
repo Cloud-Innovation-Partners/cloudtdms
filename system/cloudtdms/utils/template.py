@@ -19,17 +19,31 @@ sys.path.append(os.path.dirname(get_airflow_home()))
 from system.cloudtdms import providers
 from system.dags import get_providers_home
 from system.dags import get_output_data_home
+from system.dags import get_user_data_home
 
-{% if 'mysql' in data.destination %}
-from system.cloudtdms.extras.mysql import mysql_upload
+
+{% if 'mysql' in data.destination %} 
+from system.cloudtdms.extras.mysql import mysql_upload 
 {% endif %}
 
-{% if 'servicenow' in data.destination %}
-from system.cloudtdms.extras.servicenow import service_now_upload
+{% if 'mysql' in data.source %} 
+from system.cloudtdms.extras.mysql import mysql_download 
 {% endif %}
 
-{% if 's3' in data.destination %}
-from system.cloudtdms.extras.amazons3 import s3_upload
+{% if 'servicenow' in data.destination %} 
+from system.cloudtdms.extras.servicenow import service_now_upload 
+{% endif %}
+
+{% if 'servicenow' in data.source %} 
+from system.cloudtdms.extras.servicenow import service_now_download 
+{% endif %}
+
+{% if 's3' in data.destination %} 
+from system.cloudtdms.extras.amazons3 import s3_upload 
+{% endif %}
+
+{% if 's3' in data.source %} 
+from system.cloudtdms.extras.amazons3 import s3_download 
 {% endif %}
 
 
@@ -46,12 +60,13 @@ dag_id={{ "'"~data.dag_id|string~"'" }},
         },
         params={
             'stream': {{ data.stream }},
+            'source': {{ data.source }},
             'attributes': {{ data.attributes }},
             'destination': {{ data.destination }}
         }
 )
 
-
+            
 def generate_iterator(data_frame, methods,args_array):
     number = dag.params.get('stream').get('number')
     for fcn, name in methods:
@@ -65,11 +80,122 @@ def generate_iterator(data_frame, methods,args_array):
         
 
 def data_generator(**kwargs):
-    meta_data = providers.get_active_meta_data()
     stream = dag.params.get('stream')
+    meta_data = providers.get_active_meta_data()
+    stream['format'] = 'csv'
+
+    # check 'source' attribute is present
+    file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
+    source = f'{get_user_data_home()}/{file_name}' if 'source' in stream else None
+
+    # columns in data-file
+    all_columns = []
+    if source is not None:
+        try:
+            all_columns = pd.read_csv(source, nrows=1).columns
+        except FileNotFoundError:
+            LoggingMixin().log.error(f'ValueError: File {source} not found')
+
+    # get columns to delete
+    delete = stream['delete'] if 'delete' in stream else []
+
+    all_columns=[f for f in all_columns if f not in delete]
+
+    # check 'schema' attribute is present
+    schema = stream['schema'] if 'schema' in stream else []
+
+    # check 'substitute' attribute is present along with 'source'
+    if 'substitute' in stream and source is not None:
+        substitutions = []
+        for k, v in stream['substitute'].items():
+            v['field_name'] = k
+            substitutions.append(v)
+
+        schema += substitutions
+
+    # check 'encrypt' attribute is present along with 'source'
+
+    if 'encrypt' in stream and source is not None:
+        encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                       "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
+                      for v in stream['encrypt']['columns'] if v in all_columns]
+        schema += encryption
+
+    # check 'mask_out' attribute is present along with 'source'
+
+    if 'mask_out' in stream and source is not None:
+        mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
+                      "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
+                     for k, v in stream['mask_out'].items() if k in all_columns]
+        schema += mask_outs
+
+    # check 'shuffle' attribute is present along with 'source'
+
+    if 'shuffle' in stream and source is not None:
+
+        shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                    "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
+        schema += shuffle
+
+    # check 'nullying' attribute is present along with 'source'
+
+    if 'nullying' in stream and source is not None:
+
+        nullify = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                    "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
+        schema += nullify
+
+    if source is not None:
+        schema_fields = [f['field_name'] for f in schema]
+        remaining_fields = list(set(all_columns) - set(schema_fields))
+        remaining = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                        "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
+        schema += remaining
+    
+    stream['schema'] = schema
+
+    if not schema:
+        LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+        # continue
+
+    # Remove Duplicates In Schema
+    new_schema = {}
+    for s in schema:
+        new_schema[s['field_name']] = s
+    schema = list(new_schema.values())
+
+    for col in [f['field_name'] for f in schema]:
+        if col not in all_columns:
+            all_columns.append(col)
+
+    stream['original_order_of_columns'] = all_columns
+
+    schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
+
+    attributes = {}
+    for scheme in schema:
+        data, column = scheme['type'].split('.')
+        if data in meta_data['data_files']:
+            if column in meta_data['meta-headers'][data]:
+                if data not in attributes:
+                    attributes[data] = [column]
+                else:
+                    attributes[data].append(column)
+            else:
+                raise AirflowException(f"TypeError: no data available for type {column} ")
+        elif data in meta_data['code_files']:
+            if column in meta_data['meta-functions'][data]:
+                if data not in attributes:
+                    attributes[data] = [column]
+                else:
+                    attributes[data].append(column)
+            else:
+                raise AirflowException(f"TypeError: no data available for type {column} ")
+        else:
+            raise AirflowException(f"IOError: no data file found {data}.csv ")
+            
     locale=dag.params.get('stream').get('locale')
-    schema = stream['schema']
-    attributes = dag.params.get('attributes')
+
     nrows = int(stream['number'])
     ncols = sum([len(f) for f in attributes.values()])
     columns = []
@@ -112,7 +238,59 @@ start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, op_kwargs={'execution_date': {%raw%}"{{ execution_date }}"{%endraw%} }, dag=dag)
 
+{% if data.source.mysql | length == 0 and data.source.s3 | length == 0 and data.source.servicenow | length == 0%}
 start >> stream
+{% endif %}
+
+
+{% if 'mysql' in data.source and data.source.mysql %}
+
+{% for connection in data.source.mysql %}
+
+# Initialize task for MySQL db Extract {{connection.connection}} and table {{connection.table}}
+{{connection.connection}}_d_kwargs = {} 
+{{connection.connection}}_d_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{connection.connection}}_d_kwargs['databases']=dag.params.get('destination').get('mysql')
+{{connection.connection}}_d_kwargs['folder_title']=dag.params['stream']['title'] # for reading file
+{{connection.connection}}_d_kwargs['prefix'] = dag.params.get('stream').get('title')
+{{connection.connection}}_d_mysql = PythonOperator(task_id="ExtractMySQL_{{connection.connection}}_{{connection.table}}", python_callable=mysql_download, op_kwargs={{connection.connection}}_d_kwargs, dag=dag)
+{{connection.connection}}_d_mysql.set_upstream(start)
+{{connection.connection}}_d_mysql.set_downstream(stream)
+
+{% endfor %}
+
+{% endif %}
+
+
+{% if 'servicenow' in data.source and data.source.servicenow %}
+
+{% for connection in data.source.servicenow %}
+# Initialize task for ServiceNow Instance Extract {{connection.connection}} and table {{connection.table}}
+{{connection.connection}}_d_op_kwargs = {} 
+{{connection.connection}}_d_op_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{connection.connection}}_d_op_kwargs['table_name'] = "{{connection.table}}"
+{{connection.connection}}_d_op_kwargs['instance'] = "{{connection.connection}}"
+{{connection.connection}}_d_op_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
+{{connection.connection}}_d_op_kwargs['limit'] = "{{connection.limit}}"
+{{connection.connection}} = PythonOperator(task_id="ExtractServiceNow_{{ connection.connection }}_{{ connection.table }}", python_callable=service_now_download, op_kwargs={{connection.connection}}_d_op_kwargs, dag=dag)
+{{connection.connection}}.set_upstream(start)
+{{connection.connection}}.set_downstream(stream)
+
+{% endfor %}
+
+
+{% if 's3' in data.source  and data.source.s3%}
+
+{% for connection in data.source.s3 %}
+# Initialize task for Amazon S3 {{connection.connection}} and bucket {{connection.bucket}}
+{{connection.connection}}_s3 = PythonOperator(task_id="AmazonS3_{{connection.connection}}_{{connection.bucket}}", python_callable=s3_download, dag=dag)
+{{connection.connection}}_s3.set_upstream(start)
+{{connection.connection}}_s3.set_downstream(stream)
+{% endfor %}
+
+{% endif %}
+
+{% endif %}
 
 {% if 's3' in data.destination  and data.destination.s3%}
 

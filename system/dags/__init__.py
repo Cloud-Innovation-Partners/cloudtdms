@@ -6,7 +6,6 @@ import sys
 import importlib
 import subprocess
 from jinja2 import Template
-from airflow import DAG
 from airflow import settings
 from airflow.models.dag import DagModel
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -149,151 +148,90 @@ for (module, name, app) in modules:
         stream['format'] = 'csv'
 
         # check 'source' attribute is present
-        source = f'{get_user_data_home()}/{stream["source"]}.csv' if 'source' in stream else None
+        source = stream['source'] if 'source' in stream else None
 
-        if not validation.check_mandatory_field(stream, name): # means false
-            continue
+        if source is None:
+            # if type(source) is str and not os.path.exists(f'{get_user_data_home()}/{str(source).replace(".csv", "")}.csv'):
+            #     LoggingMixin().log.error(f"FileNotFound: No file available in user-data folder with name {str(source).replace('.csv', '')}.csv")
+            #     continue
 
-        if not validation.check_schema_type(stream, name):
-            continue
-
-        # if not validation.check_source(stream, name):
-        #     continue
-
-        if not validation.check_delete(stream,name):
-            continue
-
-        # columns in data-file
-        all_columns = []
-        if source is not None:
-            try:
-                with open(source, 'r') as f:
-                    columns = f.readline()
-                    columns = columns.replace('\n', '')
-                all_columns = str(columns).split(',')
-            except FileNotFoundError:
-                LoggingMixin().log.error(f'ValueError: File {source} not found')
+            if not validation.check_mandatory_field(stream, name):      # means false
                 continue
-        # get columns to delete
-        delete = stream['delete'] if 'delete' in stream else []
 
-        all_columns=[f for f in all_columns if f not in delete]
-
-        # check 'schema' attribute is present
-        schema = stream['schema'] if 'schema' in stream else []
-
-        # check 'substitute' attribute is present along with 'source'
-        if 'substitute' in stream and source is not None:
-            if not validation.check_substitute(stream,name):
+            if not validation.check_schema_type(stream, name):
                 continue
-            substitutions = []
-            for k, v in stream['substitute'].items():
-                v['field_name'] = k
-                substitutions.append(v)
 
-            schema += substitutions
+            # check 'schema' attribute is present
+            schema = stream['schema'] if 'schema' in stream else []
 
-        # check 'encrypt' attribute is present along with 'source'
-
-        if 'encrypt' in stream and source is not None:
-            if not validation.check_encrypt(stream, name):
+            if not schema:
+                LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
                 continue
-            encryption = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
-                           "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
-                          for v in stream['encrypt']['columns'] if v in all_columns]
-            schema += encryption
 
-        # check 'mask_out' attribute is present along with 'source'
+            stream['original_order_of_columns'] = [f['field_name'] for f in schema]
 
-        if 'mask_out' in stream and source is not None:
-            mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": stream['source'],
-                          "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
-                         for k, v in stream['mask_out'].items() if k in all_columns]
-            schema += mask_outs
+            schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
 
-        # check 'shuffle' attribute is present along with 'source'
-
-        if 'shuffle' in stream and source is not None:
-            if not validation.check_shuffle(stream, name):
-                continue
-            shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
-                        "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
-            schema += shuffle
-
-        # check 'nullying' attribute is present along with 'source'
-
-        if 'nullying' in stream and source is not None:
-            if not validation.check_nullying(stream,name):
-                continue
-            nullify = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
-                        "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
-            schema += nullify
-
-        if source is not None:
-            schema_fields = [f['field_name'] for f in schema]
-            remaining_fields = list(set(all_columns) - set(schema_fields))
-            remaining = [{"field_name": v, "type": "advanced.custom_file", "name": stream['source'], "column": v,
-                            "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
-            schema += remaining
-        
-        stream['schema'] = schema
-
-        if not schema:
-            LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
-            continue
-
-        # Remove Duplicates In Schema
-        new_schema = {}
-        for s in schema:
-            new_schema[s['field_name']] = s
-        schema = list(new_schema.values())
-
-        for col in [f['field_name'] for f in schema]:
-            if col not in all_columns:
-                all_columns.append(col)
-
-        stream['original_order_of_columns'] = all_columns
-
-        schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
-
-        attributes = {}
-        for scheme in schema:
-            data, column = scheme['type'].split('.')
-            if data in meta_data['data_files']:
-                if column in meta_data['meta-headers'][data]:
-                    if data not in attributes:
-                        attributes[data] = [column]
+            attributes = {}
+            for scheme in schema:
+                data, column = scheme['type'].split('.')
+                if data in meta_data['data_files']:
+                    if column in meta_data['meta-headers'][data]:
+                        if data not in attributes:
+                            attributes[data] = [column]
+                        else:
+                            attributes[data].append(column)
                     else:
-                        attributes[data].append(column)
-                else:
-                    raise AirflowException(f"TypeError: no data available for type {column} ")
-            elif data in meta_data['code_files']:
-                if column in meta_data['meta-functions'][data]:
-                    if data not in attributes:
-                        attributes[data] = [column]
+                        raise AirflowException(f"TypeError: no data available for type {column} ")
+                elif data in meta_data['code_files']:
+                    if column in meta_data['meta-functions'][data]:
+                        if data not in attributes:
+                            attributes[data] = [column]
+                        else:
+                            attributes[data].append(column)
                     else:
-                        attributes[data].append(column)
+                        raise AirflowException(f"TypeError: no data available for type {column} ")
                 else:
-                    raise AirflowException(f"TypeError: no data available for type {column} ")
-            else:
-                raise AirflowException(f"IOError: no data file found {data}.csv ")
+                    raise AirflowException(f"IOError: no data file found {data}.csv ")
 
-        template = Template(TEMPLATE)
-        output = template.render(
-            data={
-                'dag_id': f"data_{app}_{name}",
-                'frequency': stream['frequency'],
-                'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ',''),
-                'stream': stream,
-                'attributes': attributes,
-                'destination': stream['destination'] if 'destination' in stream.keys() else {}
-            }
-        )
-        dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
-        with open(dag_file_path, 'w') as f:
-            f.write(output)
+            template = Template(TEMPLATE)
+            output = template.render(
+                data={
+                    'dag_id': f"data_{app}_{name}",
+                    'frequency': stream['frequency'],
+                    'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ',''),
+                    'stream': stream,
+                    'attributes': attributes,
+                    'source': source if source is not None else [],
+                    'destination': stream['destination'] if 'destination' in stream.keys() else {}
+                }
+            )
+            dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
+            with open(dag_file_path, 'w') as f:
+                f.write(output)
 
-        LoggingMixin().log.info(f"Creating DAG: {name}")
+            LoggingMixin().log.info(f"Creating DAG: {name}")
+        else:
+            if not validation.check_mandatory_field(stream, name):      # means false
+                continue
+            template = Template(TEMPLATE)
+            output = template.render(
+                data={
+                    'dag_id': f"data_{app}_{name}",
+                    'frequency': stream['frequency'],
+                    'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ', ''),
+                    'stream': stream,
+                    'attributes': {},
+                    'source': source if source is not None else [],
+                    'destination': stream['destination'] if 'destination' in stream.keys() else {}
+                }
+            )
+            dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
+            with open(dag_file_path, 'w') as f:
+                f.write(output)
+
+            LoggingMixin().log.info(f"Creating DAG: {name}")
+
     else:
         LoggingMixin().log.error(f"No `STREAM` attribute found in configuration {name}.py")
 
