@@ -125,3 +125,5 @@ def mysql_upload(
             else:
                 csv_file.to_sql(con=engine, name=table, if_exists='replace', index=False)
 
+def mysql_download():
+    print("Inside MySQL download")
