@@ -15,11 +15,16 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.configuration import get_airflow_home
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.exceptions import AirflowException
 sys.path.append(os.path.dirname(get_airflow_home()))
 from system.cloudtdms import providers
 from system.dags import get_providers_home
 from system.dags import get_output_data_home
 from system.dags import get_user_data_home
+
+{% if 'csv' in data.source %} 
+from system.cloudtdms.extras.csv import csv_download 
+{% endif %}
 
 
 {% if 'mysql' in data.destination %} 
@@ -83,117 +88,119 @@ def data_generator(**kwargs):
     stream = dag.params.get('stream')
     meta_data = providers.get_active_meta_data()
     stream['format'] = 'csv'
-
-    # check 'source' attribute is present
-    file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
-    source = f'{get_user_data_home()}/{file_name}' if 'source' in stream else None
-
-    # columns in data-file
-    all_columns = []
-    if source is not None:
-        try:
-            all_columns = pd.read_csv(source, nrows=1).columns
-        except FileNotFoundError:
-            LoggingMixin().log.error(f'ValueError: File {source} not found')
-
-    # get columns to delete
-    delete = stream['delete'] if 'delete' in stream else []
-
-    all_columns=[f for f in all_columns if f not in delete]
-
-    # check 'schema' attribute is present
-    schema = stream['schema'] if 'schema' in stream else []
-
-    # check 'substitute' attribute is present along with 'source'
-    if 'substitute' in stream and source is not None:
-        substitutions = []
-        for k, v in stream['substitute'].items():
-            v['field_name'] = k
-            substitutions.append(v)
-
-        schema += substitutions
-
-    # check 'encrypt' attribute is present along with 'source'
-
-    if 'encrypt' in stream and source is not None:
-        encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
-                       "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
-                      for v in stream['encrypt']['columns'] if v in all_columns]
-        schema += encryption
-
-    # check 'mask_out' attribute is present along with 'source'
-
-    if 'mask_out' in stream and source is not None:
-        mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
-                      "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
-                     for k, v in stream['mask_out'].items() if k in all_columns]
-        schema += mask_outs
-
-    # check 'shuffle' attribute is present along with 'source'
-
-    if 'shuffle' in stream and source is not None:
-
-        shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
-                    "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
-        schema += shuffle
-
-    # check 'nullying' attribute is present along with 'source'
-
-    if 'nullying' in stream and source is not None:
-
-        nullify = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
-                    "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
-        schema += nullify
-
-    if source is not None:
-        schema_fields = [f['field_name'] for f in schema]
-        remaining_fields = list(set(all_columns) - set(schema_fields))
-        remaining = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
-                        "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
-        schema += remaining
-    
-    stream['schema'] = schema
-
-    if not schema:
-        LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
-        # continue
-
-    # Remove Duplicates In Schema
-    new_schema = {}
-    for s in schema:
-        new_schema[s['field_name']] = s
-    schema = list(new_schema.values())
-
-    for col in [f['field_name'] for f in schema]:
-        if col not in all_columns:
-            all_columns.append(col)
-
-    stream['original_order_of_columns'] = all_columns
-
-    schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
-
     attributes = {}
-    for scheme in schema:
-        data, column = scheme['type'].split('.')
-        if data in meta_data['data_files']:
-            if column in meta_data['meta-headers'][data]:
-                if data not in attributes:
-                    attributes[data] = [column]
-                else:
-                    attributes[data].append(column)
-            else:
-                raise AirflowException(f"TypeError: no data available for type {column} ")
-        elif data in meta_data['code_files']:
-            if column in meta_data['meta-functions'][data]:
-                if data not in attributes:
-                    attributes[data] = [column]
-                else:
-                    attributes[data].append(column)
-            else:
-                raise AirflowException(f"TypeError: no data available for type {column} ")
-        else:
-            raise AirflowException(f"IOError: no data file found {data}.csv ")
+    for source_type in dag.params.get('source').keys():
+        for connection in dag.params.get('source').get(source_type):
+            cname = connection.get('connection')
+            # check 'source' attribute is present
+            file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
+            source = f'{get_user_data_home()}/{file_name}' if 'source' in stream else None
+        
+            # columns in data-file
+            all_columns = []
+            if source is not None:
+                try:
+                    all_columns = pd.read_csv(source, nrows=1).columns
+                except FileNotFoundError:
+                    LoggingMixin().log.error(f'ValueError: File {source} not found')
             
+            # get columns to delete
+            delete = stream['delete'] if 'delete' in stream else []
+        
+            all_columns=[f for f in all_columns if f not in delete]
+                        
+            # check 'schema' attribute is present
+            schema = stream['schema'] if 'schema' in stream else []
+        
+            # check 'substitute' attribute is present along with 'source'
+            if 'substitute' in stream and source is not None:
+                substitutions = []
+                for k, v in stream['substitute'].items():
+                    v['field_name'] = k
+                    substitutions.append(v)
+        
+                schema += substitutions
+        
+            # check 'encrypt' attribute is present along with 'source'
+        
+            if 'encrypt' in stream and source is not None:
+                encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                               "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
+                              for v in stream['encrypt']['columns'] if v in all_columns]
+                schema += encryption
+        
+            # check 'mask_out' attribute is present along with 'source'
+        
+            if 'mask_out' in stream and source is not None:
+                mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
+                              "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
+                             for k, v in stream['mask_out'].items() if k in all_columns]
+                schema += mask_outs
+        
+            # check 'shuffle' attribute is present along with 'source'
+        
+            if 'shuffle' in stream and source is not None:
+        
+                shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                            "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
+                schema += shuffle
+        
+            # check 'nullying' attribute is present along with 'source'
+        
+            if 'nullying' in stream and source is not None:
+        
+                nullify = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                            "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
+                schema += nullify
+        
+            if source is not None:
+                schema_fields = [f['field_name'] for f in schema]
+                remaining_fields = list(set(all_columns) - set(schema_fields))
+                remaining = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                                "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
+                schema += remaining
+    
+            stream['schema'] = schema
+
+        if not schema:
+            LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+            # continue
+    
+        # Remove Duplicates In Schema
+        new_schema = {}
+        for s in schema:
+            new_schema[s['field_name']] = s
+        schema = list(new_schema.values())
+    
+        for col in [f['field_name'] for f in schema]:
+            if col not in all_columns:
+                all_columns.append(col)
+    
+        stream['original_order_of_columns'] = all_columns
+    
+        schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
+    
+        for scheme in schema:
+            data, column = scheme['type'].split('.')
+            if data in meta_data['data_files']:
+                if column in meta_data['meta-headers'][data]:
+                    if data not in attributes:
+                        attributes[data] = [column]
+                    else:
+                        attributes[data].append(column)
+                else:
+                    raise AirflowException(f"TypeError: no data available for type {column} ")
+            elif data in meta_data['code_files']:
+                if column in meta_data['meta-functions'][data]:
+                    if data not in attributes:
+                        attributes[data] = [column]
+                    else:
+                        attributes[data].append(column)
+                else:
+                    raise AirflowException(f"TypeError: no data available for type {column} ")
+            else:
+                raise AirflowException(f"IOError: no data file found {data}.csv ")
+
     locale=dag.params.get('stream').get('locale')
 
     nrows = int(stream['number'])
@@ -228,11 +235,31 @@ def data_generator(**kwargs):
     file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
     try:
         data_frame = data_frame[stream['original_order_of_columns']]
+
+        # check 'rename' attribute is present
+        rename = stream['rename'] if 'rename' in stream else {}
+        data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{rename.get(x)}" if x in rename else  x, data_frame.columns))
+
+        data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+
         data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
+        
     except FileNotFoundError:
         os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
         data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
-        
+    
+    finally:
+        for source_type in dag.params.get('source').keys():
+            for connection in dag.params.get('source').get(source_type):
+                cname = connection.get('connection')
+                file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
+                path = f'{get_user_data_home()}/{file_name}'
+                try:
+                    os.remove(path)
+                    LoggingMixin().log.info(f"Deleted : {file_name}")
+                except FileNotFoundError:
+                    LoggingMixin().log.warn("No file found to delete!")
+                
    
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
@@ -242,6 +269,20 @@ stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator
 start >> stream
 {% endif %}
 
+{% if 'csv' in data.source and data.source.csv %}
+{% for connection in data.source.csv %}
+
+csv_{{connection.connection}}_kwargs = {} 
+csv_{{connection.connection}}_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+csv_{{connection.connection}}_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
+csv_{{connection.connection}}_kwargs['delimiter'] = "{{connection.delimiter}}"
+csv_{{connection.connection}}_kwargs['connection'] = "{{connection.connection}}"
+{{connection.connection}}_d_csv = PythonOperator(task_id="ExtractCSV_{{connection.connection}}", python_callable=csv_download, op_kwargs=csv_{{connection.connection}}_kwargs, dag=dag)
+{{connection.connection}}_d_csv.set_upstream(start)
+{{connection.connection}}_d_csv.set_downstream(stream)
+
+{% endfor %}
+{% endif %}
 
 {% if 'mysql' in data.source and data.source.mysql %}
 
@@ -250,9 +291,9 @@ start >> stream
 # Initialize task for MySQL db Extract {{connection.connection}} and table {{connection.table}}
 {{connection.connection}}_d_kwargs = {} 
 {{connection.connection}}_d_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
-{{connection.connection}}_d_kwargs['databases']=dag.params.get('destination').get('mysql')
-{{connection.connection}}_d_kwargs['folder_title']=dag.params['stream']['title'] # for reading file
-{{connection.connection}}_d_kwargs['prefix'] = dag.params.get('stream').get('title')
+{{connection.connection}}_d_kwargs['database']="{{connection.connection}}"
+{{connection.connection}}_d_kwargs['table']="{{connection.table}}"
+{{connection.connection}}_d_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
 {{connection.connection}}_d_mysql = PythonOperator(task_id="ExtractMySQL_{{connection.connection}}_{{connection.table}}", python_callable=mysql_download, op_kwargs={{connection.connection}}_d_kwargs, dag=dag)
 {{connection.connection}}_d_mysql.set_upstream(start)
 {{connection.connection}}_d_mysql.set_downstream(stream)

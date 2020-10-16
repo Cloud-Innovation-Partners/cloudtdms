@@ -109,8 +109,9 @@ class CTDMS2ServiceNow:
             objects = ijson.items(f, 'result.item')
             records = [o for o in objects]
             df = pd.DataFrame(records)
+            df.columns = [f"servicenow.{self.service_now_instance}.{self.table_name}.{f}" for f in df.columns]
 
-        file_name = f"{os.path.basename(self.file_prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+        file_name = f"servicenow_{self.service_now_instance}_{os.path.dirname(self.file_prefix)}_{os.path.basename(self.file_prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
 
         df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
 
