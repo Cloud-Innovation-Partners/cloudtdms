@@ -202,7 +202,7 @@ for (module, name, app) in modules:
                     'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ',''),
                     'stream': stream,
                     'attributes': attributes,
-                    'source': source if source is not None else [],
+                    'source': source if source is not None else {},
                     'destination': stream['destination'] if 'destination' in stream.keys() else {}
                 }
             )
