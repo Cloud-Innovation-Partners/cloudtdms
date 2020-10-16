@@ -147,26 +147,14 @@ def generate_script(filename, pii, column_mapping):
 def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     pii = summary['pii']
     filename = summary['file_name']
+    prefix = summary['prefix']
     column_mapping = summary['column_mapping']
     STREAM = generate_script(filename, pii, column_mapping)
     STREAM = json.dumps(STREAM, indent=3)
 
-    # script = HTMLHTML(name="Synthetic Data Configuration", content=f"""
-    #
-    # <div style="margin:10px">
-    # <pre>
-    # <code>
-    # STREAM = {
-    #             STREAM
-    #          }
-    #             </code>
-    #             </pre>
-    #             </div>
-    # """)
-    directory = filename
     filename = str(filename).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$', '_')
 
-    with open(f'{get_reports_home()}/{directory}/config_{filename}.txt', 'w') as o:
+    with open(f'{get_reports_home()}/{prefix}/config_{filename}.txt', 'w') as o:
         o.write('''
         # This is a proposed cloudtdms data masking configuration file for your data set.
         # Save this file with '.py' extension inside 'config` folder.
@@ -355,11 +343,12 @@ def describe_df(title: str, df: pd.DataFrame, sample: Optional[dict] = None) -> 
 
 
 class PIIReport(ProfileReport):
-    def __init__(self, df, filename=None, **kwargs):
+    def __init__(self, df, prefix, filename=None, **kwargs):
         super().__init__(df)
         self._file_name = filename
         self._title = kwargs['title']
         self._column_mapping = kwargs['column_mapping']
+        self._prefix = prefix
 
     @property
     def report(self):
@@ -373,6 +362,7 @@ class PIIReport(ProfileReport):
             self._description_set = describe_df(self.title, self.df, self._sample)
             self._description_set['file_name'] = self._file_name
             self._description_set['column_mapping'] = self._column_mapping
+            self._description_set['prefix'] = self._prefix
         return self._description_set
 
     def get_sample(self, df=None) -> dict:

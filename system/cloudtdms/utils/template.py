@@ -457,7 +457,7 @@ def generate_sensitive_data_profile():
     df.columns = columns
     profile = PIIReport(
         df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
-        column_mapping = column_mapping
+        column_mapping = column_mapping, prefix = f"{dag.owner}/{dag.params.get('data_file')}"
     )
     try:
         os.makedirs(path)
