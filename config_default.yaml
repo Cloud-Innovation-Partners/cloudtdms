@@ -11,25 +11,20 @@ email:
   password: ""
   subject: "Data Profiling"
 csv:
-  modeling:
-    file: "Churn-Modeling.csv"    # Data file must be present in user-data folder of project
-  health:
-    file: "Big_Cities_Health_Data_Inventory.csv"
+  example:
+    file: "example.csv"    # Data file must be present in user-data folder of project
 json:
   test:
     file: "example.json"   # Data file must be present in user-data  folder of project
 
 mysql:
-  test:                      # name must be data base name
-    host: "127.0.0.1"
-    username: "cm9vdA=="
+  dev:                      # name must be data base name
+    host: "localhost"
+    username: "root"
     password: ""
     port: "3306"
 
 servicenow:
-  vodafonedev4:                  # name must be ServiceNow instance name
-    username: "c2hhaGJhei5hbGlAY2xvdWRpbnAuY29t"
-    password: "Um95YWxARmFsY29uXzAz"
-  dev58733:
-    username: "YWRtaW4="
-    password: "eGJBZER5OWYqQlo4OUJEel5GcFQ4dis/azw6K281"
+  dev1234:                  # name must be ServiceNow instance name
+    username: ""
+    password: ""
