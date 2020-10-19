@@ -1,0 +1,55 @@
+{% block destination_tasks %}
+{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3'] %}
+
+{% for key, value in data.destination.items() %}
+{% if key in supported_destinations and value%}
+
+{% for item in value %}
+{{ key }}_{{ item.connection }}_kwargs = {}
+{{ key }}_{{ item.connection }}_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{ key }}_{{ item.connection }}_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
+
+{% if key == 'csv' %}
+# Initialize task for CSV file creation
+
+{{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractCSV_{{ item.connection }}", python_callable=csv_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'mysql' %}
+
+# Initialize task for MySQL db Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['database'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="MySQL_{{ item.connection }}", python_callable=mysql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'servicenow' %}
+
+# Initialize task for ServiceNow Instance Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }}_kwargs['instance'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 's3' %}
+# Initialize task for Amazon S3 Upload for {{ item.connection }} and bucket {{ item.bucket }}
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="AmazonS3_{{ item.connection }}", python_callable=s3_upload, dag=dag)
+
+{% endif %}
+
+{{ key }}_{{ item.connection }}.set_upstream(stream)
+{{ key }}_{{ item.connection }}.set_downstream(end)
+
+{% endfor %}
+
+{% endif %}
+{% endfor %}
+
+
+{% if 'mysql' not in data.destination  and 'servicenow' not in data.destination and 's3' not in data.destination %}
+start >> stream >> end
+{% elif data.destination.mysql | length == 0 and data.destination.s3 | length == 0 and data.destination.servicenow | length == 0%}
+start >> stream >> end
+{% endif %}
+
+{% endblock %}

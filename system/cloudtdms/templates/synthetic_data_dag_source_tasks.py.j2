@@ -1,0 +1,52 @@
+{% block source_tasks %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3'] %}
+
+{% if data.source.mysql | length == 0 and data.source.s3 | length == 0 and data.source.servicenow | length == 0%}
+start >> stream
+{% endif %}
+
+{% for key, value in data.source.items() %}
+{% if key in supported_sources and value%}
+
+{% for item in value %}
+{{ key }}_{{ item.connection }}_kwargs = {}
+{{ key }}_{{ item.connection }}_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{ key }}_{{ item.connection }}_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
+
+{% if key == 'csv' %}
+# Initialize task for CSV data file {{ item.connection }}
+
+{{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractCSV_{{ item.connection }}", python_callable=csv_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'mysql' %}
+
+# Initialize task for MySQL db Extract {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['database'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractMySQL_{{ item.connection }}_{{ item.table }}", python_callable=mysql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'servicenow' %}
+
+# Initialize task for ServiceNow Instance Extract {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }}_kwargs['instance'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 's3' %}
+# Initialize task for Amazon S3 {{ item.connection }} and bucket {{ item.bucket }}
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="AmazonS3_{{ item.connection }}_{{ item.bucket }}", python_callable=s3_download, dag=dag)
+
+{% endif %}
+
+{{ key }}_{{ item.connection }}.set_upstream(start)
+{{ key }}_{{ item.connection }}.set_downstream(stream)
+
+{% endfor %}
+
+{% endif %}
+{% endfor %}
+
+{% endblock source_tasks%}
