@@ -12,3 +12,14 @@ data/
 !system/dags/__init__.py
 system/dags/*
 scripts/example81.py
+config/*
+profiling_reports/*
+profiling_data/*
+user-data/*
+system/cloudtdms/providers/location/ch_CH/
+system/cloudtdms/providers/location/hi_IN/
+Pipfile.lock
+system/__init__.pyc
+system/cloudtdms/__init__.pyc
+system/cloudtdms/utils/__init__.pyc
+validate/*

@@ -102,7 +102,6 @@ def mysql_upload(
                 storage.modify_table(table, new_cols)
                 storage.insert_data(n_objects)
             else:
-                csv_file.to_sql(con=engine, name=table, if_exists='replace', index=False)
                 LoggingMixin().log.info(f"Schema of table {table} not changed, appending new records")
                 storage.insert_data(n_objects)
         else:
@@ -159,7 +158,7 @@ def mysql_download(**kwargs):
                     df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
                 elif primary_index is None and secondary_index is None:
                     LoggingMixin().log.warn(f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
-                    sql = f"SELECT * FROM `ctdms` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    sql = f"SELECT * FROM `{table_name}` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mysql.{database}.{table_name}.{f}" for f in df.columns]

@@ -5,6 +5,7 @@ import os
 import sys
 import importlib
 import subprocess
+import jinja2
 from jinja2 import Template
 from airflow import settings
 from airflow.models.dag import DagModel
@@ -79,6 +80,11 @@ def get_config_default_path():
 def get_reports_home():
 
     return f"{get_cloudtdms_home()}/profiling_reports"
+
+
+def get_templates_home():
+
+    return f"{get_airflow_home()}/cloudtdms/templates"
 
 
 def delete_dag(dag_id):
@@ -194,14 +200,17 @@ for (module, name, app) in modules:
                 else:
                     raise AirflowException(f"IOError: no data file found {data}.csv ")
 
-            template = Template(TEMPLATE)
+            templateLoader = jinja2.FileSystemLoader(searchpath=get_templates_home())
+            templateEnv = jinja2.Environment(loader=templateLoader)
+            TEMPLATE_FILE = "synthetic_data_dag.py.j2"
+            template = templateEnv.get_template(TEMPLATE_FILE)
             output = template.render(
                 data={
                     'dag_id': f"data_{app}_{name}",
                     'frequency': stream['frequency'],
                     'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ',''),
                     'stream': stream,
-                    'attributes': attributes,
+                    'attributes': attributes if len(attributes) != 0 else None,
                     'source': source if source is not None else {},
                     'destination': stream['destination'] if 'destination' in stream.keys() else {}
                 }
