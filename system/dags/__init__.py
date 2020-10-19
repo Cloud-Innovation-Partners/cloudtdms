@@ -6,12 +6,12 @@ import sys
 import importlib
 import subprocess
 import jinja2
-from jinja2 import Template
 from airflow import settings
 from airflow.models.dag import DagModel
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.configuration import get_airflow_home
 from airflow.exceptions import AirflowException
+
 
 def get_cloudtdms_home():
     """
@@ -102,8 +102,9 @@ from system.cloudtdms.utils import validation
 
 def create_profiling_dag(file_name, owner):
     file_name = file_name[:-4]
-    dag_template = Template(DISCOVER)
-    dag_output = dag_template.render(
+    TEMPLATE_FILE = "profiling_data_dag.py.j2"
+    template = templateEnv.get_template(TEMPLATE_FILE)
+    dag_output = template.render(
         data={
             'dag_id': str(f"profile_{file_name}").replace('-', '_').replace(' ', '_').replace(':', '_'),
             'frequency': 'once',
@@ -143,6 +144,12 @@ for config in os.walk(f"{get_scripts_home()}"):
 
     except Exception:
         LoggingMixin().log.error("Unknown Exception Occurred!", exc_info=True)
+
+
+# Load templates environment
+
+templateLoader = jinja2.FileSystemLoader(searchpath=get_templates_home())
+templateEnv = jinja2.Environment(loader=templateLoader)
 
 # Create a dag for each `configuration` in config directory
 
@@ -200,8 +207,6 @@ for (module, name, app) in modules:
                 else:
                     raise AirflowException(f"IOError: no data file found {data}.csv ")
 
-            templateLoader = jinja2.FileSystemLoader(searchpath=get_templates_home())
-            templateEnv = jinja2.Environment(loader=templateLoader)
             TEMPLATE_FILE = "synthetic_data_dag.py.j2"
             template = templateEnv.get_template(TEMPLATE_FILE)
             output = template.render(
@@ -223,7 +228,8 @@ for (module, name, app) in modules:
         else:
             if not validation.check_mandatory_field(stream, name):      # means false
                 continue
-            template = Template(TEMPLATE)
+            TEMPLATE_FILE = "synthetic_data_dag.py.j2"
+            template = templateEnv.get_template(TEMPLATE_FILE)
             output = template.render(
                 data={
                     'dag_id': f"data_{app}_{name}",
