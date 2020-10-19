@@ -3,7 +3,6 @@
 import base64
 import itertools
 import os
-import MySQLdb as ms
 import pymysql
 import yaml
 from system.dags import get_config_default_path, get_output_data_home, get_user_data_home
@@ -12,12 +11,10 @@ import pandas as pd
 from sqlalchemy import create_engine
 from pandas.io import sql
 from sqlalchemy.pool import NullPool
-import MySQLdb
 from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
 
-
-
 valid_dbs = {}
+
 
 def get_mysql_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
@@ -25,6 +22,7 @@ def get_mysql_config_default():
         return config.get('mysql')
     else:
         raise KeyError('config_default.yaml has no mysql entry')
+
 
 # [{'connection': 'dev', 'table': 'incident'}, {'connection': 'prod', 'table': 'incident2'}]
 def validate_mysql_credentials(database_list):
@@ -65,50 +63,57 @@ def get_sub_query(column_names):
     return query
 
 
-def mysql_upload(
-        **kwargs):  # {'folder_title':'test_storages', 'databases': [{'connection': 'dev', 'table': 'incident'}, {'connection': 'prod', 'table': 'incident2'}]}
-    validate_mysql_credentials(kwargs['databases'])
-    connection_in_yaml = get_mysql_config_default()
+def mysql_upload(**kwargs):
+    database = kwargs['database']
+    prefix = kwargs['prefix']
+    execution_date = kwargs['execution_date']
+    table_name = kwargs['table_name']
     file_name = f"{os.path.basename(kwargs['prefix'])}_{str(kwargs['execution_date'])[:19].replace('-', '_').replace(':', '_')}.csv"
 
+    # validate_mysql_credentials(kwargs['database'])
+
+    connection_in_yaml = get_mysql_config_default()
+
     # read latest modified csv file
-    latest_file_path = get_output_data_home() + '/CloudTDMS/' + kwargs['folder_title'] + '/' + file_name
+    latest_file_path = get_output_data_home() + '/' + kwargs['prefix'] + '/' + file_name
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     csv_file = pd.read_csv(latest_file_path)
 
-    # valid_dbs={'dev': 'BRS2', 'prod': 'tdms'}
-    for db_name in valid_dbs:
-        user = decode_(connection_in_yaml[db_name]['username']).replace('\n', '')
-        password = decode_(connection_in_yaml[db_name]['password']).replace('\n', '')
-        host = connection_in_yaml[db_name]['host'].replace(' ', '')
-        port = int(connection_in_yaml[db_name]['port'].replace(' ', ''))
-        table = valid_dbs[db_name]
-        LoggingMixin().log.info(f'Inserting data in {db_name}, {table}')
-        engine = create_engine(f"mysql://{user}:{password}@{host}:{port}/{db_name}", poolclass=NullPool)
+    is_available = True if database in connection_in_yaml else False
+
+    if is_available:
+        user = decode_(connection_in_yaml[database]['username']).replace('\n', '')
+        password = decode_(connection_in_yaml[database]['password']).replace('\n', '')
+        host = connection_in_yaml[database]['host'].replace(' ', '')
+        port = int(connection_in_yaml[database]['port'].replace(' ', ''))
+
+        LoggingMixin().log.info(f'Inserting data in {database}, {table_name}')
+        engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
 
         # store the data in the database
         n_objects = Converter.df_to_gen(csv_file)
-        storage = Storage(user, password, host, db_name, table, port)
+        storage = Storage(user, password, host, database, table_name, port)
 
-        if storage.has_table(table, engine):
-            LoggingMixin().log.info(f"Table {table} already existed")
+        if storage.has_table(table_name, engine):
+            LoggingMixin().log.info(f"Table {table_name} already existed")
             # 'check_schema'
-            schema_values = storage.is_schema_changed(table, engine, list(csv_file.columns))
+            schema_values = storage.is_schema_changed(table_name, engine, list(csv_file.columns))
             is_changed = schema_values[0]
             new_cols = schema_values[1]
             LoggingMixin().log.info(f'New cols: {new_cols}')
             if is_changed:  # schema changed
-                LoggingMixin().log.info(f"Schema of table {table} in {db_name} changed")
-                storage.modify_table(table, new_cols)
+                LoggingMixin().log.info(f"Schema of table {table_name} in {database} changed")
+                storage.modify_table(table_name, new_cols)
                 storage.insert_data(n_objects)
             else:
-                LoggingMixin().log.info(f"Schema of table {table} not changed, appending new records")
+                LoggingMixin().log.info(f"Schema of table {table_name} not changed, appending new records")
                 storage.insert_data(n_objects)
         else:
             storage.create_table(list(csv_file.columns))
             storage.insert_data(n_objects)
+    else:
+        raise AttributeError(f"{database} not found in config_default.yaml")
 
-        # storage=None
 
 def mysql_download(**kwargs):
     database = kwargs['database']
@@ -168,7 +173,8 @@ def mysql_download(**kwargs):
     else:
         LoggingMixin().log.error(f"NoHostFound: No host was found for database {database}")
 
-class Converter():
+
+class Converter:
 
     @staticmethod
     def df_to_gen(csv_file):
@@ -177,7 +183,7 @@ class Converter():
             yield tuple(csv_file.iloc[i])
 
 
-class Storage():
+class Storage:
     """
     This class takes the MySql credentials and creates a connection with MySql database
     """
@@ -203,7 +209,7 @@ class Storage():
 
     def modify_table(self, table, new_cols):
         """This methods modifies the table present in database for which schema is changed"""
-        conn = ms.connect(host=self.host, user=self.login, password=self.password,
+        conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, db=self.database_name)
         cursor = conn.cursor()
         for col in new_cols:
@@ -212,7 +218,7 @@ class Storage():
                 LoggingMixin().log.info(f'ALTER QUERY {alter_query}')
                 cursor.execute(alter_query)
                 conn.commit()
-            except MySQLdb._exceptions.OperationalError:
+            except pymysql.OperationalError:
                 LoggingMixin().log.info(f'{col} already existed, Alter command cannot be executed...')
         conn.close()
 
@@ -222,7 +228,7 @@ class Storage():
             self.database_name )
             -create columns for all labels, including the extra one on schema
             """
-        conn = ms.connect(host=self.host, user=self.login, password=self.password,
+        conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, db=self.database_name)
         cursor = conn.cursor()
         sub_query = get_sub_query(column_names)
@@ -239,8 +245,8 @@ class Storage():
         """
         lst = []
         step = 100
-        conn = ms.connect(host=self.host, user=self.login, password=self.password,
-                          database=self.database_name)
+        conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
+                          db=self.database_name)
         cursor = conn.cursor()
 
         cols = next(n_objects)  # inital record in n_objects will be column names, see Converter.df_to_gen()

@@ -130,7 +130,7 @@ class CTDMS2ServiceNow:
             raise KeyError('config_default.yaml has no servicenow entry')
 
 
-def service_now_upload(**kwargs):
+def servicenow_upload(**kwargs):
 
     execution_date = kwargs.get('execution_date', None)     # dag execution date
     table_name = kwargs.get('table_name')       # ServiceNow table name
@@ -156,7 +156,7 @@ def service_now_upload(**kwargs):
         LoggingMixin().log.error(f'ServiceNow credentials not available for {instance} in config_default.yaml')
 
 
-def service_now_download(**kwargs):
+def servicenow_download(**kwargs):
     execution_date = kwargs.get('execution_date', None)  # dag execution date
     table_name = kwargs.get('table_name')  # ServiceNow table name
     prefix = kwargs.get('prefix')  # title of the synthetic data config file
