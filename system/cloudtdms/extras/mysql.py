@@ -102,7 +102,6 @@ def mysql_upload(
                 storage.modify_table(table, new_cols)
                 storage.insert_data(n_objects)
             else:
-                csv_file.to_sql(con=engine, name=table, if_exists='replace', index=False)
                 LoggingMixin().log.info(f"Schema of table {table} not changed, appending new records")
                 storage.insert_data(n_objects)
         else:
