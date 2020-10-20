@@ -199,6 +199,16 @@ def data_generator(**kwargs):
         elif stream['format'] == 'json':
             data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", orient='records', lines=True)
 
-
+    finally:
+        for source_type in dag.params.get('source').keys():
+            for connection in dag.params.get('source').get(source_type):
+                cname = connection.get('connection')
+                file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
+                path = f'{get_user_data_home()}/{file_name}'
+                try:
+                    os.remove(path)
+                    LoggingMixin().log.info(f"Deleted : {file_name}")
+                except FileNotFoundError:
+                    LoggingMixin().log.warn("No file found to delete!")
 
 {% endblock operator_functions %}
