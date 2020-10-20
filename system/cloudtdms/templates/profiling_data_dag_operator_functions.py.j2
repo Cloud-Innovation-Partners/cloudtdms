@@ -12,8 +12,8 @@ def generate_eda_profile():
 
     if str(extension).lower() == '.csv':
         df = pd.read_csv(source_file)
-    elif str(extension).lower() == 'json':
-        df = pd.read_json(source_file, lines=True, orient='records')
+    elif str(extension).lower() == '.json':
+        df = pd.read_json(source_file, lines=True)
     else:
         df = pd.read_csv(source_file)
 
@@ -39,8 +39,8 @@ def generate_sensitive_data_profile():
     df = None
     if str(extension).lower() == '.csv':
         df = pd.read_csv(source_file)
-    elif str(extension).lower() == 'json':
-        df = pd.read_json(source_file, lines=True, orient='records')
+    elif str(extension).lower() == '.json':
+        df = pd.read_json(source_file, lines=True)
     else:
         df = pd.read_csv(source_file)
 
