@@ -1,5 +1,5 @@
 {% block destination_tasks %}
-{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3'] %}
+{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3', 'json'] %}
 
 {% for key, value in data.destination.items() %}
 {% if key in supported_destinations and value%}
@@ -8,6 +8,7 @@
 {{ key }}_{{ item.connection }}_kwargs = {}
 {{ key }}_{{ item.connection }}_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
 {{ key }}_{{ item.connection }}_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
+{{ key }}_{{ item.connection }}_kwargs['format'] = f"{dag.params.get('stream').get('format')}"
 
 {% if key == 'csv' %}
 # Initialize task for CSV file creation

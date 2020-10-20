@@ -78,24 +78,21 @@ def get_config_default_path():
 
 
 def get_reports_home():
-
     return f"{get_cloudtdms_home()}/profiling_reports"
 
 
 def get_templates_home():
-
     return f"{get_airflow_home()}/cloudtdms/templates"
 
 
 def delete_dag(dag_id):
-    p = subprocess.Popen([f"airflow delete_dag -y {dag_id}"],executable="/bin/bash",
+    p = subprocess.Popen([f"airflow delete_dag -y {dag_id}"], executable="/bin/bash",
                          universal_newlines=True, shell=True)
     (o, e) = p.communicate()
 
 
 sys.path.append(get_cloudtdms_home())
 
-from system.cloudtdms.utils.template import TEMPLATE, DISCOVER
 from system.cloudtdms.providers import get_active_meta_data
 from system.cloudtdms.utils import validation
 
@@ -133,18 +130,19 @@ for config in os.walk(f"{get_scripts_home()}"):
         scripts += files
         root = root.replace(f"{get_cloudtdms_home()}/", '').replace('/', '.')
         packages = list(map(lambda x: f"{root}.{x}"[:-3], files))
-        root = os.path.basename(root.replace('.', '/')) if os.path.basename(root.replace('.', '/')) != 'config' else 'CloudTDMS'
+        root = os.path.basename(root.replace('.', '/')) if os.path.basename(
+            root.replace('.', '/')) != 'config' else 'CloudTDMS'
         modules += list(map(lambda x: (importlib.import_module(f'{x}'), x.rsplit('.', 1)[1], root), packages))
 
     except SyntaxError as se:
-        LoggingMixin().log.error(f"SyntaxError: You configuration {se.filename} does not have valid syntax!", exc_info=True)
+        LoggingMixin().log.error(f"SyntaxError: You configuration {se.filename} does not have valid syntax!",
+                                 exc_info=True)
 
     except ImportError:
         LoggingMixin().log.error("ImportError: Invalid configuration found, unable to import", exc_info=True)
 
     except Exception:
         LoggingMixin().log.error("Unknown Exception Occurred!", exc_info=True)
-
 
 # Load templates environment
 
@@ -158,17 +156,16 @@ for (module, name, app) in modules:
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         stream = getattr(module, 'STREAM')
         meta_data = get_active_meta_data()
-        stream['format'] = 'csv'
+
+        format = stream.get('format', None)
+        format = 'csv' if format is not None and str(format).lower() == 'csv' else 'json' if format is not None and str(format).lower() == 'json' else 'csv'
 
         # check 'source' attribute is present
         source = stream['source'] if 'source' in stream else None
 
         if source is None:
-            # if type(source) is str and not os.path.exists(f'{get_user_data_home()}/{str(source).replace(".csv", "")}.csv'):
-            #     LoggingMixin().log.error(f"FileNotFound: No file available in user-data folder with name {str(source).replace('.csv', '')}.csv")
-            #     continue
 
-            if not validation.check_mandatory_field(stream, name):      # means false
+            if not validation.check_mandatory_field(stream, name):  # means false
                 continue
 
             if not validation.check_schema_type(stream, name):
@@ -213,7 +210,7 @@ for (module, name, app) in modules:
                 data={
                     'dag_id': f"data_{app}_{name}",
                     'frequency': stream['frequency'],
-                    'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ',''),
+                    'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ', ''),
                     'stream': stream,
                     'attributes': attributes if len(attributes) != 0 else None,
                     'source': source if source is not None else {},
@@ -226,26 +223,29 @@ for (module, name, app) in modules:
 
             LoggingMixin().log.info(f"Creating DAG: {name}")
         else:
-            if not validation.check_mandatory_field(stream, name):      # means false
-                continue
-            TEMPLATE_FILE = "synthetic_data_dag.py.j2"
-            template = templateEnv.get_template(TEMPLATE_FILE)
-            output = template.render(
-                data={
-                    'dag_id': f"data_{app}_{name}",
-                    'frequency': stream['frequency'],
-                    'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ', ''),
-                    'stream': stream,
-                    'attributes': {},
-                    'source': source if source is not None else [],
-                    'destination': stream['destination'] if 'destination' in stream.keys() else {}
-                }
-            )
-            dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
-            with open(dag_file_path, 'w') as f:
-                f.write(output)
+            if type(source) is dict:
+                if not validation.check_mandatory_field(stream, name):  # means false
+                    continue
+                TEMPLATE_FILE = "synthetic_data_dag.py.j2"
+                template = templateEnv.get_template(TEMPLATE_FILE)
+                output = template.render(
+                    data={
+                        'dag_id': f"data_{app}_{name}",
+                        'frequency': stream['frequency'],
+                        'owner': app.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ', ''),
+                        'stream': stream,
+                        'attributes': {},
+                        'source': source if source is not None else [],
+                        'destination': stream['destination'] if 'destination' in stream.keys() else {}
+                    }
+                )
+                dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
+                with open(dag_file_path, 'w') as f:
+                    f.write(output)
 
-            LoggingMixin().log.info(f"Creating DAG: {name}")
+                LoggingMixin().log.info(f"Creating DAG: {name}")
+            else:
+                LoggingMixin().log.error(f"AttributeError: `source` attribute must be of type dict in {name}")
 
     else:
         LoggingMixin().log.error(f"No `STREAM` attribute found in configuration {name}.py")
@@ -261,7 +261,7 @@ for profile in os.walk(get_profiling_data_home()):
     files = list(filter(lambda x: x.endswith('.csv'), files))
     root = root.replace(f"{get_cloudtdms_home()}/", '')
     root = os.path.basename(root) if os.path.basename(root) != 'profiling_data' else 'CloudTDMS'
-    list(map(create_profiling_dag, files, [f'{root}']*len(files)))
+    list(map(create_profiling_dag, files, [f'{root}'] * len(files)))
     profiling_data_files += files
 
 # fetch all dags in directory

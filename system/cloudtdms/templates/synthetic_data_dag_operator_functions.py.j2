@@ -15,7 +15,8 @@ def generate_iterator(data_frame, methods,args_array):
 def data_generator(**kwargs):
     stream = dag.params.get('stream')
     meta_data = providers.get_active_meta_data()
-    stream['format'] = 'csv'
+    format = stream.get('format', None)
+    format = 'csv' if format is not None and str(format).lower() == 'csv' else 'json' if format is not None and str(format).lower() == 'json' else 'csv'
     attributes = dag.params.get('attributes') if dag.params.get('attributes') is not None else {}
 
     # check 'schema' attribute is present
@@ -161,7 +162,7 @@ def data_generator(**kwargs):
                 # args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
                 methods = [(getattr(mod, m), m) for m in attributes[attrib]]
                 generate_iterator(data_frame, methods,args_array)
-    file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
+    file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}"
     try:
         data_frame = data_frame[stream['original_order_of_columns']]
 
@@ -171,11 +172,19 @@ def data_generator(**kwargs):
 
         data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
-        data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
+        if stream['format'] == 'csv':
+            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+        elif stream['format'] == 'json':
+            data_frame = data_frame.loc[:,~data_frame.columns.duplicated()]
+            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
 
     except FileNotFoundError:
         os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
-        data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
+
+        if stream['format'] == 'csv':
+            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
+        elif stream['format'] == 'json':
+            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", orient='records', lines=True)
 
     finally:
         for source_type in dag.params.get('source').keys():

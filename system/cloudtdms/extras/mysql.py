@@ -12,9 +12,13 @@ from sqlalchemy import create_engine
 from pandas.io import sql
 from sqlalchemy.pool import NullPool
 from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
+import numpy as np
 
 valid_dbs = {}
-
+pymysql.converters.encoders[np.float64] = pymysql.converters.escape_float
+pymysql.converters.encoders[np.int64] = pymysql.converters.escape_int
+pymysql.converters.conversions = pymysql.converters.encoders.copy()
+pymysql.converters.conversions.update(pymysql.converters.decoders)
 
 def get_mysql_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
@@ -68,7 +72,8 @@ def mysql_upload(**kwargs):
     prefix = kwargs['prefix']
     execution_date = kwargs['execution_date']
     table_name = kwargs['table_name']
-    file_name = f"{os.path.basename(kwargs['prefix'])}_{str(kwargs['execution_date'])[:19].replace('-', '_').replace(':', '_')}.csv"
+    file_format = kwargs['format']
+    file_name = f"{os.path.basename(kwargs['prefix'])}_{str(kwargs['execution_date'])[:19].replace('-', '_').replace(':', '_')}.{file_format}"
 
     # validate_mysql_credentials(kwargs['database'])
 
@@ -77,7 +82,11 @@ def mysql_upload(**kwargs):
     # read latest modified csv file
     latest_file_path = get_output_data_home() + '/' + kwargs['prefix'] + '/' + file_name
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
-    csv_file = pd.read_csv(latest_file_path)
+    if file_format == 'json':
+        df_file = pd.read_json(latest_file_path, lines=True, orient='records')
+        df_file.fillna("null", inplace=True)
+    else:
+        df_file = pd.read_csv(latest_file_path)
 
     is_available = True if database in connection_in_yaml else False
 
@@ -91,13 +100,13 @@ def mysql_upload(**kwargs):
         engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
 
         # store the data in the database
-        n_objects = Converter.df_to_gen(csv_file)
+        n_objects = Converter.df_to_gen(df_file)
         storage = Storage(user, password, host, database, table_name, port)
 
         if storage.has_table(table_name, engine):
             LoggingMixin().log.info(f"Table {table_name} already existed")
             # 'check_schema'
-            schema_values = storage.is_schema_changed(table_name, engine, list(csv_file.columns))
+            schema_values = storage.is_schema_changed(table_name, engine, list(df_file.columns))
             is_changed = schema_values[0]
             new_cols = schema_values[1]
             LoggingMixin().log.info(f'New cols: {new_cols}')
@@ -109,7 +118,7 @@ def mysql_upload(**kwargs):
                 LoggingMixin().log.info(f"Schema of table {table_name} not changed, appending new records")
                 storage.insert_data(n_objects)
         else:
-            storage.create_table(list(csv_file.columns))
+            storage.create_table(list(df_file.columns))
             storage.insert_data(n_objects)
     else:
         raise AttributeError(f"{database} not found in config_default.yaml")
@@ -117,7 +126,7 @@ def mysql_upload(**kwargs):
 
 def mysql_download(**kwargs):
     database = kwargs['database']
-    table_name = kwargs['table']
+    table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
     username = decode_(get_mysql_config_default().get(database).get('username'))

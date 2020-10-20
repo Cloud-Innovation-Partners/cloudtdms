@@ -16,7 +16,7 @@ from system.cloudtdms.extras import DESTINATION_UPLOAD_LIMIT, SOURCE_DOWNLOAD_LI
 
 class CTDMS2ServiceNow:
 
-    def __init__(self, instance, username, password, table_name, prefix, execution_date):
+    def __init__(self, instance, username, password, table_name, prefix, execution_date, format=None):
         self.service_now_instance = instance
         self.service_now_username = username
         self.service_now_password = password
@@ -25,7 +25,8 @@ class CTDMS2ServiceNow:
         self.file_prefix = prefix
         self.data = None
         self.execution_date = execution_date
-        self.file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+        self.format = format
+        self.file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv" if format is None else f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.{format}"
 
     def upload(self):
         """
@@ -34,8 +35,10 @@ class CTDMS2ServiceNow:
         """
         synthetic_data_path = f"{get_output_data_home()}/{self.file_prefix}/{self.file_name}"
         if os.path.exists(synthetic_data_path):
-            # TODO-Check If file is JSON or csv
-            df = pd.read_csv(f"{synthetic_data_path}", nrows=DESTINATION_UPLOAD_LIMIT)
+            if self.format == 'json':
+                df = pd.read_json(f"{synthetic_data_path}", nrows=DESTINATION_UPLOAD_LIMIT, lines=True, orient='records')
+            else:
+                df = pd.read_csv(f"{synthetic_data_path}", nrows=DESTINATION_UPLOAD_LIMIT)
             a = df.to_json(lines=True, orient='records')
             objects = (json.loads(f) for f in io.StringIO(a).readlines())
             self.data = json.dumps({"records": list(objects)})
@@ -136,6 +139,7 @@ def servicenow_upload(**kwargs):
     table_name = kwargs.get('table_name')       # ServiceNow table name
     prefix = kwargs.get('prefix')       # title of the synthetic data config file
     instance = kwargs.get('instance')
+    format = kwargs.get('format')
     # Load ServiceNow Instance From config_default.yaml
     service_now_config = CTDMS2ServiceNow.get_service_now_config_default()
 
@@ -149,7 +153,8 @@ def servicenow_upload(**kwargs):
             password=password,
             table_name=table_name,
             prefix=prefix,
-            execution_date=execution_date
+            execution_date=execution_date,
+            format=format
         )
         service_now.upload()
     else:

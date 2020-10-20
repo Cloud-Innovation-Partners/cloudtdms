@@ -1,5 +1,5 @@
 {% block source_tasks %}
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json'] %}
 
 {% if data.source.mysql | length == 0 and data.source.s3 | length == 0 and data.source.servicenow | length == 0%}
 start >> stream
@@ -38,6 +38,13 @@ start >> stream
 {% elif key == 's3' %}
 # Initialize task for Amazon S3 {{ item.connection }} and bucket {{ item.bucket }}
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="AmazonS3_{{ item.connection }}_{{ item.bucket }}", python_callable=s3_download, dag=dag)
+
+{% elif key == 'json' %}
+# Initialize task for JSON data file {{ item.connection }}
+
+{{ key }}_{{ item.connection }}_kwargs['type'] = "{{ item.type }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractJSON_{{ item.connection }}", python_callable=json_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% endif %}
 
