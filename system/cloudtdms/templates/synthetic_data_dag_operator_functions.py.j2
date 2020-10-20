@@ -21,6 +21,7 @@ def data_generator(**kwargs):
 
     # check 'schema' attribute is present
     schema = stream['schema'] if 'schema' in stream else []
+    list(map(lambda x: x.update({"field_name": f"schema.{x.get('field_name')}"}), schema))
 
     for source_type in dag.params.get('source').keys():
         for connection in dag.params.get('source').get(source_type):
@@ -166,9 +167,21 @@ def data_generator(**kwargs):
     try:
         data_frame = data_frame[stream['original_order_of_columns']]
 
-        # check 'rename' attribute is present
-        rename = stream['rename'] if 'rename' in stream else {}
-        data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{rename.get(x)}" if x in rename else  x, data_frame.columns))
+        # Attribute output_schema
+
+        output_schema = stream['output_schema'] if 'output_schema' in stream else {}
+
+        # truncate dataframe
+        try:
+            data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
+        except KeyError:
+            LoggingMixin().log.warn(exc_info=True)
+
+        # rename columns
+        data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
+
+        # reorder
+        data_frame.columns = output_schema.values()
 
         data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
@@ -186,16 +199,6 @@ def data_generator(**kwargs):
         elif stream['format'] == 'json':
             data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", orient='records', lines=True)
 
-    finally:
-        for source_type in dag.params.get('source').keys():
-            for connection in dag.params.get('source').get(source_type):
-                cname = connection.get('connection')
-                file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
-                path = f'{get_user_data_home()}/{file_name}'
-                try:
-                    os.remove(path)
-                    LoggingMixin().log.info(f"Deleted : {file_name}")
-                except FileNotFoundError:
-                    LoggingMixin().log.warn("No file found to delete!")
+
 
 {% endblock operator_functions %}
