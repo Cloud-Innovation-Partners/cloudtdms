@@ -98,14 +98,14 @@ from system.cloudtdms.utils import validation
 
 
 def create_profiling_dag(file_name, owner):
-    file_name = file_name[:-4]
+    file_name, extension = os.path.splitext(file_name)
     TEMPLATE_FILE = "profiling_data_dag.py.j2"
     template = templateEnv.get_template(TEMPLATE_FILE)
     dag_output = template.render(
         data={
             'dag_id': str(f"profile_{file_name}").replace('-', '_').replace(' ', '_').replace(':', '_'),
             'frequency': 'once',
-            'data_file': file_name,
+            'data_file': f"{file_name}{extension}",
             'owner': owner.replace('-', '_').replace(' ', '_').replace(':', '_').replace(' ', '')
         }
     )
@@ -258,11 +258,11 @@ profiling_data_files = []
 
 for profile in os.walk(get_profiling_data_home()):
     root, dirs, files = profile
-    files = list(filter(lambda x: x.endswith('.csv'), files))
+    files = list(filter(lambda x: x.endswith('.csv') or x.endswith('.json'), files))
     root = root.replace(f"{get_cloudtdms_home()}/", '')
     root = os.path.basename(root) if os.path.basename(root) != 'profiling_data' else 'CloudTDMS'
     list(map(create_profiling_dag, files, [f'{root}'] * len(files)))
-    profiling_data_files += files
+    profiling_data_files += list(map(lambda x: x[:-4] if x.endswith('.csv') else x[:-5] if x.endswith('.json') else x[:-4], files))
 
 # fetch all dags in directory
 
@@ -277,7 +277,7 @@ loaded_dags = settings.Session.query(DagModel.dag_id, DagModel.fileloc).all()
 for l_dag in loaded_dags:
     (dag_id, fileloc) = l_dag
     filename = os.path.basename(fileloc)[:-3]
-    if filename not in [f"data_{f}"[:-3] for f in scripts] + [f"profile_{f}"[:-4] for f in profiling_data_files]:
+    if filename not in [f"data_{f}"[:-3] for f in scripts] + [f"profile_{f}" for f in profiling_data_files]:
         try:
             if os.path.exists(fileloc):
                 os.remove(fileloc)

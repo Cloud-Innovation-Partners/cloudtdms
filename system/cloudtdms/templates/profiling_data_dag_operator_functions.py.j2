@@ -1,12 +1,21 @@
 {% block operator_functions %}
 
 def generate_eda_profile():
+    file_name, extension = os.path.splitext(dag.params.get('data_file'))
+
     if dag.owner == 'CloudTDMS':
-        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
-        path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+        source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
+        path = f"{get_reports_home()}/{file_name}"
     else:
-        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}.csv")
-        path = f"{get_reports_home()}/{dag.owner}/{dag.params.get('data_file')}"
+        source_file = f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}"
+        path = f"{get_reports_home()}/{dag.owner}/{file_name}"
+
+    if str(extension).lower() == '.csv':
+        df = pd.read_csv(source_file)
+    elif str(extension).lower() == 'json':
+        df = pd.read_json(source_file, lines=True, orient='records')
+    else:
+        df = pd.read_csv(source_file)
 
     profile = ProfileReport(
         df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
@@ -19,25 +28,34 @@ def generate_eda_profile():
     profile.to_file(f"{path}/profiling_{dag.params.get('data_file')}.html")
 
 def generate_sensitive_data_profile():
+    file_name, extension = os.path.splitext(dag.params.get('data_file'))
+
     if dag.owner == 'CloudTDMS':
-        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.params.get('data_file')}.csv")
-        path = f"{get_reports_home()}/{dag.params.get('data_file')}"
+        source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
+        path = f"{get_reports_home()}/{file_name}"
     else:
-        df = pd.read_csv(f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}.csv")
-        path = f"{get_reports_home()}/{dag.owner}/{dag.params.get('data_file')}"
+        source_file = f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}"
+        path = f"{get_reports_home()}/{dag.owner}/{file_name}"
+    df = None
+    if str(extension).lower() == '.csv':
+        df = pd.read_csv(source_file)
+    elif str(extension).lower() == 'json':
+        df = pd.read_json(source_file, lines=True, orient='records')
+    else:
+        df = pd.read_csv(source_file)
 
     column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
-    columns =  list(column_mapping.keys()) #list(map(lambda x : str(x).lower().replace(' ', '_'), df.columns))
+    columns =  list(column_mapping.keys())
     df.columns = columns
     profile = PIIReport(
-        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
-        column_mapping = column_mapping, prefix = f"{dag.owner}/{dag.params.get('data_file')}"
+        df.loc[0:10000], filename=file_name, title=f"CloudTDMS Sensitive Data Report", explorative=True,
+        column_mapping = column_mapping, prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
     )
     try:
         os.makedirs(path)
     except FileExistsError:
         pass
-    profile.to_file(f"{path}/pii_{dag.params.get('data_file')}.html")
+    profile.to_file(f"{path}/pii_{file_name}.html")
 
 def email_reports():
     email = SMTPEmail()
