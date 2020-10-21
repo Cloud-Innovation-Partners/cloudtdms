@@ -84,9 +84,10 @@ def mysql_upload(**kwargs):
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     if file_format == 'json':
         df_file = pd.read_json(latest_file_path, lines=True, orient='records')
-        df_file.fillna("null", inplace=True)
     else:
         df_file = pd.read_csv(latest_file_path)
+
+    df_file.fillna("null", inplace=True)
 
     is_available = True if database in connection_in_yaml else False
 
