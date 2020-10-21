@@ -12,9 +12,12 @@ from sqlalchemy import create_engine
 from pandas.io import sql
 from sqlalchemy.pool import NullPool
 from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
+import numpy as np
 
 valid_dbs = {}
-
+pymysql.converters.encoders[np.float64] = pymysql.converters.escape_float
+pymysql.converters.conversions = pymysql.converters.encoders.copy()
+pymysql.converters.conversions.update(pymysql.converters.decoders)
 
 def get_mysql_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
@@ -54,7 +57,7 @@ def get_sub_query(column_names):
     """This method returns a query """
     # 'CREATE TABLE ABC (name varchar(50), address varchar(50))'
     query = 'id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, '
-    dtype = 'VARCHAR(100), '
+    dtype = 'VARCHAR(255), '
     for col in column_names:
         table_column = col + ' ' + dtype
         query += table_column
@@ -117,11 +120,11 @@ def mysql_upload(**kwargs):
 
 def mysql_download(**kwargs):
     database = kwargs['database']
-    table_name = kwargs['table']
+    table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
-    username = decode_(get_mysql_config_default().get(database).get('username'))
-    password = decode_(get_mysql_config_default().get(database).get('password'))
+    username = decode_(get_mysql_config_default().get(database).get('username')).replace('\n', '')
+    password = decode_(get_mysql_config_default().get(database).get('password')).replace('\n', '')
     host = get_mysql_config_default().get(database).get('host') if get_mysql_config_default().get(database).get('host') else None
     port = int(get_mysql_config_default().get(database).get('port')) if get_mysql_config_default().get(database).get('port') else 3306
     if host is not None:
@@ -142,28 +145,17 @@ def mysql_download(**kwargs):
                 cursor.execute(sql)
                 result = cursor.fetchone()
                 primary_index = result.get('COLUMN_NAME') if result is not None else None
-                if primary_index is None:
-                    # Get SECONDARY INDEX
-                    sql = f"SELECT TABLE_NAME, INDEX_NAME, COLUMN_NAME FROM information_schema.STATISTICS WHERE " \
-                          f"TABLE_NAME='{table_name}'"
-                    cursor.execute(sql)
-                    result = cursor.fetchone()
-                    secondary_index = result.get('COLUMN_NAME') if result is not None else None
+
                 if primary_index is not None:
                     sql = f"SELECT * FROM `{table_name}` ORDER BY `{primary_index}` DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mysql.{database}.{table_name}.{f}" for f in df.columns]
                     df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
-                elif primary_index is None and secondary_index is not None:
-                    sql = f"SELECT * FROM `{table_name}` ORDER BY `{secondary_index}` DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
-                    cursor.execute(sql)
-                    df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mysql.{database}.{table_name}.{f}" for f in df.columns]
-                    df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
-                elif primary_index is None and secondary_index is None:
+
+                else:
                     LoggingMixin().log.warn(f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
-                    sql = f"SELECT * FROM `ctdms` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    sql = f"SELECT * FROM `{table_name}` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mysql.{database}.{table_name}.{f}" for f in df.columns]
@@ -214,7 +206,7 @@ class Storage:
         cursor = conn.cursor()
         for col in new_cols:
             try:
-                alter_query = f'ALTER TABLE `{table}` ADD({col} VARCHAR(50));'
+                alter_query = f'ALTER TABLE `{table}` ADD({col} VARCHAR(255));'
                 LoggingMixin().log.info(f'ALTER QUERY {alter_query}')
                 cursor.execute(alter_query)
                 conn.commit()
@@ -228,6 +220,7 @@ class Storage:
             self.database_name )
             -create columns for all labels, including the extra one on schema
             """
+
         conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, db=self.database_name)
         cursor = conn.cursor()

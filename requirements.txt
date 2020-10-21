@@ -8,3 +8,4 @@ pycrypto
 pandas_profiling==2.9.0
 more_itertools
 ijson
+psycopg2
