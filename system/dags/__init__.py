@@ -95,7 +95,7 @@ def delete_dag(dag_id):
 
 sys.path.append(get_cloudtdms_home())
 
-from system.cloudtdms.utils.template import TEMPLATE, DISCOVER
+
 from system.cloudtdms.providers import get_active_meta_data
 from system.cloudtdms.utils import validation
 
