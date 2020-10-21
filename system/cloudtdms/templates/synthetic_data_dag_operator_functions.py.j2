@@ -56,8 +56,8 @@ def data_generator(**kwargs):
 
             if 'encrypt' in stream and source is not None:
                 encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
-                               "ignore_headers": "no", "encrypt": {"type": stream['encrypt']["type"], "key": stream['encrypt']["encryption_key"]}}
-                              for v in stream['encrypt']['columns'] if v in all_columns]
+                               "ignore_headers": "no", "encrypt": {"type": stream['encrypt'].get(v).get('type'), "key": stream['encrypt'].get(v).get("encryption_key")}}
+                              for v in stream['encrypt'].keys() if v in all_columns]
                 schema += encryption
 
             # check 'mask_out' attribute is present along with 'source'
@@ -180,10 +180,10 @@ def data_generator(**kwargs):
         # rename columns
         data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
 
-        # reorder
-        data_frame.columns = output_schema.values()
-
         data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+
+      # reorder
+        data_frame = data_frame.reindex(output_schema.values(), axis=1)
 
         # reduced data_frame
         vector_length = np.vectorize(len)
