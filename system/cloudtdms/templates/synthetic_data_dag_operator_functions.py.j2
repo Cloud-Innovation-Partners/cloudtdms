@@ -185,6 +185,12 @@ def data_generator(**kwargs):
 
         data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
+        # reduced data_frame
+        vector_length = np.vectorize(len)
+        for column in data_frame.columns:
+            if int(vector_length(data_frame[column].astype(str)).max(axis=0)) > 255:
+                data_frame[column] = data_frame[column].astype(str).str[:255]
+
         if stream['format'] == 'csv':
             data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
         elif stream['format'] == 'json':
