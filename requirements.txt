@@ -10,3 +10,4 @@ more_itertools
 ijson
 psycopg2
 paramiko
+pymssql
