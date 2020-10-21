@@ -30,7 +30,11 @@ class CTDMS2JSON:
             raise ValueError("Unknown value for `type` attribute in json source")
         df.columns = [f"json.{self.connection}.{str(f).replace(' ','_')}" for f in df.columns]
 
-        df.to_csv(f"{get_user_data_home()}/{file_name}", index=False)
+        try:
+            df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
+        except FileNotFoundError:
+            os.makedirs(f'{get_user_data_home()}/.__temp__/')
+            df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
 
     @staticmethod
     def get_json_config_default():

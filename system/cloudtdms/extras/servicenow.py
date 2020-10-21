@@ -116,7 +116,11 @@ class CTDMS2ServiceNow:
 
         file_name = f"servicenow_{self.service_now_instance}_{os.path.dirname(self.file_prefix)}_{os.path.basename(self.file_prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
 
-        df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
+        try:
+            df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
+        except FileNotFoundError:
+            os.makedirs(f'{get_user_data_home()}/.__temp__/')
+            df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
 
         LoggingMixin().log.info("[{}] API request end time {}".format(self.name, datetime.now()))
 

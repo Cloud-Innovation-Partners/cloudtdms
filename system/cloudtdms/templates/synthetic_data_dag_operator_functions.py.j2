@@ -28,7 +28,7 @@ def data_generator(**kwargs):
             cname = connection.get('connection')
             # check 'source' attribute is present
             file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
-            source = f'{get_user_data_home()}/{file_name}' if 'source' in stream else None
+            source = f'{get_user_data_home()}/.__temp__/{file_name}' if 'source' in stream else None
 
             # columns in data-file
             all_columns = []
@@ -204,7 +204,7 @@ def data_generator(**kwargs):
             for connection in dag.params.get('source').get(source_type):
                 cname = connection.get('connection')
                 file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
-                path = f'{get_user_data_home()}/{file_name}'
+                path = f'{get_user_data_home()}/.__temp__/{file_name}'
                 try:
                     os.remove(path)
                     LoggingMixin().log.info(f"Deleted : {file_name}")

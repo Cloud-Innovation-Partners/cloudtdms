@@ -45,7 +45,7 @@ def custom_list(data_frame, number, args=None):
 
 def custom_file(data_frame, number, args=None):
 
-    data_path = f"{os.path.dirname(get_airflow_home())}/user-data"
+    data_path = f"{os.path.dirname(get_airflow_home())}/user-data/.__temp__"
     dcols = [f for f in data_frame.columns if f.startswith("custom_file")]
     for column_name, data_frame_col_name in zip(args, dcols):
         ignore_headers = str(args.get(column_name).get('ignore_headers', 'yes')).lower()

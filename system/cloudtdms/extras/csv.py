@@ -25,7 +25,11 @@ class CTDMS2CSV:
         df = pd.read_csv(f"{get_user_data_home()}/{os.path.splitext(self.source_file)[0]}.csv", nrows=SOURCE_DOWNLOAD_LIMIT, sep=self.delimiter)
         df.columns = [f"csv.{self.connection}.{str(f).replace(' ','_')}" for f in df.columns]
 
-        df.to_csv(f"{get_user_data_home()}/{file_name}", index=False)
+        try:
+            df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
+        except FileNotFoundError:
+            os.makedirs(f'{get_user_data_home()}/.__temp__/')
+            df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
 
     @staticmethod
     def get_csv_config_default():

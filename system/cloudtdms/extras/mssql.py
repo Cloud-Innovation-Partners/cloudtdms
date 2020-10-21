@@ -154,7 +154,6 @@ def mssql_download(**kwargs):
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mssql.{database}.{table_name}.{f}" for f in df.columns]
-                    df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
 
                 else:
                     LoggingMixin().log.warn(f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
@@ -162,7 +161,13 @@ def mssql_download(**kwargs):
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mssql.{database}.{table_name}.{f}" for f in df.columns]
-                    df.to_csv(f'{get_user_data_home()}/{file_name}', index=False)
+
+                try:
+                    df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
+                except FileNotFoundError:
+                    os.makedirs(f'{get_user_data_home()}/.__temp__/')
+                    df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
+
         finally:
             connection.close()
     else:
