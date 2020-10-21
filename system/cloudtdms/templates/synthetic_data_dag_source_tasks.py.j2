@@ -1,5 +1,5 @@
 {% block source_tasks %}
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3','mssql','postgres'] %}
 
 {% if data.source.mysql | length == 0 and data.source.s3 | length == 0 and data.source.servicenow | length == 0%}
 start >> stream
@@ -26,6 +26,22 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['database'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractMySQL_{{ item.connection }}_{{ item.table }}", python_callable=mysql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'mssql' %}
+
+# Initialize task for MsSQL db Extract {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['database'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractMsSQL_{{ item.connection }}_{{ item.table }}", python_callable=mssql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+
+{% elif key == 'postgres' %}
+
+# Initialize task for Postgres db Extract {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['database'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractPostgres_{{ item.connection }}_{{ item.table }}", python_callable=postgres_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
 
 {% elif key == 'servicenow' %}
 

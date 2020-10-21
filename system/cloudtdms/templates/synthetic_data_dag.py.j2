@@ -20,8 +20,8 @@ from system.dags import get_providers_home
 from system.dags import get_output_data_home
 from system.dags import get_user_data_home
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3'] %}
-{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3','mssql','postgres'] %}
+{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3','mssql','postgres'] %}
 
 {% for key, value in data.source.items() %}
 
