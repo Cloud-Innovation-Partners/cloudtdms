@@ -170,21 +170,30 @@ def data_generator(**kwargs):
 
             # Attribute output_schema
 
-            output_schema = stream['output_schema'] if 'output_schema' in stream else {}
+            output_schema = stream['output_schema'] if 'output_schema' in stream else None
+            if output_schema is None:
+                raise AttributeError("attribute `output_schema` not defined in STREAM")
 
             # truncate dataframe
             try:
-                data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
+                if type(output_schema) is dict:
+                    data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
+                else:
+                    data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema], inplace=True, axis=1)
             except KeyError:
                 LoggingMixin().log.warn(exc_info=True)
 
             # rename columns
-            data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
-
-            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+            if type(output_schema) is dict:
+                data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
 
           # reorder
-            data_frame = data_frame.reindex(output_schema.values(), axis=1)
+            if type(output_schema) is dict:
+                data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+                data_frame = data_frame.reindex(output_schema.values(), axis=1)
+            else:
+                data_frame = data_frame.reindex(output_schema, axis=1)
+                data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
         else:
             data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
