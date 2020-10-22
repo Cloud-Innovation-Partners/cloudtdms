@@ -5,6 +5,7 @@ import itertools
 import os
 
 import psycopg2
+import psycopg2.extras
 import psycopg2 as pg
 import sqlalchemy
 import yaml
@@ -138,7 +139,7 @@ def postgres_download(**kwargs):
 
         file_name = f"postgres_{database}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         try:
-            with connection.cursor() as cursor:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 # Get PRIMARY INDEX column
                 sql = f"""
                      SELECT column_name
@@ -150,8 +151,9 @@ def postgres_download(**kwargs):
                           AND (table_schema, table_name) = ('public', '{table_name}')
                         """
                 cursor.execute(sql)
-                result = cursor.fetchone() # result contains tuple- ('id', )
-                primary_index = result[0] if result is not None else None
+                result = cursor.fetchone()  # result contains tuple- ('id', )
+                primary_index = result['column_name'] if result is not None else None
+
                 if primary_index is not None:
                     sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
