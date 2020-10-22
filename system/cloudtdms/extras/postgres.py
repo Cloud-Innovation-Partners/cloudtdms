@@ -120,7 +120,7 @@ def postgres_upload(**kwargs):
 
 def postgres_download(**kwargs):
     database = kwargs['database']
-    table_name = kwargs['table']
+    table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
     username = decode_(get_postgres_config_default().get(database).get('username'))

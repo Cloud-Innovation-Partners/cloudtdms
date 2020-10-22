@@ -165,25 +165,29 @@ def data_generator(**kwargs):
                 generate_iterator(data_frame, methods,args_array)
     file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}"
     try:
-        data_frame = data_frame[stream['original_order_of_columns']]
+        if 'source' in stream:
+            data_frame = data_frame[stream['original_order_of_columns']]
 
-        # Attribute output_schema
+            # Attribute output_schema
 
-        output_schema = stream['output_schema'] if 'output_schema' in stream else {}
+            output_schema = stream['output_schema'] if 'output_schema' in stream else {}
 
-        # truncate dataframe
-        try:
-            data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
-        except KeyError:
-            LoggingMixin().log.warn(exc_info=True)
+            # truncate dataframe
+            try:
+                data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
+            except KeyError:
+                LoggingMixin().log.warn(exc_info=True)
 
-        # rename columns
-        data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
+            # rename columns
+            data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
 
-        data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
-      # reorder
-        data_frame = data_frame.reindex(output_schema.values(), axis=1)
+          # reorder
+            data_frame = data_frame.reindex(output_schema.values(), axis=1)
+        else:
+            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+
 
         # reduced data_frame
         vector_length = np.vectorize(len)
@@ -201,9 +205,9 @@ def data_generator(**kwargs):
         os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
 
         if stream['format'] == 'csv':
-            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
+            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
         elif stream['format'] == 'json':
-            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", orient='records', lines=True)
+            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
 
     finally:
         for source_type in dag.params.get('source').keys():
