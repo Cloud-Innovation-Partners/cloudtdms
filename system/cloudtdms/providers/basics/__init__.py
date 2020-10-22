@@ -140,7 +140,7 @@ def words(data_frame, number, args=None):
     :type dict
     :return: list
     """
-    words_list = []
+
     dcols = [f for f in data_frame.columns if f.startswith("words")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
@@ -156,6 +156,7 @@ def words(data_frame, number, args=None):
 
         path = os.path.dirname(__file__)+"/words.txt"
         words = open(path).read().splitlines()
+        words_list = []
         for _ in range(number):
             how_many = random.randint(atleast, atmost)
             random.shuffle(words)
