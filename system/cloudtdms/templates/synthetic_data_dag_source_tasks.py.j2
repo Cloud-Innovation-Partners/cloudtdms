@@ -1,12 +1,14 @@
 {% block source_tasks %}
 {% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql','postgres'] %}
 
-{% if data.source.mysql | length == 0 and data.source.s3 | length == 0 and data.source.servicenow | length == 0%}
+{% for key in data.source %}
+{% if key in supported_sources and key|length == 0 %}
 start >> stream
 {% endif %}
+{% endfor %}
 
 {% for key, value in data.source.items() %}
-{% if key in supported_sources and value%}
+{% if key in supported_sources and value %}
 
 {% for item in value %}
 {{ key }}_{{ item.connection }}_kwargs = {}
