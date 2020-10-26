@@ -1,5 +1,13 @@
 {% block operator_functions %}
 
+def get_config_default():
+    config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
+    if config is not None and config.get('encryption', None) is not None and config.get('mask', None) is not None:
+        return config
+    else:
+        raise KeyError('config_default.yaml has no `encryption` and `mask` entry')
+
+
 def generate_iterator(data_frame, methods,args_array):
     number = dag.params.get('stream').get('number')
     for fcn, name in methods:
@@ -56,11 +64,11 @@ def data_generator(**kwargs):
 
             if 'encrypt' in stream and source is not None:
                 if 'encryption' in stream and type(stream['encryption']) is dict:
-                    encryption_type = stream.get('encryption').get('type', 'caesar')
-                    encryption_key = stream.get('encryption').get('key', 'CloudTDMS@2020')
+                    encryption_type = stream.get('encryption').get('type', get_config_default().get('encryption').get('type', 'caesar'))
+                    encryption_key = stream.get('encryption').get('key', get_config_default().get('encryption').get('key', 'CloudTDMS@2020'))
                 else:
-                    encryption_type = 'caesar'
-                    encryption_key = 'CloudTDMS@2020'
+                    encryption_type = get_config_default().get('encryption').get('type', 'caesar')
+                    encryption_key = get_config_default().get('encryption').get('key', 'CloudTDMS@2020')
 
                 if type(stream.get('encrypt')) is dict:
                     encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
@@ -77,13 +85,14 @@ def data_generator(**kwargs):
 
             if 'mask_out' in stream and source is not None:
                 if 'mask' in stream and type(stream['mask']) is dict:
-                    mask_with = stream.get('mask').get('with', 'x')
-                    mask_characters = stream.get('mask').get('characters', 4)
-                    mask_from = stream.get('mask').get('from', 'mid')
+                    mask_with = stream.get('mask').get('with', get_config_default().get('mask').get('with', 'x'))
+                    mask_characters = stream.get('mask').get('characters', get_config_default().get('mask').get('characters', 6))
+                    mask_from = stream.get('mask').get('from', get_config_default().get('mask').get('from', 'mid'))
                 else:
-                    mask_with = 'x'
-                    mask_characters = 4
-                    mask_from = 'mid'
+                    mask_with = get_config_default().get('mask').get('with', 'x')
+                    mask_characters = get_config_default().get('mask').get('characters', 6)
+                    mask_from = get_config_default().get('mask').get('from', 'mid')
+
                 if type(stream.get('mask_out')) is dict:
                     mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
                                   "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}

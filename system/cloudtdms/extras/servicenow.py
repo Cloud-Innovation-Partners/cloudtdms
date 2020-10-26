@@ -156,9 +156,14 @@ def servicenow_upload(**kwargs):
     # Load ServiceNow Instance From config_default.yaml
     service_now_config = CTDMS2ServiceNow.get_service_now_config_default()
 
-    username = service_now_config.get(connection).get('username', None)
-    password = service_now_config.get(connection).get('password', None)
-    instance = service_now_config.get(connection).get('host', None)
+    username, password, instance = None, None, None
+    try:
+        username = service_now_config.get(connection).get('username', None)
+        password = service_now_config.get(connection).get('password', None)
+        instance = service_now_config.get(connection).get('host', None)
+    except AttributeError:
+        LoggingMixin().log.error(f'ServiceNow credentials not available for {connection} in config_default.yaml', exc_info=True)
+
     if username is not None and password is not None and instance is not None:
         service_now = CTDMS2ServiceNow(
             instance=instance,
@@ -184,9 +189,13 @@ def servicenow_download(**kwargs):
     # Load ServiceNow Instance From config_default.yaml
     service_now_config = CTDMS2ServiceNow.get_service_now_config_default()
 
-    username = service_now_config.get(connection).get('username', None)
-    password = service_now_config.get(connection).get('password', None)
-    instance = service_now_config.get(connection).get('host', None)
+    username, password, instance = None, None, None
+    try:
+        username = service_now_config.get(connection).get('username', None)
+        password = service_now_config.get(connection).get('password', None)
+        instance = service_now_config.get(connection).get('host', None)
+    except AttributeError:
+        LoggingMixin().log.error(f'ServiceNow credentials not available for {connection} in config_default.yaml', exc_info=True)
 
     if username is not None and password is not None and instance is not None:
         service_now = CTDMS2ServiceNow(
