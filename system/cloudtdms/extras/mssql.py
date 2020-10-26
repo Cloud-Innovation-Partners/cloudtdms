@@ -121,7 +121,7 @@ def mssql_upload(**kwargs):
 
 def mssql_download(**kwargs):
     database = kwargs['database']
-    table_name = kwargs['table']
+    table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
     username = decode_(get_mssql_config_default().get(database).get('username'))
@@ -137,18 +137,18 @@ def mssql_download(**kwargs):
             port=port
         )
 
-        file_name = f"mssql{database}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
+        file_name = f"mssql_{database}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         try:
-            with connection.cursor() as cursor:
+            with connection.cursor(as_dict=True) as cursor:
                 # Get PRIMARY INDEX column
                 sql = f"""
-                        sSELECT COLUMN_NAME 
+                        SELECT COLUMN_NAME 
                         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-                        WHERE table_name={table_name}
+                        WHERE table_name='{table_name}'
                         """
                 cursor.execute(sql)
-                result = cursor.fetchone() # result contains tuple- ('id', )
-                primary_index = result[0] if result is not None else None
+                result = cursor.fetchone() # result contains dict- {'COLUMN_NAME', 'id'}
+                primary_index = result.get('COLUMN_NAME') if result is not None else None
                 if primary_index is not None:
                     sql=f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name} ORDER BY {primary_index} DESC"
                     cursor.execute(sql)

@@ -70,10 +70,11 @@
 {% endfor %}
 
 
+
 {% if 'mysql' not in data.destination  and 'servicenow' not in data.destination and 's3' not in data.destination and 'mssql' not in data.destination and 'postgres' not in data.destination and 'sftp' not in data.destination %}
-start >> stream >> end
+stream >> end
 {% elif data.destination.mysql | length == 0 and data.destination.s3 | length == 0 and data.destination.servicenow | length == 0 and data.destination.mssql | length == 0  and data.destination.postgres | length == 0 and data.destination.sftp | length == 0 %}
-start >> stream >> end
+stream >> end
 {% endif %}
 
 {% endblock %}

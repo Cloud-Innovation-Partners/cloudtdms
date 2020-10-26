@@ -1,14 +1,16 @@
 {% block source_tasks %}
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', ''mssql','postgres', 'sftp'] %}
 
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql','postgres', 'sftp'] %}
 
-{% if data.source.mysql | length == 0 and data.source.s3 | length == 0 and data.source.servicenow | length == 0 and data.source.postgres | length == 0 and data.source.sftp | length == 0 %}
+{% for key in data.source %}
+{% if key in supported_sources and key|length == 0 %}
 start >> stream
 {% endif %}
+{% endfor %}
 
 {% for key, value in data.source.items() %}
-{% if key in supported_sources and value%}
+{% if key in supported_sources and value %}
 
 {% for item in value %}
 {{ key }}_{{ item.connection }}_kwargs = {}
@@ -51,7 +53,7 @@ start >> stream
 # Initialize task for Sftp  Extract {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['database'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractSftp_{{ item.connection }}_{{ item.table }}", python_callable=sftp_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractSftp_{{ item.connection }}", python_callable=sftp_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
 {% elif key == 'servicenow' %}

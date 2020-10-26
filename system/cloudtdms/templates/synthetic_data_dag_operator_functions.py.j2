@@ -19,8 +19,8 @@ def data_generator(**kwargs):
     format = 'csv' if format is not None and str(format).lower() == 'csv' else 'json' if format is not None and str(format).lower() == 'json' else 'csv'
     attributes = dag.params.get('attributes') if dag.params.get('attributes') is not None else {}
 
-    # check 'schema' attribute is present
-    schema = stream['schema'] if 'schema' in stream else []
+    # check 'schema' attribute is present, renaming `schema` attribute to `synthetic`
+    schema = stream['synthetic'] if 'synthetic' in stream else []
     list(map(lambda x: x.update({"field_name": f"schema.{x.get('field_name')}"}), schema))
 
     for source_type in dag.params.get('source').keys():
@@ -55,17 +55,44 @@ def data_generator(**kwargs):
             # check 'encrypt' attribute is present along with 'source'
 
             if 'encrypt' in stream and source is not None:
-                encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
-                               "ignore_headers": "no", "encrypt": {"type": stream['encrypt'].get(v).get('type'), "key": stream['encrypt'].get(v).get("encryption_key")}}
-                              for v in stream['encrypt'].keys() if v in all_columns]
+                if 'encryption' in stream and type(stream['encryption']) is dict:
+                    encryption_type = stream.get('encryption').get('type', 'caesar')
+                    encryption_key = stream.get('encryption').get('key', 'CloudTDMS@2020')
+                else:
+                    encryption_type = 'caesar'
+                    encryption_key = 'CloudTDMS@2020'
+
+                if type(stream.get('encrypt')) is dict:
+                    encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                                   "ignore_headers": "no", "encrypt": {"type": stream['encrypt'].get(v).get('type'), "key": stream['encrypt'].get(v).get("encryption_key")}}
+                                  for v in stream['encrypt'].keys() if v in all_columns]
+                else:
+                    encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                                   "ignore_headers": "no", "encrypt": {"type": encryption_type, "key": encryption_key}}
+                                  for v in stream['encrypt'] if v in all_columns]
+
                 schema += encryption
 
             # check 'mask_out' attribute is present along with 'source'
 
             if 'mask_out' in stream and source is not None:
-                mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
-                              "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
-                             for k, v in stream['mask_out'].items() if k in all_columns]
+                if 'mask' in stream and type(stream['mask']) is dict:
+                    mask_with = stream.get('mask').get('with', 'x')
+                    mask_characters = stream.get('mask').get('characters', 4)
+                    mask_from = stream.get('mask').get('from', 'mid')
+                else:
+                    mask_with = 'x'
+                    mask_characters = 4
+                    mask_from = 'mid'
+                if type(stream.get('mask_out')) is dict:
+                    mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
+                                  "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
+                                 for k, v in stream['mask_out'].items() if k in all_columns]
+                else:
+                    mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
+                                      "column": k, "ignore_headers": "no", "mask_out": {"with": mask_with, "characters": mask_characters, "from": mask_from}}
+                                     for k in stream['mask_out'] if k in all_columns]
+
                 schema += mask_outs
 
             # check 'shuffle' attribute is present along with 'source'
@@ -165,25 +192,38 @@ def data_generator(**kwargs):
                 generate_iterator(data_frame, methods,args_array)
     file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}"
     try:
-        data_frame = data_frame[stream['original_order_of_columns']]
+        if 'source' in stream:
+            data_frame = data_frame[stream['original_order_of_columns']]
 
-        # Attribute output_schema
+            # Attribute output_schema
 
-        output_schema = stream['output_schema'] if 'output_schema' in stream else {}
+            output_schema = stream['output_schema'] if 'output_schema' in stream else None
+            if output_schema is None:
+                raise AttributeError("attribute `output_schema` not defined in STREAM")
 
-        # truncate dataframe
-        try:
-            data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
-        except KeyError:
-            LoggingMixin().log.warn(exc_info=True)
+            # truncate dataframe
+            try:
+                if type(output_schema) is dict:
+                    data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
+                else:
+                    data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema], inplace=True, axis=1)
+            except KeyError:
+                LoggingMixin().log.warn(exc_info=True)
 
-        # rename columns
-        data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
+            # rename columns
+            if type(output_schema) is dict:
+                data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
 
-        data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+          # reorder
+            if type(output_schema) is dict:
+                data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+                data_frame = data_frame.reindex(output_schema.values(), axis=1)
+            else:
+                data_frame = data_frame.reindex(output_schema, axis=1)
+                data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+        else:
+            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
-      # reorder
-        data_frame = data_frame.reindex(output_schema.values(), axis=1)
 
         # reduced data_frame
         vector_length = np.vectorize(len)
@@ -201,9 +241,9 @@ def data_generator(**kwargs):
         os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
 
         if stream['format'] == 'csv':
-            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", index=False)
+            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
         elif stream['format'] == 'json':
-            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}", orient='records', lines=True)
+            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
 
     finally:
         for source_type in dag.params.get('source').keys():

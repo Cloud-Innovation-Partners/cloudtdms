@@ -172,7 +172,7 @@ for (module, name, app) in modules:
                 continue
 
             # check 'schema' attribute is present
-            schema = stream['schema'] if 'schema' in stream else []
+            schema = stream['synthetic'] if 'synthetic' in stream else []
 
             if not schema:
                 LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
@@ -203,6 +203,8 @@ for (module, name, app) in modules:
                         raise AirflowException(f"TypeError: no data available for type {column} ")
                 else:
                     raise AirflowException(f"IOError: no data file found {data}.csv ")
+
+            stream['schema'] = schema
 
             TEMPLATE_FILE = "synthetic_data_dag.py.j2"
             template = templateEnv.get_template(TEMPLATE_FILE)
