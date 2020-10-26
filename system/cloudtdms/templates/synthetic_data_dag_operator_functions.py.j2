@@ -21,7 +21,7 @@ def data_generator(**kwargs):
 
     # check 'schema' attribute is present, renaming `schema` attribute to `synthetic`
     schema = stream['synthetic'] if 'synthetic' in stream else []
-    list(map(lambda x: x.update({"field_name": f"schema.{x.get('field_name')}"}), schema))
+    list(map(lambda x: x.update({"field_name": f"synthetic.{x.get('field_name')}"}), schema))
 
     for source_type in dag.params.get('source').keys():
         for connection in dag.params.get('source').get(source_type):
@@ -121,7 +121,7 @@ def data_generator(**kwargs):
             stream['schema'] = schema
 
         if not schema:
-            LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+            LoggingMixin().log.error(f"AttributeError: attribute `synthetic` not found or is empty in configuration file")
             # continue
 
         # Remove Duplicates In Schema

@@ -43,7 +43,7 @@
 
 # Initialize task for ServiceNow Instance Upload for {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }}_kwargs['instance'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="ServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 

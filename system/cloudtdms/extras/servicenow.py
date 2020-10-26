@@ -16,7 +16,7 @@ from system.cloudtdms.extras import DESTINATION_UPLOAD_LIMIT, SOURCE_DOWNLOAD_LI
 
 class CTDMS2ServiceNow:
 
-    def __init__(self, instance, username, password, table_name, prefix, execution_date, format=None):
+    def __init__(self, instance, username, password, table_name, prefix, execution_date, format=None, connection=None):
         self.service_now_instance = instance
         self.service_now_username = username
         self.service_now_password = password
@@ -26,6 +26,7 @@ class CTDMS2ServiceNow:
         self.data = None
         self.execution_date = execution_date
         self.format = format
+        self.connection_name = connection
         self.file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv" if format is None else f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.{format}"
 
     def upload(self):
@@ -65,6 +66,14 @@ class CTDMS2ServiceNow:
                                         )
             # Throw an error for Bad Status Code
             response.raise_for_status()
+
+            # Parse response to check errors
+            objects = ijson.items(io.StringIO(response.text), 'records.item')
+            records = (o for o in objects if '__error' in o)
+
+            for record in records:
+                LoggingMixin().log.error(record)
+
             LoggingMixin().log.info("[{}] API request end time {}".format(self.name, datetime.now()))
 
             # TODO - Handle ServiceNow response exceptions
@@ -112,9 +121,9 @@ class CTDMS2ServiceNow:
             objects = ijson.items(f, 'result.item')
             records = [o for o in objects]
             df = pd.DataFrame(records)
-            df.columns = [f"servicenow.{self.service_now_instance}.{self.table_name}.{f}" for f in df.columns]
+            df.columns = [f"servicenow.{self.connection_name}.{self.table_name}.{f}" for f in df.columns]
 
-        file_name = f"servicenow_{self.service_now_instance}_{os.path.dirname(self.file_prefix)}_{os.path.basename(self.file_prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+        file_name = f"servicenow_{self.connection_name}_{os.path.dirname(self.file_prefix)}_{os.path.basename(self.file_prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
 
         try:
             df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
@@ -142,15 +151,15 @@ def servicenow_upload(**kwargs):
     execution_date = kwargs.get('execution_date', None)     # dag execution date
     table_name = kwargs.get('table_name')       # ServiceNow table name
     prefix = kwargs.get('prefix')       # title of the synthetic data config file
-    instance = kwargs.get('instance')
+    connection = kwargs.get('connection')
     format = kwargs.get('format')
     # Load ServiceNow Instance From config_default.yaml
     service_now_config = CTDMS2ServiceNow.get_service_now_config_default()
 
-    username = service_now_config.get(instance).get('username', None)
-    password = service_now_config.get(instance).get('password', None)
-
-    if username is not None and password is not None:
+    username = service_now_config.get(connection).get('username', None)
+    password = service_now_config.get(connection).get('password', None)
+    instance = service_now_config.get(connection).get('host', None)
+    if username is not None and password is not None and instance is not None:
         service_now = CTDMS2ServiceNow(
             instance=instance,
             username=username,
@@ -158,7 +167,8 @@ def servicenow_upload(**kwargs):
             table_name=table_name,
             prefix=prefix,
             execution_date=execution_date,
-            format=format
+            format=format,
+            connection=connection
         )
         service_now.upload()
     else:
@@ -169,22 +179,24 @@ def servicenow_download(**kwargs):
     execution_date = kwargs.get('execution_date', None)  # dag execution date
     table_name = kwargs.get('table_name')  # ServiceNow table name
     prefix = kwargs.get('prefix')  # title of the synthetic data config file
-    instance = kwargs.get('instance')
+    connection = kwargs.get('connection')
     limit = kwargs.get('limit') if kwargs.get('limit') != "" else 5000
     # Load ServiceNow Instance From config_default.yaml
     service_now_config = CTDMS2ServiceNow.get_service_now_config_default()
 
-    username = service_now_config.get(instance).get('username', None)
-    password = service_now_config.get(instance).get('password', None)
+    username = service_now_config.get(connection).get('username', None)
+    password = service_now_config.get(connection).get('password', None)
+    instance = service_now_config.get(connection).get('host', None)
 
-    if username is not None and password is not None:
+    if username is not None and password is not None and instance is not None:
         service_now = CTDMS2ServiceNow(
             instance=instance,
             username=username,
             password=password,
             table_name=table_name,
             prefix=prefix,
-            execution_date=execution_date
+            execution_date=execution_date,
+            connection=connection
         )
         service_now.download(limit=limit)
     else:
