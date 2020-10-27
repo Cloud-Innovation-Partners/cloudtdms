@@ -60,8 +60,8 @@ from system.cloudtdms.extras.{{ key }} import {{ key }}_upload
 
 {% block airflow_operators %}
 start = DummyOperator(task_id="start", dag=dag)
-end = DummyOperator(task_id="end", dag=dag)
-stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, trigger_rule='all_done', op_kwargs={'execution_date': {%raw%}"{{ execution_date }}"{%endraw%} }, dag=dag)
+end = PythonOperator(task_id="end", python_callable=clean_up, trigger_rule='all_done', op_kwargs={'execution_date': {% raw %}"{{ execution_date }}"{% endraw %}, 'prefix': f"{dag.owner}/{dag.params.get('stream').get('title')}"}, dag=dag)
+stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, op_kwargs={'execution_date': {% raw %}"{{ execution_date }}"{% endraw %} }, dag=dag)
 
 {% block source_tasks %}
 {% include 'synthetic_data_dag_source_tasks.py.j2' %}

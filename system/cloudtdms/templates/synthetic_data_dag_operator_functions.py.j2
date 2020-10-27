@@ -1,5 +1,40 @@
 {% block operator_functions %}
 
+def clean_up(**kwargs):
+    execution_date = kwargs['execution_date']
+    prefix = kwargs['prefix']
+
+    file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+    f_path = f"{get_output_data_home()}/{prefix}/{file_name}"
+    destinations = dag.params.get('destination')
+    if 'csv' in destinations or 'json' in destinations:
+        config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
+        flag = True
+        for item in destinations.get('csv', []) + destinations.get('json', []):
+            cname = item.get('connection')
+            if cname in config.get('csv', {}) or cname in config.get('json', {}):
+                target = config.get('csv', {}).get(cname, {}).get('target', None) or config.get('json', {}).get(cname, {}).get('target', None)
+                if target is  None or target == '':
+                    LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
+                    flag = False
+                    break
+        if flag:
+            try:
+                os.remove(f_path)
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
+
+    # clean_up source extract files
+    suffix = f"{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+    for item in os.listdir(f'{get_user_data_home()}/.__temp__/'):
+        if item.__contains__(suffix):
+            try:
+                os.remove(f'{get_user_data_home()}/.__temp__/{item}')
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `__temp__` folder!", exc_info=True)
+
+
+
 def get_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
     if config is not None and config.get('encryption', None) is not None and config.get('mask', None) is not None:
@@ -253,17 +288,5 @@ def data_generator(**kwargs):
             data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
         elif stream['format'] == 'json':
             data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
-
-    finally:
-        for source_type in dag.params.get('source').keys():
-            for connection in dag.params.get('source').get(source_type):
-                cname = connection.get('connection')
-                file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
-                path = f'{get_user_data_home()}/.__temp__/{file_name}'
-                try:
-                    os.remove(path)
-                    LoggingMixin().log.info(f"Deleted : {file_name}")
-                except FileNotFoundError:
-                    LoggingMixin().log.warn("No file found to delete!")
 
 {% endblock operator_functions %}

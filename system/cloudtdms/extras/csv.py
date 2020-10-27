@@ -13,7 +13,7 @@ class CTDMS2CSV:
     def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=","):
         self.connection = connection
         self.source_file = source_file
-        self.target_file = target_file
+        self.target_file = target_file if target_file is not None else get_output_data_home()
         self.execution_date = execution_date
         self.prefix = prefix
         self.delimiter = delimiter
@@ -74,18 +74,14 @@ def csv_upload(**kwargs):
 
     target_file = csv_config.get(connection).get('target', None)
 
-    if target_file is not None:
-        csv = CTDMS2CSV(
-            connection=connection,
-            target_file=target_file,
-            prefix=prefix,
-            delimiter=delimiter,
-            execution_date=execution_date
-        )
-        csv.upload()
-    else:
-        LoggingMixin().log.error(f'CSV file not available for {connection} in config_default.yaml')
-        raise AttributeError(f'CSV file not available for {connection} in config_default.yaml')
+    csv = CTDMS2CSV(
+        connection=connection,
+        target_file=target_file,
+        prefix=prefix,
+        delimiter=delimiter,
+        execution_date=execution_date
+    )
+    csv.upload()
 
 
 def csv_download(**kwargs):
