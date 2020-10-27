@@ -3,11 +3,21 @@
 
 {% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql','postgres', 'sftp'] %}
 
+{% if data.source| length == 0 %}
+
+start >> stream
+
+{% else %}
+
 {% for key in data.source %}
+
 {% if key in supported_sources and key|length == 0 %}
 start >> stream
 {% endif %}
+
 {% endfor %}
+
+{% endif %}
 
 {% for key, value in data.source.items() %}
 {% if key in supported_sources and value %}
