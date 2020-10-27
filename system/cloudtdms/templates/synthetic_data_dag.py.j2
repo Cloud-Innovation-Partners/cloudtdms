@@ -23,8 +23,8 @@ from system.dags import get_output_data_home
 from system.dags import get_user_data_home
 from system.dags import get_config_default_path
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres'] %}
-{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres', 'sftp'] %}
+{% set supported_destinations = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres', 'sftp'] %}
 
 {% for key, value in data.source.items() %}
 
