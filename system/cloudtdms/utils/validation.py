@@ -6,18 +6,18 @@ from airflow import LoggingMixin
 
 
 def check_mandatory_field(stream, name):
-    result=True
+    result = True
     if 'number' not in stream:
         LoggingMixin().log.error(f"AttributeError: `number` attribute not found in {name}.py")
-        result=False
+        result = False
     else:
         if not isinstance(stream['number'], int):
             LoggingMixin().log.error(f"ValueError: `number` must be integer in {name}.py")
             result = False
 
-    if 'format' not in stream:
-        LoggingMixin().log.error(f"AttributeError: `format` attribute not found in {name}.py")
-        result = False
+    # if 'format' not in stream:
+    #     LoggingMixin().log.error(f"AttributeError: `format` attribute not found in {name}.py")
+    #     result = False
 
     if 'title' not in stream:
         LoggingMixin().log.error(f"AttributeError: `title` attribute not found in {name}.py")
@@ -36,175 +36,320 @@ def check_mandatory_field(stream, name):
             LoggingMixin().log.error(
                 f"ValueError: Invalid value `{frequency_value}` for `frequency` attribute in {name}.py")
             result = False
-    return  result
-
-
-def check_stream_type(stream, name):
-    if not isinstance(stream, dict):
-        LoggingMixin().log.error(f"TypeError: `stream` is not of type `dictionary` in {name}.py")
+    return result
 
 
 def check_schema_attribs(schema, name):
-    result=True
+    result = True
     for sch in schema:
         if not isinstance(sch, dict):
-            LoggingMixin().log.error(f'TypeError: entries in `schema` are not of type `dictionary` in {name}.py')
-            result=False
+            LoggingMixin().log.error(f'TypeError: entries in `synthetic` are not of type `dictionary` in {name}.py')
+            result = False
         else:
             if 'field_name' not in sch:
-                LoggingMixin().log.error(f'AttributeError: `field_name` attribute not present in `schema` in {name}.py')
-                result=False
+                LoggingMixin().log.error(
+                    f'AttributeError: `field_name` attribute not present in `synthetic` in {name}.py')
+                result = False
             if 'type' not in sch:
-                LoggingMixin().log.error(f'AttributeError: `type` attribute not present in `schema` in {name}.py')
-                result=False
-    return  result
+                LoggingMixin().log.error(f'AttributeError: `type` attribute not present in `synthetic` in {name}.py')
+                result = False
+    return result
 
 
 def check_schema_type(stream, name):
-    result=True
-    schema = stream.get('schema')
+    result = True
+    schema = stream.get('synthetic')  # "schema" is now "synthetic"
     if schema is not None:
         if not isinstance(schema, list):
             LoggingMixin().log.error(f"TypeError: `schema` must be of type `list` in {name}.py")
-            result=False
+            result = False
         else:
-            result=check_schema_attribs(schema, name)
+            result = check_schema_attribs(schema, name)
     else:
         pass
 
     return result
 
 
-def set_default_format(stream, name):
-    if 'format' in stream:
-        format = stream['format']
-        if format != 'csv':
-            stream['format'] = 'csv'
+def check_internal_attributes(key, params, name, parent):
+    # [{'connection': 'modeling', 'delimiter': ','}, {'connection': 'health', 'delimiter': ','}]
+    result = True
+    for p in params:
+        if not isinstance(p, dict):
+            LoggingMixin().log.error(
+                f'TypeError: In `{parent}`, `{key}` values is not of type `dictionary` in {name}.py')
+            result = False
+        else:
+            # connection:modeling
+            if 'connection' not in p:
+                LoggingMixin().log.error(
+                    f'AttributeError:In `{parent}`, `connection` attribute not present in `{key}` in {name}.py')
+                result = False
 
-    return stream
+            # POSTGRES
+            if key == 'postgres':
+                if 'connection' not in p:
+                    LoggingMixin().log.error(
+                        f'AttributeError:In `{parent}`, `connection` attribute not present in `{key}` in {name}.py')
+                    result = False
+                if 'table' not in p:
+                    LoggingMixin().log.error(
+                        f'AttributeError:In `{parent}`, `table` attribute not present in `{key}` in {name}.py')
+                    result = False
+
+            # MYSQL
+            if key == 'mysql':
+                if 'connection' not in p:
+                    LoggingMixin().log.error(
+                        f'AttributeError:In `{parent}`, `connection` attribute not present in `{key}` in {name}.py')
+                    result = False
+                if 'table' not in p:
+                    LoggingMixin().log.error(
+                        f'AttributeError:In `{parent}`, `table` attribute not present in `{key}` in {name}.py')
+                    result = False
+            # MSSQL
+            if key == 'mssql':
+                if 'connection' not in p:
+                    LoggingMixin().log.error(
+                        f'AttributeError:In `{parent}`, `connection` attribute not present in `{key}` in {name}.py')
+                    result = False
+                if 'table' not in p:
+                    LoggingMixin().log.error(
+                        f'AttributeError:In `{parent}`, `table` attribute not present in `{key}` in {name}.py')
+                    result = False
+        # SFTP
+        if key == 'sftp':
+            if 'connection' not in p:
+                LoggingMixin().log.error(
+                    f'AttributeError:In`{parent}`, `connection` attribute not present in `{key}` in {name}.py')
+                result = False
+            if 'file' not in p:
+                LoggingMixin().log.error(
+                    f'AttributeError:In `{parent}`, `file` attribute not present in `{key}` in {name}.py')
+                result = False
+        # ServiceNow
+        if key == 'servicenow':
+            if 'connection' not in p:
+                LoggingMixin().log.error(
+                    f'AttributeError:In`{parent}`, `connection` attribute not present in `{key}` in {name}.py')
+                result = False
+            if 'table' not in p:
+                LoggingMixin().log.error(
+                    f'AttributeError:In `{parent}`, `table` attribute not present in `{key}` in {name}.py')
+                result = False
+    return result
 
 
 def check_source(stream, name):
     result = True
-    if 'source' not in stream and ('encrypt' or 'substitute' or 'nullying' or 'delete' or 'mask_out' or 'shuffle' not in stream):
-        LoggingMixin().log.error(f'AttributeError: `source` attribute not found in {name}.py')
-        result=False
+
+    if 'source' in stream:
+        SOURCE = stream.get('source')
+        if not isinstance(SOURCE, dict):
+            LoggingMixin().log.error(f'TypeError: `source` is not of type `dictionary` in {name}.py')
+            result = False
+        else:
+            for key in SOURCE:
+                if not isinstance(SOURCE.get(key), list):
+                    LoggingMixin().log.error(f'TypeError:In `source`, `{key}`  is not of type `list` in {name}.py')
+                    result = False
+                else:
+                    result = check_internal_attributes(key, SOURCE.get(key), name, parent='source')
+
     else:
-        # /home/user/AFW/cloudtdms/system/cloudtdms/utils/validation.py
-        # /home/user/AFW/cloudtdms/user-data
-        source_value = stream.get('source')
-        splitted = str(__file__).split('/')
-        splitted = splitted[:-4]
-        joined_path = '/'.join(splitted) + '/user-data/' + source_value + '.csv'
-        if not os.path.exists(joined_path):
-            LoggingMixin().log.error(f'ValueError: File {source_value} not found')
-            result=False
+        LoggingMixin().log.warn(f'`source` is not present  in {name}.py')
+        result = False
+
     return result
 
 
 def check_substitute(stream, name):
-    result=True
+    result = True
     if 'source' in stream:
         subst = stream.get('substitute')
         if subst is not None:
             if not isinstance(subst, dict):
                 LoggingMixin().log.error(f'TypeError: `substitute` is not of type `dictionary` in {name}.py')
-                result=False
+                result = False
             else:
                 for sub in subst:
                     sub_value = subst[sub]
                     if not isinstance(sub_value, dict):
                         LoggingMixin().log.error(
                             f'TypeError: entries in `substitute` are not of type `dictionary` in {name}.py')
-                        result=False
+                        result = False
                     else:
                         if 'type' not in sub_value:
                             LoggingMixin().log.error(
                                 f'AttributeError: `type` attribute not present in `substitute` in {name}.py')
-                            result=False
+                            result = False
+
     return result
 
 
-def check_encrypt_type(encrypt):
-    encrypt_type_value=encrypt.get('type')
-    if encrypt_type_value not in ('fernet', 'caesar', 'monoaplha', 'onetimepad', 'aes'):
-        LoggingMixin().log.error(f'`type` in encrypt can be `fernet` / `caesar` / `monoaplha` / `onetimepad` / `aes`')
+def check_encrypt_type(encryption, name):
+    result = True
+    if encryption is not None:
+        if 'type' not in encryption:
+            LoggingMixin().log.error(
+                f'AttributeError: `type` attribute not present in `encryption` in {name}.py')
+            result = False
+        if 'key' not in encryption:
+            LoggingMixin().log.error(
+                f'AttributeError: `key` attribute not present in `encryption` in {name}.py')
+            result = False
+
+        encrypt_type_value = encryption.get('type')
+        if encrypt_type_value not in ('fernet', 'caesar', 'monoaplha', 'onetimepad', 'aes'):
+            LoggingMixin().log.error(
+                f'`type` in encrypt can be `fernet` / `caesar` / `monoaplha` / `onetimepad` / `aes`')
+            result = False
+    else:
+        LoggingMixin().log.warn(f"`encryption` is not present for `encrypt` in {name}.py")
+    return result
 
 
 def check_encrypt(stream, name):
-    result=True
+    result = True
     if 'source' in stream:
         encrypt = stream.get('encrypt')
+        encryption = stream.get('encryption')
         if encrypt is not None:
-            if not isinstance(encrypt, dict):
-                LoggingMixin().log.error(f'TypeError: `encrypt` is not of type `dictionary` in {name}.py')
-                result=False
+            if not isinstance(encrypt, (set, list)):
+                LoggingMixin().log.error(f'TypeError: `encrypt` is not of type `set or list` in {name}.py')
+                result = False
             else:
-                encrypt_cols = encrypt.get('columns')
-                if not isinstance(encrypt_cols, list) and encrypt_cols is not None:
-                    LoggingMixin().log.error(f'TypeError: `columns` in `encrypt` is not of type `list` in {name}.py')
-                    result=False
-                check_encrypt_type(encrypt)
+                result = check_encrypt_type(encryption, name)
     return result
 
+
 def check_shuffle(stream, name):
-    result=True
+    result = True
     if 'source' in stream:
         shuffle = stream.get('shuffle')
         if shuffle is not None:
-            if not isinstance(shuffle, list):
-                LoggingMixin().log.error(f'TypeError: `shuffle` is not of type `list` in {name}.py')
-                result= False
+            if not isinstance(shuffle, (list, set)):
+                LoggingMixin().log.error(f'TypeError: `shuffle` is not of type `set or list` in {name}.py')
+                result = False
     return result
 
 
 def check_nullying(stream, name):
-    result=True
+    result = True
     if 'source' in stream:
         nullying = stream.get('nullying')
         if nullying is not None:
-            if not isinstance(nullying, list):
-                LoggingMixin().log.error(f'TypeError: `nullying` is not of type `list` in {name}.py')
-                result=False
+            if not isinstance(nullying, (set, list)):
+                LoggingMixin().log.error(f'TypeError: `nullying` is not of type  `set or list` in {name}.py')
+                result = False
     return result
 
 
 def check_delete(stream, name):
-    result=True
+    result = True
     if 'source' in stream:
         delete = stream.get('delete')
         if delete is not None:
-            if not isinstance(delete, list):
-                LoggingMixin().log.error(f'TypeError: `delete` is not of type `list` in {name}.py')
-                result=False
+            if not isinstance(delete, (set, list)):
+                LoggingMixin().log.error(f'TypeError: `delete` is not of type  `set or list` in {name}.py')
+                result = False
     return result
 
 
-def check_arrtibutes(mask_out_value):
-    if not isinstance(mask_out_value['characters'], int):
-        LoggingMixin().log.error("ValueError: `characters` in `mask_out` must be integer")
+def check_mask_out_atrributes(mask, name):
+    result =True
+    if mask is not None:
+        if 'with' not in mask or 'characters' not in mask or 'from' not in mask:
+            LoggingMixin().log.error(
+                f"AttributeError: `with`,`characters` and  `from` are mandatory for mask_out in  {name}.py")
+            result= False
+        else:
 
-    if not isinstance(mask_out_value['with'], str):
-        LoggingMixin().log.error("ValueError: `with` in `mask_out` must be string")
+            if not isinstance(mask['characters'], int):
+                LoggingMixin().log.error("ValueError: `characters` in `mask_out` must be integer")
+                result = False
 
-    if mask_out_value['from'] not in ('start','mid','end'):
-        LoggingMixin().log.error("ValueError: `from` in `mask_out` must be `start` or `mid` or `end`")
+            if not isinstance(mask['with'], str):
+                LoggingMixin().log.error("ValueError: `with` in `mask_out` must be string")
+                result = False
+
+            if mask['from'] not in ('start', 'mid', 'end'):
+                LoggingMixin().log.error("ValueError: `from` in `mask_out` must be `start` or `mid` or `end`")
+                result = False
+    else:
+        LoggingMixin().log.warn(f"`mask` is not present for `mask_out` in {name}.py")
+
+    return result
 
 
 def check_mask_out(stream, name):
+    result = True
     if 'source' in stream:
         mask_out = stream.get('mask_out')
+        mask = stream.get('mask')
         if mask_out is not None:
-            if not isinstance(mask_out, dict):
-                LoggingMixin().log.error(f'TypeError: `mask_out` is not of type `dictionary` in {name}.py')
-            for mask in mask_out:
-                mask_out_value = mask_out[mask] # {'with': 'x', 'characters': 4, 'from': 'start'}
-                if not isinstance(mask_out_value, dict):
+            if not isinstance(mask_out, (set, list)):
+                LoggingMixin().log.error(f'TypeError: `mask_out` is not of type `set or list` in {name}.py')
+                result =False
+            else:
+                result = check_mask_out_atrributes(mask, name)
+    return  result
+
+
+def check_destination(stream, name):
+    result = True
+    if 'destination' in stream:
+        DESTINATION = stream.get('destination')
+        if not isinstance(DESTINATION, dict):
+            LoggingMixin().log.error(f'TypeError: `destination` is not of type `dictionary` in {name}.py')
+            result = False
+        else:
+            result = True
+            for key in DESTINATION:
+                if not isinstance(DESTINATION.get(key), list):
                     LoggingMixin().log.error(
-                        f'TypeError: Entries in `mask_out` are not of type `dictionary` in {name}.py')
+                        f'TypeError: In `destination`, `{key}`  is not of type `list` in {name}.py')
+                    result =False
                 else:
-                    if 'with' not in mask_out_value or 'characters' not in mask_out_value or 'from' not in mask_out_value:
-                        LoggingMixin().log.error(
-                            f"AttributeError: `with`,`characters` and  `from` are mandatory for mask_out in  {name}.py")
-                    else:
-                        check_arrtibutes(mask_out_value)
+                    result = check_internal_attributes(key, DESTINATION.get(key), name, parent='destination')
+    else:
+        LoggingMixin().log.warn(f'`destination` is not present  in {name}.py')
+    return result
+
+
+def check_output_schema(stream, name):
+    result = True
+    if 'output_schema' in stream:
+        output_schema = stream.get('output_schema')
+        if not isinstance(output_schema, (dict, list, set)):
+            LoggingMixin().log.error(
+                f'TypeError: `output_schema` is not of type `dictionary or set or list` in {name}.py')
+            result =False
+
+    else:
+        LoggingMixin().log.error(f"AttributeError: `output_schema` attribute not found in {name}.py")
+        result = False
+
+    return result
+
+
+class Validation:
+
+    @staticmethod
+    def validate(stream, name):
+        # any([True, False, True])
+        return any(
+                    [
+                        check_mandatory_field(stream, name),
+                        check_schema_type(stream, name),
+                        check_source(stream, name),
+                        check_substitute(stream, name),
+                        check_encrypt(stream, name),
+                        check_shuffle(stream, name),
+                        check_nullying(stream, name),
+                        check_delete(stream, name),
+                        check_mask_out(stream, name),
+                        check_destination(stream, name),
+                        check_output_schema(stream, name)
+                    ]
+                 )
