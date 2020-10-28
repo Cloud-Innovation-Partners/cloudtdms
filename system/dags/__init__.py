@@ -94,7 +94,7 @@ def delete_dag(dag_id):
 sys.path.append(get_cloudtdms_home())
 
 from system.cloudtdms.providers import get_active_meta_data
-from system.cloudtdms.utils import validation
+from system.cloudtdms.utils.validation import Validation
 
 
 def create_profiling_dag(file_name, owner):
@@ -155,27 +155,27 @@ for (module, name, app) in modules:
 
     if hasattr(module, 'STREAM') and isinstance(getattr(module, 'STREAM'), dict):
         stream = getattr(module, 'STREAM')
+
+        # Validate Syntax
+
+        if not Validation.validate(stream, name):
+            continue
+
         meta_data = get_active_meta_data()
 
-        format = stream.get('format', None)
-        format = 'csv' if format is not None and str(format).lower() == 'csv' else 'json' if format is not None and str(format).lower() == 'json' else 'csv'
+        # set format to csv
+        stream['format'] = 'csv'
 
         # check 'source' attribute is present
         source = stream['source'] if 'source' in stream else None
 
         if source is None:
 
-            if not validation.check_mandatory_field(stream, name):  # means false
-                continue
-
-            if not validation.check_schema_type(stream, name):
-                continue
-
             # check 'schema' attribute is present
             schema = stream['synthetic'] if 'synthetic' in stream else []
 
             if not schema:
-                LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+                LoggingMixin().log.error(f"AttributeError: attribute `synthetic` not found or is empty in {name}.py")
                 continue
 
             stream['original_order_of_columns'] = [f['field_name'] for f in schema]
@@ -226,8 +226,7 @@ for (module, name, app) in modules:
             LoggingMixin().log.info(f"Creating DAG: {name}")
         else:
             if type(source) is dict:
-                if not validation.check_mandatory_field(stream, name):  # means false
-                    continue
+
                 TEMPLATE_FILE = "synthetic_data_dag.py.j2"
                 template = templateEnv.get_template(TEMPLATE_FILE)
                 output = template.render(
