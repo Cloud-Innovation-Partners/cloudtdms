@@ -106,7 +106,11 @@ def json_upload(**kwargs):
     # Get JSON target file From config_default.yaml
     json_config = CTDMS2JSON.get_json_config_default()
 
-    target_file = json_config.get(connection).get('target', None)
+    try:
+        target_file = json_config.get(connection).get('target', None)
+    except AttributeError:
+        LoggingMixin().log.error("Attribute `connection` in JSON destination has None value!")
+        raise
 
     j = CTDMS2JSON(
         connection=connection,
