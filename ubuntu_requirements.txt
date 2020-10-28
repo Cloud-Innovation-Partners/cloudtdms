@@ -131,3 +131,9 @@ webencodings==0.5.1
 Werkzeug==0.16.1
 widgetsnbextension==3.5.1
 WTForms==2.3.3
+more-itertools==8.5.0
+ijson==3.1.2
+psycopg2-binary==2.8.6
+paramiko==2.7.2
+pymssql==2.1.5
+PyMySQL
