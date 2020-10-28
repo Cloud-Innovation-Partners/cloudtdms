@@ -16,6 +16,9 @@ more-itertools = "*"
 SQLAlchemy = "*"
 PyMySQL = "*"
 ijson = "*"
+psycopg2-binary = "*"
+paramiko = "*"
+pymssql = "*"
 
 [requires]
 python_version = "3.8"

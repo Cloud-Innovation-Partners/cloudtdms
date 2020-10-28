@@ -3,11 +3,21 @@
 
 {% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql','postgres', 'sftp'] %}
 
+{% if data.source| length == 0 %}
+
+start >> stream
+
+{% else %}
+
 {% for key in data.source %}
+
 {% if key in supported_sources and key|length == 0 %}
 start >> stream
 {% endif %}
+
 {% endfor %}
+
+{% endif %}
 
 {% for key, value in data.source.items() %}
 {% if key in supported_sources and value %}
@@ -60,7 +70,7 @@ start >> stream
 
 # Initialize task for ServiceNow Instance Extract {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }}_kwargs['instance'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 

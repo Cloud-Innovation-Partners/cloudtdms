@@ -1,5 +1,48 @@
 {% block operator_functions %}
 
+def clean_up(**kwargs):
+    execution_date = kwargs['execution_date']
+    prefix = kwargs['prefix']
+
+    file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+    f_path = f"{get_output_data_home()}/{prefix}/{file_name}"
+    destinations = dag.params.get('destination')
+    if 'csv' in destinations or 'json' in destinations:
+        config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
+        flag = True
+        for item in destinations.get('csv', []) + destinations.get('json', []):
+            cname = item.get('connection')
+            if cname in config.get('csv', {}) or cname in config.get('json', {}):
+                target = config.get('csv', {}).get(cname, {}).get('target', None) or config.get('json', {}).get(cname, {}).get('target', None)
+                if target is  None or target == '':
+                    LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
+                    flag = False
+                    break
+        if flag:
+            try:
+                os.remove(f_path)
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
+
+    # clean_up source extract files
+    suffix = f"{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+    for item in os.listdir(f'{get_user_data_home()}/.__temp__/'):
+        if item.__contains__(suffix):
+            try:
+                os.remove(f'{get_user_data_home()}/.__temp__/{item}')
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `__temp__` folder!", exc_info=True)
+
+
+
+def get_config_default():
+    config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
+    if config is not None and config.get('encryption', None) is not None and config.get('mask', None) is not None:
+        return config
+    else:
+        raise KeyError('config_default.yaml has no `encryption` and `mask` entry')
+
+
 def generate_iterator(data_frame, methods,args_array):
     number = dag.params.get('stream').get('number')
     for fcn, name in methods:
@@ -21,7 +64,7 @@ def data_generator(**kwargs):
 
     # check 'schema' attribute is present, renaming `schema` attribute to `synthetic`
     schema = stream['synthetic'] if 'synthetic' in stream else []
-    list(map(lambda x: x.update({"field_name": f"schema.{x.get('field_name')}"}), schema))
+    list(map(lambda x: x.update({"field_name": f"synthetic.{x.get('field_name')}"}), schema))
 
     for source_type in dag.params.get('source').keys():
         for connection in dag.params.get('source').get(source_type):
@@ -56,11 +99,11 @@ def data_generator(**kwargs):
 
             if 'encrypt' in stream and source is not None:
                 if 'encryption' in stream and type(stream['encryption']) is dict:
-                    encryption_type = stream.get('encryption').get('type', 'caesar')
-                    encryption_key = stream.get('encryption').get('key', 'CloudTDMS@2020')
+                    encryption_type = stream.get('encryption').get('type', get_config_default().get('encryption').get('type', 'caesar'))
+                    encryption_key = stream.get('encryption').get('key', get_config_default().get('encryption').get('key', 'CloudTDMS@2020'))
                 else:
-                    encryption_type = 'caesar'
-                    encryption_key = 'CloudTDMS@2020'
+                    encryption_type = get_config_default().get('encryption').get('type', 'caesar')
+                    encryption_key = get_config_default().get('encryption').get('key', 'CloudTDMS@2020')
 
                 if type(stream.get('encrypt')) is dict:
                     encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
@@ -77,13 +120,14 @@ def data_generator(**kwargs):
 
             if 'mask_out' in stream and source is not None:
                 if 'mask' in stream and type(stream['mask']) is dict:
-                    mask_with = stream.get('mask').get('with', 'x')
-                    mask_characters = stream.get('mask').get('characters', 4)
-                    mask_from = stream.get('mask').get('from', 'mid')
+                    mask_with = stream.get('mask').get('with', get_config_default().get('mask').get('with', 'x'))
+                    mask_characters = stream.get('mask').get('characters', get_config_default().get('mask').get('characters', 6))
+                    mask_from = stream.get('mask').get('from', get_config_default().get('mask').get('from', 'mid'))
                 else:
-                    mask_with = 'x'
-                    mask_characters = 4
-                    mask_from = 'mid'
+                    mask_with = get_config_default().get('mask').get('with', 'x')
+                    mask_characters = get_config_default().get('mask').get('characters', 6)
+                    mask_from = get_config_default().get('mask').get('from', 'mid')
+
                 if type(stream.get('mask_out')) is dict:
                     mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
                                   "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
@@ -121,7 +165,7 @@ def data_generator(**kwargs):
             stream['schema'] = schema
 
         if not schema:
-            LoggingMixin().log.error(f"AttributeError: attribute `schema` not found or is empty in {name}.py")
+            LoggingMixin().log.error(f"AttributeError: attribute `synthetic` not found or is empty in configuration file")
             # continue
 
         # Remove Duplicates In Schema
@@ -244,17 +288,5 @@ def data_generator(**kwargs):
             data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
         elif stream['format'] == 'json':
             data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
-
-    finally:
-        for source_type in dag.params.get('source').keys():
-            for connection in dag.params.get('source').get(source_type):
-                cname = connection.get('connection')
-                file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
-                path = f'{get_user_data_home()}/.__temp__/{file_name}'
-                try:
-                    os.remove(path)
-                    LoggingMixin().log.info(f"Deleted : {file_name}")
-                except FileNotFoundError:
-                    LoggingMixin().log.warn("No file found to delete!")
 
 {% endblock operator_functions %}
