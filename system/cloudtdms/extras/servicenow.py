@@ -163,6 +163,7 @@ def servicenow_upload(**kwargs):
         instance = service_now_config.get(connection).get('host', None)
     except AttributeError:
         LoggingMixin().log.error(f'ServiceNow credentials not available for {connection} in config_default.yaml', exc_info=True)
+        raise
 
     if username is not None and password is not None and instance is not None:
         service_now = CTDMS2ServiceNow(
@@ -196,7 +197,8 @@ def servicenow_download(**kwargs):
         instance = service_now_config.get(connection).get('host', None)
     except AttributeError:
         LoggingMixin().log.error(f'ServiceNow credentials not available for {connection} in config_default.yaml', exc_info=True)
-
+        raise
+    
     if username is not None and password is not None and instance is not None:
         service_now = CTDMS2ServiceNow(
             instance=instance,
