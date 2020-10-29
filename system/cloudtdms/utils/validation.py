@@ -348,8 +348,8 @@ class Validation:
 
     @staticmethod
     def validate(stream, name):
-        # any([True, False, True])
-        return any(
+        # all([True, False, True])
+        return all(
             [
                 check_mandatory_field(stream, name),
                 check_schema_type(stream, name),
