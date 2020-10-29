@@ -1,14 +1,15 @@
 import base64
 
-import paramiko,socket
-from datetime import datetime,timedelta
+import paramiko, socket
+from datetime import datetime, timedelta
 from system.dags import get_config_default_path, get_output_data_home, get_user_data_home
 import yaml
 from airflow.utils.log.logging_mixin import LoggingMixin
 import os
 import pandas as pd
 
-FIVE_MB=5244880 # 5 MB = 5244880 BYTES
+FIVE_MB = 5244880  # 5 MB = 5244880 BYTES
+
 
 def get_sftp_config_default():
     """
@@ -21,6 +22,7 @@ def get_sftp_config_default():
     else:
         raise KeyError('config_default.yaml has no postgres entry')
 
+
 def decode_(field):
     """
     This method decodes the encoded fields
@@ -32,6 +34,7 @@ def decode_(field):
     decoded_field = field_bytes.decode("UTF-8")
     return decoded_field
 
+
 def sftp_upload(**kwargs):
     """
     This method Uploads the file to the SFTP server
@@ -39,43 +42,48 @@ def sftp_upload(**kwargs):
     :return:
     """
 
-    folder = kwargs.get('folder')
+    connection_name = kwargs.get('connection')
     prefix = kwargs.get('prefix')
     execution_date = kwargs.get('execution_date')
     sftp_file_path = kwargs.get('file_path')
     file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
 
     connection_in_yaml = get_sftp_config_default()
+    # folder = connection_in_yaml.get(connection).get('folder')
 
     # read latest modified csv file
     latest_file_path = get_output_data_home() + '/' + kwargs['prefix'] + '/' + file_name
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     csv_file = pd.read_csv(latest_file_path)
 
-    is_available = True if folder in connection_in_yaml else False
+    is_available = True if connection_name in connection_in_yaml else False
 
     if is_available:
-        user = decode_(connection_in_yaml.get(folder).get('username')).replace('\n', '')
-        password = decode_(connection_in_yaml.get(folder).get('password')).replace('\n', '')
-        host = connection_in_yaml.get(folder).get('host').replace(' ', '')
-        port = int(connection_in_yaml.get(folder).get('port').replace(' ', ''))
-        ssh_public_key = connection_in_yaml.get(folder).get('ssh_public_key')
-        passphrase = connection_in_yaml.get(folder).get('passphrase') if connection_in_yaml.get(folder).get(
-            'passphrase') else " "
-        passphrase=decode_(passphrase).replace('\n', '')
+        user = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
+        password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
+        host = connection_in_yaml.get(connection_name).get('host').replace(' ', '')
+        port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+            'port') else 22
+        ssh_public_key = connection_in_yaml.get(connection_name).get('ssh_public_key')
+        # passphrase = connection_in_yaml.get(connection_name).get('passphrase') if connection_in_yaml.get(connection_name).get(
+        #     'passphrase') else " "
+        # passphrase = decode_(passphrase).replace('\n', '')
 
-        LoggingMixin().log.info(f'Inserting data in {folder}, {sftp_file_path}')
+        passphrase = connection_in_yaml.get(connection_name).get('passphrase')
+        passphrase = None if len(passphrase.strip()) == 0 or passphrase is None else decode_(passphrase)
 
-        if len(password.strip()) !=0: # means password is present
-            storage=Storage(
-                        user=user,
-                        password=password,
-                        host=host,
-                        folder_name=folder,
-                        sftp_file_path=sftp_file_path,
-                        port=port,
-                        local_file_path=latest_file_path
-                        )
+        LoggingMixin().log.info(f'Inserting data in {file_name}, {sftp_file_path}')
+
+        if len(password.strip()) != 0:  # means password is present
+            storage = Storage(
+                user=user,
+                password=password,
+                host=host,
+                connection_name=connection_name,
+                sftp_file_path=sftp_file_path,
+                port=port,
+                local_file_path=latest_file_path
+            )
 
             storage.upload()
         else:
@@ -84,7 +92,7 @@ def sftp_upload(**kwargs):
                 user=user,
                 password=password,
                 host=host,
-                folder_name=folder,
+                connection_name=connection_name,
                 sftp_file_path=sftp_file_path,
                 port=port,
                 local_file_path=latest_file_path,
@@ -95,7 +103,8 @@ def sftp_upload(**kwargs):
             storage.ssh_upload()
 
     else:
-        raise AttributeError(f"{folder} not found in config_default.yaml")
+        raise AttributeError(f"{connection_name} not found in config_default.yaml")
+
 
 def sftp_download(**kwargs):
     """
@@ -103,31 +112,39 @@ def sftp_download(**kwargs):
     :param kwargs:
     :return:
     """
-    folder = kwargs.get('folder')
+    connection_name = kwargs.get('connection')
     dwn_sftp_file = kwargs.get('file_path')
     execution_date = kwargs.get('execution_date')
     prefix = kwargs.get('prefix')
-    file_name = f"sftp_{folder}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
 
     connection_in_yaml = get_sftp_config_default()
-    user = decode_(connection_in_yaml.get(folder).get('username')).replace('\n', '')
-    password = decode_(connection_in_yaml.get(folder).get('password')).replace('\n', '')
-    host = connection_in_yaml.get(folder).get('host') if connection_in_yaml.get(folder).get(
+    # folder = connection_in_yaml.get(connection).get('folder')
+
+    file_name = f"sftp_{connection_name}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
+
+    user = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
+    password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
+    host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get(
         'host') else None
-    port = int(connection_in_yaml.get(folder).get('port')) if connection_in_yaml.get(folder).get(
+    port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
         'port') else 22
 
-    ssh_public_key = connection_in_yaml.get(folder).get('ssh_public_key')
-    passphrase =connection_in_yaml.get(folder).get('passphrase') if connection_in_yaml.get(folder).get('passphrase') else " "
-    passphrase = decode_(passphrase)
+    ssh_public_key = connection_in_yaml.get(connection_name).get('ssh_public_key')
 
-    if host is not None :
+    # passphrase = connection_in_yaml.get(connection_name).get('passphrase') if connection_in_yaml.get(connection_name).get(
+    #     'passphrase') else " "
+    # passphrase = decode_(passphrase)
+
+    passphrase = connection_in_yaml.get(connection_name).get('passphrase')
+    passphrase = None if len(passphrase.strip()) == 0 or passphrase is None else decode_(passphrase)
+
+    if host is not None:
         if len(password.strip()) != 0:  # means password is present
             storage = Storage(
                 user=user,
                 password=password,
                 host=host,
-                folder_name=folder,
+                connection_name=connection_name,
                 sftp_file_path=dwn_sftp_file,
                 port=port,
                 local_file_path=f'{get_user_data_home()}/.__temp__/{file_name}',
@@ -140,7 +157,7 @@ def sftp_download(**kwargs):
                 user=user,
                 password=password,
                 host=host,
-                folder_name=folder,
+                connection_name=connection_name,
                 sftp_file_path=dwn_sftp_file,
                 port=port,
                 local_file_path=f'{get_user_data_home()}/.__temp__/{file_name}',
@@ -152,7 +169,6 @@ def sftp_download(**kwargs):
 
 
 class Storage:
-
     """
      This class is responsible for uploading a file or downloading a file.
      Uploading: Simple Upload, with Username and Password
@@ -162,25 +178,25 @@ class Storage:
                   SSH Download, with ssh public key
     """
 
-    def __init__(self, user, password, host, folder_name,
+    def __init__(self, user, password, host, connection_name,
                  sftp_file_path, port, local_file_path, ssh_key=None, passphrase=None):
         self.user = user
         self.password = password
         self.host = host
-        self.folder_name = folder_name
+        self.connection_name = connection_name
         self.sftp_file_path = sftp_file_path
         self.port = port
         self.local_file_path = local_file_path
-        self.ssh_key=ssh_key
-        self.passphrase=passphrase
+        self.ssh_key = ssh_key
+        self.passphrase = passphrase
 
     def upload(self):
         """
         upload method uploads the file with username and password
         :return:
         """
-        r_file_path=self.sftp_file_path
-        r_file=os.path.basename(r_file_path)
+        r_file_path = self.sftp_file_path
+        r_file = os.path.basename(r_file_path)
 
         LoggingMixin().log.info(f"LOCAL FILE PATH: {self.local_file_path}")
         LoggingMixin().log.info(f"REMOTE FILE PATH: {r_file_path}")
@@ -202,7 +218,7 @@ class Storage:
                 sftp.mkdir(dir)
                 sftp.chdir(dir)
 
-        sftp.put(self.local_file_path,r_file )
+        sftp.put(self.local_file_path, r_file)
 
         # Close
         if sftp:
@@ -240,7 +256,7 @@ class Storage:
                 sftp.mkdir(dir)
                 sftp.chdir(dir)
 
-        sftp.put(self.local_file_path,r_file)
+        sftp.put(self.local_file_path, r_file)
 
         # Close
         if sftp:
@@ -266,7 +282,7 @@ class Storage:
         # Go!
         sftp = paramiko.SFTPClient.from_transport(transport)
 
-        CheckSum.download(self.folder_name, self.local_file_path, r_file_path, r_file, sftp)
+        CheckSum.download(self.connection_name, self.local_file_path, r_file_path, r_file, sftp)
 
         # Close
         if sftp:
@@ -296,7 +312,7 @@ class Storage:
                   )
 
         sftp = s.open_sftp()
-        CheckSum.download(self.folder_name,self.local_file_path, r_file_path, r_file, sftp)
+        CheckSum.download(self.connection_name, self.local_file_path, r_file_path, r_file, sftp)
         # Close
         if sftp:
             sftp.close()
@@ -310,11 +326,11 @@ class CheckSum:
     """
 
     @staticmethod
-    def download(folder_name,local_file_path, r_file_path, r_file,sftp):
+    def download(connection_name, local_file_path, r_file_path, r_file, sftp):
         """
         This method checks the conditions before downloading a file, i.e is file CSV or JSON,
         is file size less than 5MB e.t.c
-        :param folder_name:
+        :param connection_name:
         :param local_file_path:
         :param r_file_path:
         :param r_file:
@@ -338,7 +354,7 @@ class CheckSum:
             # 3. load only 5000 records in df
             df = pd.read_csv(local_file_path, nrows=5000)
             # 4. add prefix -- sftp.prod.filename(without extension)
-            df.columns = [f"sftp.{folder_name}.{r_file}.{f}" for f in df.columns]
+            df.columns = [f"sftp.{connection_name}.{r_file}.{f}" for f in df.columns]
             # 5. overwrite the file with updated 5000 records
             df.to_csv(f'{get_user_data_home()}/.__temp__/{os.path.basename(local_file_path)}', index=False)
         else:
