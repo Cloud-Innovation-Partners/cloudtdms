@@ -43,47 +43,58 @@ json:
 # MySQL
 mysql:
   mysql_test:         # Connection Name
-    host: ""          # MySQL host name
-    database: ""      # MySQL database name
-    username: ""      # MySQL username Base64 Encrypted
-    password: ""      # MySQL password Base64 Encrypted
+    host: "127.0.0.1"          # MySQL host name
+    database: "dev"      # MySQL database name
+    username: "YWtlZWwK"      # MySQL username Base64 Encrypted
+    password: "YWtlZWwK"      # MySQL password Base64 Encrypted
     port: "3306"      # MySQL port default is 3306
 
 # Postgres
 postgres:
   postgres_test:      # Connection Name
-    host: ""          # Postgres host name
-    database: ""      # Postgres database name
-    username: ""      # Postgres username Base64 Encrypted
-    password: ""      # Postgres password Base64 Encrypted
+    host: "127.0.0.1"          # Postgres host name
+    database: "dev"      # Postgres database name
+    username: "cG9zdGdyZXMK"      # Postgres username Base64 Encrypted
+    password: "cG9zdGdyZXMK"      # Postgres password Base64 Encrypted
     port: "5432"      # Postgres port default is 5432
 
 # MSSQL
 mssql:
   mssql_test:           # Connection Name
-    host: ""            # MSSQL host name
-    database: ""        # MSSQL database name
-    username: ""        # MSSQL user name Base64 Encrypted
-    password: ""        # MSSQL password Base64 Encrypted
+    host: "127.0.0.1"            # MSSQL host name
+    database: "dev"        # MSSQL database name
+    username: "U0EK"        # MSSQL user name Base64 Encrypted
+    password: "YWtlZWxAMTIzCg=="        # MSSQL password Base64 Encrypted
     port: "1433"        # MSSQL port default is 1433
 
 # Network Storages
 
 # SFTP
 sftp:
-  sftp_test:              # Connection Name
-    host: ""              # SFTP host name
-    username: ""          # SFTP login name Base64 Encrypted
-    password: ""          # SFTP login password Base64 Encrypted
-    port: 22              # SFTP port
-    ssh_public_key: ""    # path to ssh public key
-    passphrase: ""        # passphrase required for accessing ssh keys (optional)
-    
+  sftp_test:          # Connection Name
+    host: "40.117.252.42"          # SFTP host name
+    username: "TXVoYW1tYWRfQWtlZWwK"      # SFTP login name Base64 Encrypted
+    password: ""      # SFTP login password Base64 Encrypted
+    port: "22"          # SFTP port
+    ssh_public_key: "/home/muhammad/.ssh/ssh_key.pub"  # path to ssh public key
+    passphrase: "YWtlZWxAMzIwNAo="
+
+
 # SAAS Platforms
 
 # ServiceNow
 servicenow:
-  test:                         # Connection Name
-    host: ""                    # ServiceNow instance
-    username: ""                # Base64 encrypted username
-    password: ""                # Base64 encrypted password
+  production:
+    host: "dev97751"
+    username: "YWRtaW4="
+    password: "YVRvWGV3NjlnTkRG"
+  development:
+    host: "dev58733"
+    username: "YWRtaW4="
+    password: "eGJBZER5OWYqQlo4OUJEel5GcFQ4dis/azw6K281"
+
+
+
+
+
+#sftp password :bXVoYW1tYWRha2VlbEAzMjA0Cg==
