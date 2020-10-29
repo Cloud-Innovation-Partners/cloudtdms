@@ -102,6 +102,14 @@ def mssql_upload(**kwargs):
         # REASON: mssql throws exception on nan values: "Invalid column name 'nan'"
         csv_file.fillna('null', inplace=True)
 
+        # change column datatype numpy.int64 to string, mssql throws exception
+        new_dtype={}
+        unexpected_dtype_cols= list((csv_file.select_dtypes(include=['int64','int32','float64','float32'])).columns)
+        for col in unexpected_dtype_cols:
+            new_dtype[col] = 'str'
+
+        csv_file = csv_file.astype(new_dtype)
+
         # store the data in the database
         n_objects = Converter.df_to_gen(csv_file)
         storage = Storage(user, password, host, database, table_name, port)
