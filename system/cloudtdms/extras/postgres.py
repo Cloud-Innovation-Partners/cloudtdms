@@ -17,8 +17,22 @@ import pandas as pd
 from sqlalchemy import create_engine
 from pandas.io import sql
 from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
+import numpy
+from psycopg2.extensions import register_adapter, AsIs
+
 
 valid_dbs = {}
+
+
+def addapt_numpy_float64(numpy_float64):
+    return AsIs(numpy_float64)
+
+def addapt_numpy_int64(numpy_int64):
+    return AsIs(numpy_int64)
+
+register_adapter(numpy.float64, addapt_numpy_float64)
+
+register_adapter(numpy.int64, addapt_numpy_int64)
 
 
 def get_postgres_config_default():
@@ -39,6 +53,7 @@ def validate_mysql_credentials(database_list):
             raise ValueError(f"Host in {db['connection']} database has in-valid format in config_default.yaml")
 
         valid_dbs[db['connection']] = db['table']
+
 
 def decode_(field):
     base64_bytes = field.encode("UTF-8")
@@ -67,9 +82,10 @@ def get_sub_query(column_names):
     query = query.strip().strip(',')
     return query
 
+
 # MAIN FUNCTION #
 def postgres_upload(**kwargs):
-    database = kwargs['database']
+    connection_name = kwargs['connection']
     prefix = kwargs['prefix']
     execution_date = kwargs['execution_date']
     table_name = kwargs['table_name']
@@ -84,13 +100,15 @@ def postgres_upload(**kwargs):
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     csv_file = pd.read_csv(latest_file_path)
 
-    is_available = True if database in connection_in_yaml else False
+    is_available = True if connection_name in connection_in_yaml else False
 
     if is_available:
-        user = decode_(connection_in_yaml[database]['username']).replace('\n', '')
-        password = decode_(connection_in_yaml[database]['password']).replace('\n', '')
-        host = connection_in_yaml[database]['host'].replace(' ', '')
-        port = int(connection_in_yaml[database]['port'].replace(' ', ''))
+        database = connection_in_yaml.get(connection_name).get('database')
+        user = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
+        password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
+        host = connection_in_yaml.get(connection_name).get('host').replace(' ', '')
+        port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+            'port') else 5432
 
         LoggingMixin().log.info(f'Inserting data in {database}, {table_name}')
         engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
@@ -117,17 +135,25 @@ def postgres_upload(**kwargs):
             storage.create_table(list(csv_file.columns))
             storage.insert_data(n_objects)
     else:
-        raise AttributeError(f"{database} not found in config_default.yaml")
+        raise AttributeError(f"{connection_name} not found in config_default.yaml")
+
 
 def postgres_download(**kwargs):
-    database = kwargs['database']
+    connection_name = kwargs['connection']
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
-    username = decode_(get_postgres_config_default().get(database).get('username'))
-    password = decode_(get_postgres_config_default().get(database).get('password'))
-    host = get_postgres_config_default().get(database).get('host') if get_postgres_config_default().get(database).get('host') else None
-    port = int(get_postgres_config_default().get(database).get('port')) if get_postgres_config_default().get(database).get('port') else 3306
+
+    connection_in_yaml = get_postgres_config_default()
+
+    database = connection_in_yaml.get(connection_name).get('database')
+    username = decode_(connection_in_yaml.get(connection_name).get('username'))
+    password = decode_(connection_in_yaml.get(connection_name).get('password'))
+    host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get(
+        'host') else None
+    port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+        'port') else 5432
+
     if host is not None:
         connection = pg.connect(
             host=host,
@@ -137,7 +163,7 @@ def postgres_download(**kwargs):
             port=port
         )
 
-        file_name = f"postgres_{database}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
+        file_name = f"postgres_{connection_name}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         try:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 # Get PRIMARY INDEX column
@@ -158,14 +184,15 @@ def postgres_download(**kwargs):
                     sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"postgres.{database}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"postgres.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 else:
-                    LoggingMixin().log.warn(f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
+                    LoggingMixin().log.warn(
+                        f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
                     sql = f"SELECT * FROM {table_name} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"postgres.{database}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"postgres.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 try:
                     df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
@@ -178,6 +205,7 @@ def postgres_download(**kwargs):
     else:
         LoggingMixin().log.error(f"NoHostFound: No host was found for database {database}")
 
+
 class Converter():
 
     @staticmethod
@@ -185,6 +213,7 @@ class Converter():
         yield tuple(csv_file.columns)
         for i in range(len(csv_file)):
             yield tuple(csv_file.iloc[i])
+
 
 class Storage():
     """
@@ -275,4 +304,3 @@ class Storage():
             conn.commit()
             lst.clear()
         conn.close()
-
