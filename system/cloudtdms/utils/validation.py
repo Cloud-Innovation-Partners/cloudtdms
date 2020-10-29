@@ -61,12 +61,16 @@ def check_schema_type(stream, name):
     schema = stream.get('synthetic')  # "schema" is now "synthetic"
     if schema is not None:
         if not isinstance(schema, list):
-            LoggingMixin().log.error(f"TypeError: `schema` must be of type `list` in {name}.py")
+            LoggingMixin().log.error(f"TypeError: `synthetic` must be of type `list` in {name}.py")
             result = False
         else:
-            result = check_schema_attribs(schema, name)
+            if len(schema) > 0:
+                result = check_schema_attribs(schema, name)
+            else:
+                LoggingMixin().log.error(f"`synthetic` cannot be empty in {name}.py")
+                result = False
     else:
-        pass
+        LoggingMixin().log.warn(f"`synthetic` attribute not found  in {name}.py")
 
     return result
 
@@ -149,16 +153,19 @@ def check_source(stream, name):
             LoggingMixin().log.error(f'TypeError: `source` is not of type `dictionary` in {name}.py')
             result = False
         else:
-            for key in SOURCE:
-                if not isinstance(SOURCE.get(key), list):
-                    LoggingMixin().log.error(f'TypeError:In `source`, `{key}`  is not of type `list` in {name}.py')
-                    result = False
-                else:
-                    result = check_internal_attributes(key, SOURCE.get(key), name, parent='source')
-
+            if len(SOURCE) > 0:
+                for key in SOURCE:
+                    if not isinstance(SOURCE.get(key), list):
+                        LoggingMixin().log.error(f'TypeError:In `source`, `{key}`  is not of type `list` in {name}.py')
+                        result = False
+                    else:
+                        result = check_internal_attributes(key, SOURCE.get(key), name, parent='source')
+            else:
+                LoggingMixin().log.error(f"`source` cannot be empty in {name}.py")
+                result = False
     else:
         LoggingMixin().log.warn(f'`source` is not present  in {name}.py')
-        result = False
+        result = False #necessary here
 
     return result
 
@@ -257,12 +264,12 @@ def check_delete(stream, name):
 
 
 def check_mask_out_atrributes(mask, name):
-    result =True
+    result = True
     if mask is not None:
         if 'with' not in mask or 'characters' not in mask or 'from' not in mask:
             LoggingMixin().log.error(
                 f"AttributeError: `with`,`characters` and  `from` are mandatory for mask_out in  {name}.py")
-            result= False
+            result = False
         else:
 
             if not isinstance(mask['characters'], int):
@@ -290,10 +297,10 @@ def check_mask_out(stream, name):
         if mask_out is not None:
             if not isinstance(mask_out, (set, list)):
                 LoggingMixin().log.error(f'TypeError: `mask_out` is not of type `set or list` in {name}.py')
-                result =False
+                result = False
             else:
                 result = check_mask_out_atrributes(mask, name)
-    return  result
+    return result
 
 
 def check_destination(stream, name):
@@ -305,13 +312,17 @@ def check_destination(stream, name):
             result = False
         else:
             result = True
-            for key in DESTINATION:
-                if not isinstance(DESTINATION.get(key), list):
-                    LoggingMixin().log.error(
-                        f'TypeError: In `destination`, `{key}`  is not of type `list` in {name}.py')
-                    result =False
-                else:
-                    result = check_internal_attributes(key, DESTINATION.get(key), name, parent='destination')
+            if len(DESTINATION) > 0:
+                for key in DESTINATION:
+                    if not isinstance(DESTINATION.get(key), list):
+                        LoggingMixin().log.error(
+                            f'TypeError: In `destination`, `{key}`  is not of type `list` in {name}.py')
+                        result = False
+                    else:
+                        result = check_internal_attributes(key, DESTINATION.get(key), name, parent='destination')
+            else:
+                LoggingMixin().log.error(f"`destination` cannot be empty in {name}.py")
+                result = False
     else:
         LoggingMixin().log.warn(f'`destination` is not present  in {name}.py')
     return result
@@ -324,7 +335,7 @@ def check_output_schema(stream, name):
         if not isinstance(output_schema, (dict, list, set)):
             LoggingMixin().log.error(
                 f'TypeError: `output_schema` is not of type `dictionary or set or list` in {name}.py')
-            result =False
+            result = False
 
     else:
         LoggingMixin().log.error(f"AttributeError: `output_schema` attribute not found in {name}.py")
@@ -339,17 +350,17 @@ class Validation:
     def validate(stream, name):
         # any([True, False, True])
         return any(
-                    [
-                        check_mandatory_field(stream, name),
-                        check_schema_type(stream, name),
-                        check_source(stream, name),
-                        check_substitute(stream, name),
-                        check_encrypt(stream, name),
-                        check_shuffle(stream, name),
-                        check_nullying(stream, name),
-                        check_delete(stream, name),
-                        check_mask_out(stream, name),
-                        check_destination(stream, name),
-                        check_output_schema(stream, name)
-                    ]
-                 )
+            [
+                check_mandatory_field(stream, name),
+                check_schema_type(stream, name),
+                check_source(stream, name),
+                check_substitute(stream, name),
+                check_encrypt(stream, name),
+                check_shuffle(stream, name),
+                check_nullying(stream, name),
+                check_delete(stream, name),
+                check_mask_out(stream, name),
+                check_destination(stream, name),
+                check_output_schema(stream, name)
+            ]
+        )
