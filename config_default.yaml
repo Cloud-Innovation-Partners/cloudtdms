@@ -71,13 +71,14 @@ mssql:
 
 # SFTP
 sftp:
-  sftp_test:          # Connection Name
-    host: ""          # SFTP host name
-    username: ""      # SFTP login name Base64 Encrypted
-    password: ""      # SFTP login password Base64 Encrypted
-    port: 22          # SFTP port
-    public_key: ""    # path to ssh public key
-
+  sftp_test:              # Connection Name
+    host: ""              # SFTP host name
+    username: ""          # SFTP login name Base64 Encrypted
+    password: ""          # SFTP login password Base64 Encrypted
+    port: 22              # SFTP port
+    ssh_public_key: ""    # path to ssh public key
+    passphrase: ""        # passphrase required for accessing ssh keys (optional)
+    
 # SAAS Platforms
 
 # ServiceNow

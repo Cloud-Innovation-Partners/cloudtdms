@@ -23,6 +23,11 @@ def clean_up(**kwargs):
                 os.remove(f_path)
             except Exception:
                 LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
+    else:
+        try:
+            os.remove(f_path)
+        except Exception:
+            LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
 
     # clean_up source extract files
     suffix = f"{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
