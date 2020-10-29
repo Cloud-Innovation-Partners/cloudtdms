@@ -165,7 +165,6 @@ def check_source(stream, name):
                 result = False
     else:
         LoggingMixin().log.warn(f'`source` is not present  in {name}.py')
-        result = False #necessary here
 
     return result
 

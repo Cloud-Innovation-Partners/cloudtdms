@@ -275,8 +275,9 @@ class Storage():
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
         print(f"INSERT QUERY: {sql} ")
         # insert second_record, first_record is column names
-        cursor.execute(sql, next(n_objects))
-        conn.commit()
+
+        # cursor.execute(sql, next(n_objects))
+        # conn.commit()
 
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)

@@ -68,7 +68,7 @@ def get_sub_query(column_names):
 
 
 def mysql_upload(**kwargs):
-    database = kwargs['database']
+    connection_name = kwargs['connection']
     prefix = kwargs['prefix']
     execution_date = kwargs['execution_date']
     table_name = kwargs['table_name']
@@ -89,13 +89,16 @@ def mysql_upload(**kwargs):
 
     df_file.fillna("null", inplace=True)
 
-    is_available = True if database in connection_in_yaml else False
+    is_available = True if connection_name in connection_in_yaml else False
 
     if is_available:
-        user = decode_(connection_in_yaml[database]['username']).replace('\n', '')
-        password = decode_(connection_in_yaml[database]['password']).replace('\n', '')
-        host = connection_in_yaml[database]['host'].replace(' ', '')
-        port = int(connection_in_yaml[database]['port'].replace(' ', ''))
+        database = connection_in_yaml.get(connection_name).get('database')
+        user = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
+        password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
+        host = connection_in_yaml.get(connection_name).get('host').replace(' ', '')
+        port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+            'port') else 3306
+
 
         LoggingMixin().log.info(f'Inserting data in {database}, {table_name}')
         engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
@@ -122,18 +125,23 @@ def mysql_upload(**kwargs):
             storage.create_table(list(df_file.columns))
             storage.insert_data(n_objects)
     else:
-        raise AttributeError(f"{database} not found in config_default.yaml")
+        raise AttributeError(f"{connection_name} not found in config_default.yaml")
 
 
 def mysql_download(**kwargs):
-    database = kwargs['database']
+    connection_name = kwargs['connection']
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
-    username = decode_(get_mysql_config_default().get(database).get('username')).replace('\n', '')
-    password = decode_(get_mysql_config_default().get(database).get('password')).replace('\n', '')
-    host = get_mysql_config_default().get(database).get('host') if get_mysql_config_default().get(database).get('host') else None
-    port = int(get_mysql_config_default().get(database).get('port')) if get_mysql_config_default().get(database).get('port') else 3306
+
+    connection_in_yaml=get_mysql_config_default()
+
+    database=connection_in_yaml.get(connection_name).get('database')
+    username = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
+    password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
+    host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get('host') else None
+    port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get('port') else 3306
+
     if host is not None:
         connection = pymysql.connect(
             host=host,
@@ -143,7 +151,7 @@ def mysql_download(**kwargs):
             cursorclass=pymysql.cursors.DictCursor,
             port=port
         )
-        file_name = f"mysql_{database}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
+        file_name = f"mysql_{connection_name}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         try:
             with connection.cursor() as cursor:
                 # Get PRIMARY INDEX column
@@ -157,7 +165,7 @@ def mysql_download(**kwargs):
                     sql = f"SELECT * FROM `{table_name}` ORDER BY `{primary_index}` DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mysql.{database}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"mysql.{connection_name}.{table_name}.{f}" for f in df.columns]
 
 
                 else:
@@ -165,7 +173,7 @@ def mysql_download(**kwargs):
                     sql = f"SELECT * FROM `{table_name}` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mysql.{database}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"mysql.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 try:
                     df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
