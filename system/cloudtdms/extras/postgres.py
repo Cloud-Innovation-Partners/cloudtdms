@@ -20,7 +20,6 @@ from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
 import numpy
 from psycopg2.extensions import register_adapter, AsIs
 
-
 valid_dbs = {}
 
 
@@ -33,7 +32,6 @@ def addapt_numpy_int64(numpy_int64):
 register_adapter(numpy.float64, addapt_numpy_float64)
 
 register_adapter(numpy.int64, addapt_numpy_int64)
-
 
 def get_postgres_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
