@@ -9,7 +9,7 @@ import sqlalchemy
 import yaml
 from sqlalchemy.pool import NullPool
 
-from system.dags import get_config_default_path, get_output_data_home,get_user_data_home
+from system.dags import get_config_default_path, get_output_data_home, get_user_data_home
 from airflow.utils.log.logging_mixin import LoggingMixin
 import pandas as pd
 from sqlalchemy import create_engine
@@ -54,6 +54,7 @@ def get_new_columns(schema_columns, csv_file_cols):
     # if len(new_cols) is >0, means schema changed, 0 - schema not changed
     return new_cols
 
+
 def get_sub_query(column_names):
     """This method returns a query """
     # 'CREATE TABLE ABC (name varchar(50), address varchar(50))'
@@ -66,9 +67,10 @@ def get_sub_query(column_names):
     query = query.strip().strip(',')
     return query
 
+
 # MAIN FUNCTION #
 def mssql_upload(**kwargs):
-    database = kwargs['database']
+    connection_name = kwargs['connection']
     prefix = kwargs['prefix']
     execution_date = kwargs['execution_date']
     table_name = kwargs['table_name']
@@ -83,16 +85,22 @@ def mssql_upload(**kwargs):
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     csv_file = pd.read_csv(latest_file_path)
 
-    is_available = True if database in connection_in_yaml else False
+    is_available = True if connection_name in connection_in_yaml else False
 
     if is_available:
-        user = decode_(connection_in_yaml[database]['username']).replace('\n', '')
-        password = decode_(connection_in_yaml[database]['password']).replace('\n', '')
-        host = connection_in_yaml[database]['host'].replace(' ', '')
-        port = int(connection_in_yaml[database]['port'].replace(' ', ''))
+        database = connection_in_yaml.get(connection_name).get('database')
+        user = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
+        password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
+        host = connection_in_yaml.get(connection_name).get('host').replace(' ', '')
+        port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+            'port') else 1433
 
         LoggingMixin().log.info(f'Inserting data in {database}, {table_name}')
         engine = create_engine(f"mssql+pymssql://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
+
+        #replace nan in df with Null if present.
+        # REASON: mssql throws exception on nan values: "Invalid column name 'nan'"
+        csv_file.fillna('null', inplace=True)
 
         # store the data in the database
         n_objects = Converter.df_to_gen(csv_file)
@@ -116,18 +124,25 @@ def mssql_upload(**kwargs):
             storage.create_table(list(csv_file.columns))
             storage.insert_data(n_objects)
     else:
-        raise AttributeError(f"{database} not found in config_default.yaml")
+        raise AttributeError(f"{connection_name} not found in config_default.yaml")
 
 
 def mssql_download(**kwargs):
-    database = kwargs['database']
+    connection_name = kwargs['connection']
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
-    username = decode_(get_mssql_config_default().get(database).get('username'))
-    password = decode_(get_mssql_config_default().get(database).get('password'))
-    host = get_mssql_config_default().get(database).get('host') if get_mssql_config_default().get(database).get('host') else None
-    port = int(get_mssql_config_default().get(database).get('port')) if get_mssql_config_default().get(database).get('port') else 3306
+
+    connection_in_yaml=get_mssql_config_default()
+
+    database = connection_in_yaml.get(connection_name).get('database')
+    username = decode_(connection_in_yaml.get(connection_name).get('username'))
+    password = decode_(connection_in_yaml.get(connection_name).get('password'))
+    host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get(
+        'host') else None
+    port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+        'port') else 1433
+
     if host is not None:
         connection = ms.connect(
             host=host,
@@ -137,7 +152,7 @@ def mssql_download(**kwargs):
             port=port
         )
 
-        file_name = f"mssql_{database}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
+        file_name = f"mssql_{connection_name}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         try:
             with connection.cursor(as_dict=True) as cursor:
                 # Get PRIMARY INDEX column
@@ -147,20 +162,21 @@ def mssql_download(**kwargs):
                         WHERE table_name='{table_name}'
                         """
                 cursor.execute(sql)
-                result = cursor.fetchone() # result contains dict- {'COLUMN_NAME', 'id'}
+                result = cursor.fetchone()  # result contains dict- {'COLUMN_NAME', 'id'}
                 primary_index = result.get('COLUMN_NAME') if result is not None else None
                 if primary_index is not None:
-                    sql=f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name} ORDER BY {primary_index} DESC"
+                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name} ORDER BY {primary_index} DESC"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mssql.{database}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"mssql.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 else:
-                    LoggingMixin().log.warn(f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
+                    LoggingMixin().log.warn(
+                        f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
                     sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mssql.{database}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"mssql.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 try:
                     df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
@@ -172,6 +188,7 @@ def mssql_download(**kwargs):
             connection.close()
     else:
         LoggingMixin().log.error(f"NoHostFound: No host was found for database {database}")
+
 
 class Converter():
 
@@ -264,6 +281,7 @@ class Storage():
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)
             for i in itr:
+                LoggingMixin().log.info(f"COL VALUES: {i}")
                 lst.append(i)
             # print(lst)
             if not lst:  # check for lst is empty, if empty that means end of generator is reached.
@@ -272,8 +290,3 @@ class Storage():
             conn.commit()
             lst.clear()
         conn.close()
-
-
-
-
-

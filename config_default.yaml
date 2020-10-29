@@ -78,7 +78,7 @@ sftp:
     port: 22              # SFTP port
     ssh_public_key: ""    # path to ssh public key
     passphrase: ""        # passphrase required for accessing ssh keys (optional)
-    
+
 # SAAS Platforms
 
 # ServiceNow
