@@ -60,7 +60,7 @@ def get_sub_query(column_names):
     query = 'id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, '
     dtype = 'VARCHAR(255), '
     for col in column_names:
-        table_column = f"`{col}` {dtype}" #col + ' ' + dtype 
+        table_column = f"`{col}` {dtype}" #col + ' ' + dtype
         query += table_column
 
     query = query.strip().strip(',')
@@ -88,6 +88,14 @@ def mysql_upload(**kwargs):
         df_file = pd.read_csv(latest_file_path)
 
     df_file.fillna("null", inplace=True)
+
+    # change column datatype numpy.bool_ to string, mysql throws exception
+    new_dtype = {}
+    unexpected_dtype_cols = list((df_file.select_dtypes(include=['bool'])).columns)
+    for col in unexpected_dtype_cols:
+        new_dtype[col] = 'str'
+
+    df_file = df_file.astype(new_dtype)
 
     is_available = True if connection_name in connection_in_yaml else False
 
@@ -267,6 +275,7 @@ class Storage:
         column_names = list(cols)
         placeholders = ''.join("%s," * len(column_names))
         placeholders = placeholders.strip(',')
+        column_names = [f"`{i}`" for i in column_names] # wrap around ``, if column names are keywords e.g range, mysql throws exception
         column_names = ",".join(column_names)
 
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
