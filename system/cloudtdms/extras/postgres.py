@@ -103,6 +103,9 @@ def postgres_upload(**kwargs):
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     csv_file = pd.read_csv(latest_file_path)
 
+    # replace all Nan with None
+    csv_file.fillna("NULL", inplace=True)
+
     is_available = True if connection_name in connection_in_yaml else False
 
     if is_available:
