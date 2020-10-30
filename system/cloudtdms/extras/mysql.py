@@ -60,7 +60,7 @@ def get_sub_query(column_names):
     query = 'id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, '
     dtype = 'VARCHAR(255), '
     for col in column_names:
-        table_column = col + ' ' + dtype
+        table_column = f"`{col}` {dtype}" #col + ' ' + dtype 
         query += table_column
 
     query = query.strip().strip(',')
