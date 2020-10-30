@@ -6,6 +6,7 @@ import yaml
 import smtplib
 import ssl
 import email
+import base64
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -23,11 +24,11 @@ class SMTPEmail():
 
     @property
     def username(self):
-        return SMTPEmail.get_email_config_default().get('username')
+        return base64.b64decode(SMTPEmail.get_email_config_default().get('username')).decode('utf-8')
 
     @property
     def password(self):
-        return SMTPEmail.get_email_config_default().get('password')
+        return base64.b64decode(SMTPEmail.get_email_config_default().get('password')).decode('utf-8')
 
     @property
     def subject(self):
