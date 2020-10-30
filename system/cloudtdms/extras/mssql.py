@@ -104,7 +104,7 @@ def mssql_upload(**kwargs):
 
         # change column datatype numpy.int64 to string, mssql throws exception
         new_dtype={}
-        unexpected_dtype_cols= list((csv_file.select_dtypes(include=['int64','int32','float64','float32'])).columns)
+        unexpected_dtype_cols= list((csv_file.select_dtypes(include=['int64','int32','float64','float32','bool'])).columns)
         for col in unexpected_dtype_cols:
             new_dtype[col] = 'str'
 
