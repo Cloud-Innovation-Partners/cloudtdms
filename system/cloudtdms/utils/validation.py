@@ -40,6 +40,7 @@ def check_mandatory_field(stream, name):
 
 
 def check_schema_attribs(schema, name):
+    stored_field_names=[]
     result = True
     for sch in schema:
         if not isinstance(sch, dict):
@@ -53,6 +54,15 @@ def check_schema_attribs(schema, name):
             if 'type' not in sch:
                 LoggingMixin().log.error(f'AttributeError: `type` attribute not present in `synthetic` in {name}.py')
                 result = False
+
+            #means field_name is present now
+            # check for duplicates field_names in synthetic, because dataframe cannot hold two columns of same name.
+            field_name = sch.get('field_name')
+            if field_name in stored_field_names:
+                LoggingMixin().log.error(f'Duplicate field_name `{field_name}` found in `synthetic` attribute for {name}.py')
+            else:
+                stored_field_names.append(field_name)
+
     return result
 
 
@@ -331,9 +341,13 @@ def check_output_schema(stream, name):
     result = True
     if 'output_schema' in stream:
         output_schema = stream.get('output_schema')
-        if not isinstance(output_schema, (dict, list, set)):
-            LoggingMixin().log.error(
-                f'TypeError: `output_schema` is not of type `dictionary or set or list` in {name}.py')
+        if len(output_schema) > 0:
+            if not isinstance(output_schema, (dict, list, set)):
+                LoggingMixin().log.error(
+                    f'TypeError: `output_schema` is not of type `dictionary or set or list` in {name}.py')
+                result = False
+        else:
+            LoggingMixin().log.error(f"`output_schema` cannot be empty in {name}.py")
             result = False
 
     else:
