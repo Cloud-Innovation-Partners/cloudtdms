@@ -258,8 +258,12 @@ class Storage():
                 LoggingMixin().log.info(f'ALTER QUERY {alter_query}')
                 cursor.execute(alter_query)
                 conn.commit()
-            except (psycopg2.errors.DuplicateColumn, psycopg2.errors.InFailedSqlTransaction):
+            except (psycopg2.errors.DuplicateColumn):
                 LoggingMixin().log.info(f'{col} already existed, Alter command cannot be executed...')
+                conn.rollback()
+            except psycopg2.errors.InFailedSqlTransaction:
+                LoggingMixin().log.info(f'Rolling back transaction...')
+                conn.rollback()
         conn.close()
 
     def create_table(self, column_names):
