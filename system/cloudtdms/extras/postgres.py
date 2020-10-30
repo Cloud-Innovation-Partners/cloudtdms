@@ -66,6 +66,8 @@ def decode_(field):
 
 
 def get_new_columns(schema_columns, csv_file_cols):
+    schema_columns=list(map(lambda  x:x.lower(), schema_columns))
+    csv_file_cols=list(map(lambda  x:x.lower(), csv_file_cols))
     s1s2 = set(schema_columns) - set(csv_file_cols)
     s2s1 = set(csv_file_cols) - set(schema_columns)
     new_cols = s1s2.union(s2s1)
