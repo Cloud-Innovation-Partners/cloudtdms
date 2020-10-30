@@ -25,7 +25,7 @@ def generate_eda_profile():
         os.makedirs(path)
     except FileExistsError:
         pass
-    profile.to_file(f"{path}/profiling_{dag.params.get('data_file')}.html")
+    profile.to_file(f"{path}/profiling_{file_name}.html")
 
 def generate_sensitive_data_profile():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))
@@ -58,8 +58,9 @@ def generate_sensitive_data_profile():
     profile.to_file(f"{path}/pii_{file_name}.html")
 
 def email_reports():
+    file_name, extension = os.path.splitext(dag.params.get('data_file'))
     email = SMTPEmail()
-    email.add_attachments(directory_path=f"{get_reports_home()}/{dag.params.get('data_file')}", file_format='.html')
+    email.add_attachments(directory_path=f"{get_reports_home()}/{file_name}", file_format='.html')
     email.send_email()
 
 {% endblock operator_functions %}
