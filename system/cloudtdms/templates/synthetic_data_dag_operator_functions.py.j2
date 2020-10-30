@@ -24,10 +24,14 @@ def clean_up(**kwargs):
             except Exception:
                 LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
     else:
-        try:
-            os.remove(f_path)
-        except Exception:
-            LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
+        # backward compatible
+        if len(destinations) == 0:
+            LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
+        else:
+            try:
+                os.remove(f_path)
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
 
     # clean_up source extract files
     suffix = f"{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
@@ -183,7 +187,7 @@ def data_generator(**kwargs):
             if col not in all_columns:
                 all_columns.append(col)
 
-        stream['original_order_of_columns'] = all_columns
+        #stream['original_order_of_columns'] = all_columns
 
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
 
@@ -241,36 +245,33 @@ def data_generator(**kwargs):
                 generate_iterator(data_frame, methods,args_array)
     file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}"
     try:
-        if 'source' in stream:
-            data_frame = data_frame[stream['original_order_of_columns']]
+        #data_frame = data_frame[stream['original_order_of_columns']]
 
-            # Attribute output_schema
+        # Attribute output_schema
 
-            output_schema = stream['output_schema'] if 'output_schema' in stream else None
-            if output_schema is None:
-                raise AttributeError("attribute `output_schema` not defined in STREAM")
+        output_schema = stream['output_schema'] if 'output_schema' in stream else None
+        if output_schema is None:
+            raise AttributeError("attribute `output_schema` not defined in STREAM")
 
-            # truncate dataframe
-            try:
-                if type(output_schema) is dict:
-                    data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
-                else:
-                    data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema], inplace=True, axis=1)
-            except KeyError:
-                LoggingMixin().log.warn(exc_info=True)
-
-            # rename columns
+        # truncate dataframe
+        try:
             if type(output_schema) is dict:
-                data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
-
-          # reorder
-            if type(output_schema) is dict:
-                data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
-                data_frame = data_frame.reindex(output_schema.values(), axis=1)
+                data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
             else:
-                data_frame = data_frame.reindex(output_schema, axis=1)
-                data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+                data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema], inplace=True, axis=1)
+        except KeyError:
+            LoggingMixin().log.warn(exc_info=True)
+
+        # rename columns
+        if type(output_schema) is dict:
+            data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
+
+      # reorder
+        if type(output_schema) is dict:
+            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+            data_frame = data_frame.reindex(output_schema.values(), axis=1)
         else:
+            data_frame = data_frame.reindex(output_schema, axis=1)
             data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
 
 
