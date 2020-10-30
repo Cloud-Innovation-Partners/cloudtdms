@@ -290,7 +290,6 @@ class Storage():
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)
             for i in itr:
-                LoggingMixin().log.info(f"COL VALUES: {i}")
                 lst.append(i)
             # print(lst)
             if not lst:  # check for lst is empty, if empty that means end of generator is reached.
