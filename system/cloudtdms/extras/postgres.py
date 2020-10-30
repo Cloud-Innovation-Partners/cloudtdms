@@ -29,9 +29,14 @@ def addapt_numpy_float64(numpy_float64):
 def addapt_numpy_int64(numpy_int64):
     return AsIs(numpy_int64)
 
+def addapt_numpy_bool(numpy_bool):
+    return AsIs(numpy_bool)
+
 register_adapter(numpy.float64, addapt_numpy_float64)
 
 register_adapter(numpy.int64, addapt_numpy_int64)
+
+register_adapter(numpy.bool_, addapt_numpy_bool)
 
 def get_postgres_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
