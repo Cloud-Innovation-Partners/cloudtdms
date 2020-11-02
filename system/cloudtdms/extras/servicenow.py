@@ -104,6 +104,8 @@ class CTDMS2ServiceNow:
                                     url="https://{}.service-now.com/api/now/table/{}?".format(self.service_now_instance, self.table_name),
                                     params={
                                         "sysparm_query": "active=true^ORDERBYDESCsys_updated_on",
+                                        "sysparm_display_value": "true",
+                                        "sysparm_exclude_reference_link": "true",
                                         "sysparm_limit": "{}".format(limit)
                                     },
                                     headers=headers,
