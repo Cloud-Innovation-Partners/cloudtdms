@@ -214,7 +214,7 @@ def data_generator(**kwargs):
 
     locale=dag.params.get('stream').get('locale')
 
-    nrows = int(stream['number'])
+    nrows = int(stream['number']) if int(stream['number']) < SOURCE_DOWNLOAD_LIMIT else SOURCE_DOWNLOAD_LIMIT
     ncols = sum([len(f) for f in attributes.values()])
     columns = []
     labels = [columns.extend(f) for f in attributes.values()]
