@@ -20,6 +20,7 @@ pymysql.converters.encoders[np.int64] = pymysql.converters.escape_int
 pymysql.converters.conversions = pymysql.converters.encoders.copy()
 pymysql.converters.conversions.update(pymysql.converters.decoders)
 
+
 def get_mysql_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
     if config is not None and config.get('mysql', None) is not None:
@@ -60,7 +61,7 @@ def get_sub_query(column_names):
     query = 'id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, '
     dtype = 'VARCHAR(255), '
     for col in column_names:
-        table_column = f"`{col}` {dtype}" #col + ' ' + dtype
+        table_column = f"`{col}` {dtype}"  # col + ' ' + dtype
         query += table_column
 
     query = query.strip().strip(',')
@@ -107,7 +108,6 @@ def mysql_upload(**kwargs):
         port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
             'port') else 3306
 
-
         LoggingMixin().log.info(f'Inserting data in {database}, {table_name}')
         engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
 
@@ -142,13 +142,15 @@ def mysql_download(**kwargs):
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
 
-    connection_in_yaml=get_mysql_config_default()
+    connection_in_yaml = get_mysql_config_default()
 
-    database=connection_in_yaml.get(connection_name).get('database')
+    database = connection_in_yaml.get(connection_name).get('database')
     username = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
     password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
-    host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get('host') else None
-    port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get('port') else 3306
+    host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get(
+        'host') else None
+    port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
+        'port') else 3306
 
     if host is not None:
         connection = pymysql.connect(
@@ -177,7 +179,8 @@ def mysql_download(**kwargs):
 
 
                 else:
-                    LoggingMixin().log.warn(f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
+                    LoggingMixin().log.warn(
+                        f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
                     sql = f"SELECT * FROM `{table_name}` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
@@ -231,7 +234,7 @@ class Storage:
     def modify_table(self, table, new_cols):
         """This methods modifies the table present in database for which schema is changed"""
         conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
-                          port=self.port, db=self.database_name)
+                               port=self.port, db=self.database_name)
         cursor = conn.cursor()
         for col in new_cols:
             try:
@@ -251,7 +254,7 @@ class Storage:
             """
 
         conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
-                          port=self.port, db=self.database_name)
+                               port=self.port, db=self.database_name)
         cursor = conn.cursor()
         sub_query = get_sub_query(column_names)
         sql = 'CREATE TABLE IF NOT EXISTS {} ({})'.format(self.table_name, sub_query)
@@ -268,18 +271,31 @@ class Storage:
         lst = []
         step = 100
         conn = pymysql.connect(host=self.host, user=self.login, password=self.password,
-                          db=self.database_name)
+                               db=self.database_name)
         cursor = conn.cursor()
 
         cols = next(n_objects)  # inital record in n_objects will be column names, see Converter.df_to_gen()
         column_names = list(cols)
         placeholders = ''.join("%s," * len(column_names))
         placeholders = placeholders.strip(',')
-        column_names = [f"`{i}`" for i in column_names] # wrap around ``, if column names are keywords e.g range, mysql throws exception
+        column_names = [f"`{i}`" for i in
+                        column_names]  # wrap around ``, if column names are keywords e.g range, mysql throws exception
         column_names = ",".join(column_names)
 
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
         print(f"INSERT QUERY: {sql} ")
+
+        # before inserting data to MySQL change Character Set of table in order to avoid
+        # pymysql.err.DataError : Incorrect string value
+        character_set_query = f"""
+                               ALTER TABLE {self.database_name}.{self.table_name} 
+                               CONVERT TO
+                               CHARACTER SET utf8 
+                               COLLATE utf8_general_ci;
+                            """
+        cursor.execute(character_set_query)
+        conn.commit()
+
         # insert second_record, first_record is column names
         cursor.execute(sql, next(n_objects))
         conn.commit()
