@@ -27,7 +27,7 @@ The `config_default.yaml` file contains entry for each source type, all connecti
 `csv:` key. Above example has two connections named as `my_connection_name_one` and `my_connection_name_two` registered 
 inside `csv:` key. Here `my_connection_one` and `my_connection_two` represent connection names, You can choose any name for representation
 purpose. For both `csv:` and `json:` under each connection name you have two keys `source` and `target`. `source` key takes an absolute
-path of CSV file present on you local machine to be used as a source file, While `target` key takes absolute directory path as a value
+path of CSV file present on your local machine to be used as a source file, While `target` key takes absolute directory path as a value
 to represent the destination folder inside which resultant masked or synthetic data file must be stored.
 
 Your connection name can act as both source as well as destination, depending upon the keys `source` and `target`. When
@@ -58,18 +58,18 @@ STREAM = {
     }   
 }
 ``` 
-Each connection entry in a list has a `connection` attribute that takes a connection name as a value. besides `connection`
+Each connection entry in a list has a `connection` attribute that takes a connection name as a value. Besides `connection`
 attribute we may also have some additional attributes specific to a source type such as `delimiter` etc. 
 
 While defining a CSV data source connection inside `source` attribute of configuration. you can specific the delimiter value 
 using `delimiter` attribute. By default `delimiter` is comma but you can specific any delimiter that is valid for reading 
-you CSV data file. 
+your CSV data file. 
 
 In case of destination connection, `delimiter` value will be used as a delimiting value for the result CSV file.
 
 `CloudTDMS` does not support all JSON types. Only two JSON formats are valid to use. You can either use a JSON Array or
 JSON lines as JSON source files. similarly, output data file can be either created in JSON Array format or as JSON Lines.
-`type` attribute in a connection entry is used to define the type of JSON to be used.
+`type` attribute in a connection entry is used to define the type of JSON to be used. This attribute takes `array` or `lines` as a value
 
 **Example of JSON Array**
 ```json
@@ -153,8 +153,7 @@ STREAM = {
 }
 ``` 
 Each connection entry for database must have `table` attribute value set. This attribute specifies the table name inside the 
-database to be used as source or destination. The table need not to be created, but database must be created prior using it.
-tables are created by `CloudTDMS` dynamically.
+database to be used as source or destination. If you are using database as `destination` entity, the table need not to be created, but database must be created prior using it. Tables are created by `CloudTDMS` dynamically.
 
 > **Note:** credentials for a database inside `config_default.yaml` file must have requisite permissions to create tables and alter schemas.
 
@@ -273,4 +272,3 @@ sftp to be used as source or destination.
 
 > **Note:** credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
- 
