@@ -339,7 +339,7 @@ more details about data masking feature provided by `CloudTDMS` please refer to 
                      under `providers` of `CloudTDMS`. User can use `substitute` attribute to specify which column values in
                      the production data file must be substituted with the values from the generator function. for example:
                      Suppose my production data has `Surname`, `Age` columns which I would require to anonymize. The compatible
-                     generator functions `last_name` and `random_number` are available are under `personal` and `basics` provider
+                     generator functions `last_name` and `random_number` are available under `personal` and `basics` provider
                      respectively. With respect to this example `substitute` attribute will take following values.
                      
 ```python
@@ -356,8 +356,19 @@ STREAM = {
  }
  ```          
 + **`encrypt`** : This attribute is used to encrypt values of the columns. `CloudTDMS` provides various encryption techniques
-                  that can be used to encrypt any number of columns in data. Please refer to  [Data Masking](data_masking.md) section
-                  for more details about encryption techniques available.
+    that can be used to encrypt any number of columns in data. `encrypt` attribute takes a set of column names as 
+    a value. Each column listed inside the `encrypt` attribute will be encrypted using the encryption type defined 
+    in `encryption` attribute.
+
+    `encryption` attribute is an optional attribute that can be used to define what type of encryption technique to use for encryption in a STREAM.
+    By default this attribute gets its values from `config_default.yaml` file. In order to override the default behaviour we can define the `encryption`
+    attribute within the scope of STREAM and set the values for `type` and `key` attributes specific to current STREAM. 
+    
+    `type` defines what type of encryption to use and `key` defines the encryption key to be used for encryption.
+
+    Please refer to  [Data Masking](data_masking.md) section for more details about encryption techniques available.
+                  
+                  
                   
 ```python
 STREAM = {
@@ -376,9 +387,41 @@ STREAM = {
     }
  }
  ```    
++ **`mask_out`** : This attribute is used to mask the column values. By masking we mean replacing the characters of field value of a record with some random
+    characters e.g `x` or `#` etc. `mask_out` attribute takes a set of column names as value. Each column listed inside the `mask_out` attribute will be 
+    masked out using the character defined in `with` attribute of `mask` attribute.
+
+    `mask` attribute is an optional attribute that can be used to define what type of masking values to use for `mask_out` in a STREAM.
+    By default this attribute gets its values from `config_default.yaml` file. In order to override the default behaviour we can define the `mask`
+    attribute within the scope of STREAM and set the values for `with`, `characters` and `from` attributes specific to current STREAM. 
+    
+    `with` defines what character to use for masking, `characters` defines number of characters to be masked in a field value and `from` defines the alignment
+    from where to start the masking operation. `from` takes values as `start`, `mid` and `end`.
+
+    Please refer to  [Data Masking](data_masking.md) section for more details about encryption techniques available.
+
+```python
+STREAM = {
+    "source": {
+        "mysql": [
+            {"connection": "prod", "table": "profile"}
+        ]
+    }, 
+    "mask": {
+         "with": "x",
+         "characters": 4,
+         "from": "mid"
+    },
+    "mask_out": {
+        "mysql.prod.profile.FullName",
+        "mysql.prod.profile.Zip"
+    }
+ }
+ ```                      
+
 
 + **`nullying`** : This attribute is used to make column values `null` i.e It would make column/column's empty. It takes
-                   any array of column names as value, Each column in the list will be made `null` / empty in output file.
+                   a set of column names as value, Each column in the list will be made `null` / empty in output file.
                    
 ```python
 STREAM = {
