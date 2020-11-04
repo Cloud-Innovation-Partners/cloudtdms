@@ -1,6 +1,6 @@
 # Data Sources & Destinations
-This sections provides information about the supported data sources and destination in `CloudTDMS`
-sources represent the entities that are used to feed data into the process and destinations 
+This sections provides information about the supported data sources and destination in `CloudTDMS`.
+`sources` represent the entities that are used to feed data into the process and destinations 
 represent the entities that are used to store the resultant data. 
 
 ## Supported Sources And Destinations
@@ -160,8 +160,8 @@ tables are created by `CloudTDMS` dynamically.
 
 ### ServiceNow
 `CloudTDMS` supports data retrieval and ingestion from a servicenow instance. You can use servicenow instance both as source 
-as well as destination. Before using servicenow instance as a source or destination in configuration,
-You need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
+as well as destination. Before using servicenow instance as a source or destination, in configuration
+you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
 key `servicenow:` present in `config_default.yaml` file.
 
 A typical instance of `config_default.yaml` file containing connection entries for servicenow looks something like this.
@@ -206,11 +206,71 @@ STREAM = {
 }
 ```
 Each connection entry for servicenow must have `table` attribute value set. This attribute specifies the table name in 
-servicenow instance to be used as source or destination. In Above configuration script `incident` table of one instance 
+servicenow instance to be used as source or destination. In above configuration script `incident` table of one instance 
 is used as a source and of another instance is used as destination
 
 > **Note:** credentials for a servicenow inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
 ### Network Storages
+
+### SFTP
+`CloudTDMS` supports data retrieval and upload data to/from `sftp`. You can use `sftp` both as source 
+as well as destination. Before using `sftp` instance as a source or destination, in configuration
+you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
+key `sftp:` present in `config_default.yaml` file.
+
+A typical instance of `config_default.yaml` file containing connection entries for `sftp` looks something like this.
+Each `sftp` connection must have `host`, `username`, `password`, `port`, `ssh_public_key` and `passphrase`  defined. The `host` represent servicenow instance
+name, If your servicenow instance has url `https://dev1234.service-now.com` you need to provide the instance name as
+a value to `host` not the full url.
+
+>**Note :** values for `username`, `password`, `ssh_public_key` and `passphrase` for sftp connections must be Base64 encoded. 
+
+```yaml
+sftp:
+  production:       
+    host: "11.12.13.14"          
+    username: ""     
+    password: ""      
+    port: "22"         
+    ssh_public_key: ""  # path to ssh public key
+    passphrase: ""
+
+   development:       
+    host: "11.12.13.15"          
+    username: ""     
+    password: ""      
+    port: "22"         
+    ssh_public_key: ""  # path to ssh public key
+    passphrase: ""
+
+```
+
+The above snippet of `config_default.yaml` shows 2 `sftp` connections registered named as `production` and `development`.
+The `production` connection refers to server with ip `11.12.13.14` and the `development` connection refers to server with
+ ip `11.12.13.15`.
+
+You can use the connections registered inside the `config_default.yaml` file in your configuration
+scripts. Below is an example snippet of configuration file using above servicenow connections as source and destinations
+
+*Example:*
+```python
+STREAM = {
+    "source": {
+        "sftp": [
+            {"connection": "development", "file": "REMOTE_PATH_OF_FILE"},
+        ],         
+    },
+    "destination": {
+        "sftp": [
+            {"connection": "development", "file": "PATH_TO_SAVE"}
+        ]            
+    }   
+}
+```
+Each connection entry for sftp must have `file` attribute value set. This attribute specifies the file path in 
+sftp to be used as source or destination. 
+
+> **Note:** credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
  
