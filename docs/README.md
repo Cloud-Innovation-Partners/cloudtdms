@@ -42,10 +42,11 @@ With `CloudTDMS` you can?
 * **[How To Use](README.md#how-to-use-)**
 * **[Configuration](configuration_script.md)**
 * **[Providers](providers.md)**
+* **[Supported Data Sources & Destinations](data_sources.md)**
 * **[Data Masking](data_masking.md)**
 * **[Data Profiling](data_profiling.md)**
 * **[Email Notifications](email_notify.md)**
-* **[Advanced Users & Troubshooting](docs/installation.md#advanced-users--troubleshooting)**
+* **[Advanced Users & Troubshooting](installation.md#advanced-users--troubleshooting)**
 
 
 
