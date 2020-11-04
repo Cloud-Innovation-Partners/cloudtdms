@@ -214,21 +214,20 @@ is used as a source and of another instance is used as destination
 
 ### SFTP
 `CloudTDMS` supports data retrieval and upload data to/from `sftp`. You can use `sftp` both as source 
-as well as destination. Before using `sftp` instance as a source or destination, in configuration
+as well as destination. Before using `sftp` as a source or destination, in configuration
 you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
 key `sftp:` present in `config_default.yaml` file.
 
 A typical instance of `config_default.yaml` file containing connection entries for `sftp` looks something like this.
-Each `sftp` connection must have `host`, `username`, `password`, `port`, `ssh_public_key` and `passphrase`  defined. The `host` represent servicenow instance
-name, If your servicenow instance has url `https://dev1234.service-now.com` you need to provide the instance name as
-a value to `host` not the full url.
+Each `sftp` connection must have `host`, `username`, `password`, `port`, `ssh_public_key` and `passphrase`  defined.
 
 >**Note :** values for `username`, `password`, `ssh_public_key` and `passphrase` for sftp connections must be Base64 encoded. 
+
 
 ```yaml
 sftp:
   production:       
-    host: "11.12.13.14"          
+    host: "10.0.1.5"          
     username: ""     
     password: ""      
     port: "22"         
@@ -236,7 +235,7 @@ sftp:
     passphrase: ""
 
    development:       
-    host: "11.12.13.15"          
+    host: "10.0.1.4"          
     username: ""     
     password: ""      
     port: "22"         
@@ -244,10 +243,9 @@ sftp:
     passphrase: ""
 
 ```
-
 The above snippet of `config_default.yaml` shows 2 `sftp` connections registered named as `production` and `development`.
-The `production` connection refers to server with ip `11.12.13.14` and the `development` connection refers to server with
- ip `11.12.13.15`.
+The `production` connection refers to server with ip `10.0.1.5` and the `development` connection refers to server with
+ ip `10.0.1.4`.
 
 You can use the connections registered inside the `config_default.yaml` file in your configuration
 scripts. Below is an example snippet of configuration file using above servicenow connections as source and destinations
