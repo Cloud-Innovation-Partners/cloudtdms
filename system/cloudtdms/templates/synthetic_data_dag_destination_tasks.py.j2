@@ -51,6 +51,7 @@
 # Initialize task for SFTP  Upload for {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['file_path'] = "{{ item.file }}"
+{{ key }}_{{ item.connection }}_kwargs['overwrite'] = "{{ item.overwrite }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="Sftp_{{ item.connection }}", python_callable=sftp_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 

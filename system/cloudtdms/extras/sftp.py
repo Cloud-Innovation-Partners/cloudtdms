@@ -46,6 +46,18 @@ def sftp_upload(**kwargs):
     prefix = kwargs.get('prefix')
     execution_date = kwargs.get('execution_date')
     sftp_file_path = kwargs.get('file_path')
+    is_overwrite = kwargs.get('overwrite') if kwargs.get('overwrite') else False
+
+    if is_overwrite:
+        sftp_file_path = sftp_file_path  # set the same path
+    else:
+        directory = os.path.dirname(sftp_file_path)
+        timestamp = str(execution_date)[:19].replace('-', '_').replace(':', '_')
+        filename, extension = os.path.basename(sftp_file_path).split('.')
+        updated_file_name = f"{filename}_{timestamp}.{extension}"  # append timestamp to the filename
+        sftp_file_path = f"{directory}/{updated_file_name}"
+        LoggingMixin().log.info(f"Updated file path {sftp_file_path}")
+
     file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
 
     connection_in_yaml = get_sftp_config_default()
