@@ -1,16 +1,65 @@
+# CloudTDMS Example Usecases
 
-Below are mentioned some real world use-cases of `CLOUDTDMS`
+This section describes some usecases of `CloudTDMS`. Each example has a `configuration` script provided which defines
+a specific usecase like uploading synthetic data to servicenow or fetching production data from servicenow for masking etc.
 
-#####1. loading datafrom SERVICENOW to MySQL DATABASE:
-Currently `CLOUDTDMS` supports `MySQL`, `MSSQL` and `POSTGRES` as a database storages.
+Below is an instance of `config_default.yaml` file with all the connections defined that are to be used in the example usecases.
+In case you are using any of the configuration files below, please make sure you change the values for connections inside the provided
+`config_default.yaml` file as per your need.
 
-The below configuration downloads the data from `servicenow` and load it into the `MySQL` database storage.
+```yaml
+email:
+  to: ""                    # Receiver Email Address
+  from: ""                  # Sender Email Address
+  smtp_host: ""             # SMTP Host Address
+  smtp_port: 587            # SMTP PORT, 465 (SSL), 587(Legacy) or 25 (some providers block port 25)
+  smtp_ssl: False           # IF Smtp_port is 465 then set smtp_ssl to True
+  username: ""
+  password: ""
+  subject: "Data Profiling"
+
+encryption:
+  type: "caesar"            # Default encryption type to be used for data_masking
+  key: "CloudTDMS@2020"     # Default encryption key to be used for data_masking
+
+mask:
+  with: "x"
+  characters: 6
+  from: "mid"
+
+servicenow:
+  development:
+    host: "dev5786"                                        # ServiceNow instance name
+    username: "eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
+    password: "eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password
+mysql:
+  mysql_test:       
+    host: "127.0.0.1"          
+    database: "test"      
+    username: "1eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
+    password: "1eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password    
+    port:  3306     
+```
+
+## How To Load ServiceNow Incident Data to MySQL Database.
+**Statement** : Load recent 100 data records from `incident` table of ServiceNow instance named `dev5786` to MySQL database named `test`. Before Loading mask the `number` column
+of `incident` table.
+
+In the above example `config_default.yaml` file we have registered a servicenow connection named `development` that points to ServiceNow instance `dev5786` and 
+also we have defined a connection named `mysql_test` for database `test` located at localhost.
+
+Below configuration performs the task defined by above statement:
  
-```markdown
+```python
 STREAM = {
-    "title": "load_servicenow_to_mysql_database",
+    "title": "load_servicenow_incident_to_mysql_database",
     "number": 100,
     "frequency": "once",
+    "mask": {
+        "with": "x",
+        "characters": 8,
+        "from": "mid"
+    },
     "source": {
         "servicenow": [
             {"connection": "development", "table": "incident"}
@@ -18,9 +67,12 @@ STREAM = {
     },
     "destination": {
          "mysql": [
-             {"connection": "mysql_development", "table": "mysql_incident"}
+             {"connection": "mysql_test", "table": "mysql_incident"}
          ]
     },
+    "encrypt": {
+        "servicenow.development.incident.number"
+    }, 
     "output_schema": {
         "servicenow.development.incident.number",
         "servicenow.development.incident.description",
@@ -29,34 +81,6 @@ STREAM = {
     }
 }
 ```
-
-In above configuration `servicenow` is specified under the `source` attribute, from which we have to download the data.
-`mysql` is specified under the `destination` attribute, to which we load the data.
-For `servicenow` and `mysql` there are `connection`, `table` attributes associated.
-`connection` represents the `entry in .yaml file` and `table` represents storage table name.
-
-The entry in `config_default.yaml` file for `servicenow` looks like:
-```markdown
-servicenow:
-  development:
-    host: "dev007"
-    username: "YOUR USERNAME IN BASE64 ENCRYPTED HERE"
-    password: "YOUR PASSWORD IN BASE64 ENCRYPTED HERE"
-```
-
-Similarly for `mysql` the entry in `config_default.yaml` file looks like:
-```markdown
-mysql:
-  mysql_development:       
-    host: "127.0.0.1"          
-    database: "YOUR DATABASE NAME"      
-    username: "YOUR USERNAME IN BASE64 ENCRYPTED HERE"     
-    password: "YOUR PASSWORD IN BASE64 ENCRYPTED HERE"      
-    port:  3306 
-```     
-
-Now when the data is downloaded from the `servicenow`, we have to specify what columns are to be saved in the `mysql` database. For that purpose we use `output_schema` attribute in the configuration.
-Once the columns are specified in the `output_schema` that much number of columns will be saved in the `mysql` database
 
 #####2. loading data from SERVICENOW to all DATABASES:
 In this use-case we will load the data from `servicenow` to all the available databases in `CLOUDTDMS`
