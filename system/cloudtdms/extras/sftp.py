@@ -47,6 +47,7 @@ def sftp_upload(**kwargs):
     execution_date = kwargs.get('execution_date')
     sftp_file_path = kwargs.get('file_path')
     is_overwrite = kwargs.get('overwrite') if kwargs.get('overwrite') else False
+    is_overwrite = True if str(is_overwrite).lower() == 'true' else False
 
     if is_overwrite:
         sftp_file_path = sftp_file_path  # set the same path
