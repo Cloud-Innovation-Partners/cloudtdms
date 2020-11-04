@@ -214,14 +214,17 @@ STREAM = {
     types of sources and destination available for configurations.
     
 + **`synthetic`** : This attribute is used to describe what type of synthetic data must be generated using `CloudTDMS` providers. 
-    `CloudTDMS` generates synthetic data in columnar layout, You need to specify the column name and the type of data that 
+    `CloudTDMS` generates synthetic data in columnar layout, you need to specify the column name and the type of data that 
     need to be populated inside the specified column. 
     
     `synthetic` attribute takes a list of dictionary objects as a value. The length of list will define how many data columns 
     are to be generated. Each dictionary entry in the list contains a `field_name` which is used to define the name of the 
-    column and `type` which is used to defined what type of data is to be generated. Since data in `CloudTDMS` is generated 
-    using generator functions available in different providers, `type` attribute must have a valid provider and generator value. 
-    `type` attribute takes a dot `(.)` concatenated value of providers and there  corresponding generator functions. 
+    column and `type` which is used to defined what type of data is to be generated. 
+    
+    Since data in `CloudTDMS` is generated using generator functions available in different providers, `type` attribute must have a 
+    valid provider and generator value. `type` attribute takes a dot `(.)` concatenated value of providers and there  corresponding 
+    generator functions. 
+    
     As an Example, Suppose we need to generate synthetic `first_name`'s and `last_name`'s. From [Provider](providers.md) section
     we can see that `first_name` and `last_name` are two generator functions available in `personal` provider, Thus we can
     set the value for `type` attribute as `personal.first_name` or `personal.last_name` to define the type of data to be generated.
