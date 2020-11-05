@@ -40,10 +40,10 @@ def basics(data_frame, number, args):
             sentence(data_frame, number, field_names.get('sentence'))
 
         if col == 'blank':
-            blank(data_frame, number,field_names.get('blank'))
+            blank(data_frame, number, field_names.get('blank'))
 
         if col == 'guid':
-            guid(data_frame, number,field_names.get('guid'))
+            guid(data_frame, number, field_names.get('guid'))
 
         if col == 'password':
             password(data_frame, number, field_names.get('password'))
@@ -78,7 +78,7 @@ def boolean(data_frame, number, args=None):
 
         boolean_weights = [0.5, 0.5]
         boolean_list = random.choices(population=boolean_values, weights=boolean_weights, k=number)
-        data_frame[data_frame_col_name]= boolean_list
+        data_frame[data_frame_col_name] = boolean_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
@@ -93,7 +93,7 @@ def frequency(data_frame, number, args=None):
     for column_name, data_frame_col_name in zip(args, dcols):
         frequency_values = ['Never', 'Seldom', 'Once', 'Often', 'Daily', 'Weekly', 'Monthly', 'Yearly']
         frequency_list = random.choices(population=frequency_values, k=number)
-        data_frame[data_frame_col_name]=frequency_list
+        data_frame[data_frame_col_name] = frequency_list
 
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
@@ -113,20 +113,23 @@ def color(data_frame, number, args=None):
 
         if args is not None:
             format = args.get(column_name).get('format', 'hex-code')
-            format = format if isinstance(format,str) else 'hex-code'
+            format = format if isinstance(format, str) else 'hex-code'
         else:
             format = 'hex-code'
 
         if format == 'hex-code':
-            data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
+            data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in
+                                               range(number)]
         elif format == 'name':
             f = Faker()
             data_frame[data_frame_col_name] = [f.color_name() for _ in range(number)]
         elif format == 'short-hex':
-            data_frame[data_frame_col_name] = [('#' + ''.join(source[:3]), random.shuffle(source))[0] for _ in range(number)]
+            data_frame[data_frame_col_name] = [('#' + ''.join(source[:3]), random.shuffle(source))[0] for _ in
+                                               range(number)]
         else:
             LoggingMixin().log.warning(f"InvalidAttribute: Invalid `format` = {format} value found!")
-            data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in range(number)]
+            data_frame[data_frame_col_name] = [('#' + ''.join(source[:6]), random.shuffle(source))[0] for _ in
+                                               range(number)]
 
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
@@ -140,22 +143,29 @@ def words(data_frame, number, args=None):
     :type dict
     :return: list
     """
-    words_list = []
+
     dcols = [f for f in data_frame.columns if f.startswith("words")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            atleast = int(args.get(column_name).get('atleast', 1))
-            atmost = int(args.get(column_name).get('atmost', 3))
-            if atleast == 1:
+            atleast = int(args.get(column_name).get('atleast', -999))
+            atmost = int(args.get(column_name).get('atmost', -999))
+
+            if atleast < 0:
+                LoggingMixin().log.warning(f"InvalidValue: Value for `atleast` must be greater than zero for `words` provider")
+            if atmost < 0:
+                LoggingMixin().log.warning(f"InvalidValue: Value for `atmost` must be greater than zero for `words` provider")
+
+            if atleast == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
-            if atmost == 3:
+            if atmost == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atmost`")
         else:
             atleast = 1
             atmost = 3
 
-        path = os.path.dirname(__file__)+"/words.txt"
+        path = os.path.dirname(__file__) + "/words.txt"
         words = open(path).read().splitlines()
+        words_list = []
         for _ in range(number):
             how_many = random.randint(atleast, atmost)
             random.shuffle(words)
@@ -181,11 +191,17 @@ def sentence(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("sentence")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            atleast = int(args.get(column_name).get('atleast', 1))
-            atmost = int(args.get(column_name).get('atmost', 3))
-            if atleast == 1:
+            atleast = int(args.get(column_name).get('atleast', -999))
+            atmost = int(args.get(column_name).get('atmost', -999))
+
+            if atleast < 0:
+                LoggingMixin().log.warning(f"InvalidValue: Value for `atleast` must be greater than zero for `sentence` provider")
+            if atmost < 0:
+                LoggingMixin().log.warning(f"InvalidValue: Value for `atmost` must be greater than zero  for `sentence` provider")
+
+            if atleast == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
-            if atmost == 3:
+            if atmost == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atmost`")
         else:
             atleast = 1
@@ -208,7 +224,7 @@ def blank(data_frame, number, args=None):
     """
     dcols = [f for f in data_frame.columns if f.startswith("blank")]
     for column_name, data_frame_col_name in zip(args, dcols):
-        data_frame[data_frame_col_name]=  [None] * number
+        data_frame[data_frame_col_name] = [None] * number
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
@@ -238,8 +254,12 @@ def password(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("password")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            length = int(args.get(column_name).get('length',8))
-            if length == 8:
+            length = int(args.get(column_name).get('length', -999))
+
+            if length < 0:
+                LoggingMixin().log.warning(f"InvalidValue: Value for `length` must be greater than zero  for `password` provider")
+
+            if length == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `password`")
         else:
             length = 8
@@ -250,7 +270,7 @@ def password(data_frame, number, args=None):
             password = ''.join(source[:length])
             passwords.append(password)
 
-        data_frame[data_frame_col_name] =passwords
+        data_frame[data_frame_col_name] = passwords
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
@@ -288,7 +308,7 @@ def auto_increment(data_frame, number, args=None):
             range_list.extend(extra_elems)
 
         range_list = [prefix + str(i) + suffix if len(prefix) > 0 or len(suffix) > 0 else i for i in range_list]
-        data_frame[data_frame_col_name]= range_list
+        data_frame[data_frame_col_name] = range_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
@@ -305,8 +325,8 @@ def random_number(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("random_number")]
     for column_name, data_frame_col_name in zip(args, dcols):
         if args is not None:
-            start = int(args.get(column_name).get('start',0))
-            end = int(args.get(column_name).get('end',300))
+            start = int(args.get(column_name).get('start', 0))
+            end = int(args.get(column_name).get('end', 300))
         else:
             start = 0
             end = 300
@@ -314,7 +334,7 @@ def random_number(data_frame, number, args=None):
         random_range_list = []
         for _ in range(number):
             random_range_list.append(random.randint(start, end))
-        data_frame[data_frame_col_name]= random_range_list
+        data_frame[data_frame_col_name] = random_range_list
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 

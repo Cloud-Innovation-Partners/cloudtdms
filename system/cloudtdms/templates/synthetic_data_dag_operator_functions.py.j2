@@ -1,0 +1,298 @@
+{% block operator_functions %}
+
+def clean_up(**kwargs):
+    execution_date = kwargs['execution_date']
+    prefix = kwargs['prefix']
+
+    file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+    f_path = f"{get_output_data_home()}/{prefix}/{file_name}"
+    destinations = dag.params.get('destination')
+    if 'csv' in destinations or 'json' in destinations:
+        config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
+        flag = True
+        for item in destinations.get('csv', []) + destinations.get('json', []):
+            cname = item.get('connection')
+            if cname in config.get('csv', {}) or cname in config.get('json', {}):
+                target = config.get('csv', {}).get(cname, {}).get('target', None) or config.get('json', {}).get(cname, {}).get('target', None)
+                if target is  None or target == '':
+                    LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
+                    flag = False
+                    break
+        if flag:
+            try:
+                os.remove(f_path)
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
+    else:
+        # backward compatible
+        if len(destinations) == 0:
+            LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
+        else:
+            try:
+                os.remove(f_path)
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `data` folder!", exc_info=True)
+
+    # clean_up source extract files
+    suffix = f"{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
+    for item in os.listdir(f'{get_user_data_home()}/.__temp__/'):
+        if item.__contains__(suffix):
+            try:
+                os.remove(f'{get_user_data_home()}/.__temp__/{item}')
+            except Exception:
+                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `__temp__` folder!", exc_info=True)
+
+
+
+def get_config_default():
+    config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
+    if config is not None and config.get('encryption', None) is not None and config.get('mask', None) is not None:
+        return config
+    else:
+        raise KeyError('config_default.yaml has no `encryption` and `mask` entry')
+
+
+def generate_iterator(data_frame, methods,args_array):
+    number = dag.params.get('stream').get('number')
+    for fcn, name in methods:
+        func_name = fcn.__name__
+        arg = args_array.get(func_name)
+        if arg is None:
+            result = fcn(data_frame, number)
+        else:
+            result = fcn(data_frame,number, arg)
+        # data_frame[name] = pd.Series(result)
+
+
+def data_generator(**kwargs):
+    stream = dag.params.get('stream')
+    meta_data = providers.get_active_meta_data()
+    format = stream.get('format', None)
+    format = 'csv' if format is not None and str(format).lower() == 'csv' else 'json' if format is not None and str(format).lower() == 'json' else 'csv'
+    attributes = dag.params.get('attributes') if dag.params.get('attributes') is not None else {}
+
+    # check 'schema' attribute is present, renaming `schema` attribute to `synthetic`
+    schema = stream['synthetic'] if 'synthetic' in stream else []
+    list(map(lambda x: x.update({"field_name": f"synthetic.{x.get('field_name')}"}), schema))
+
+    for source_type in dag.params.get('source').keys():
+        for connection in dag.params.get('source').get(source_type):
+            cname = connection.get('connection')
+            # check 'source' attribute is present
+            file_name = f"{source_type}_{cname}_{dag.owner}_{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}.csv"
+            source = f'{get_user_data_home()}/.__temp__/{file_name}' if 'source' in stream else None
+
+            # columns in data-file
+            all_columns = []
+            if source is not None:
+                try:
+                    all_columns = pd.read_csv(source, nrows=1).columns
+                except FileNotFoundError:
+                    LoggingMixin().log.error(f'ValueError: File {source} not found')
+
+            # get columns to delete
+            delete = stream['delete'] if 'delete' in stream else []
+
+            all_columns=[f for f in all_columns if f not in delete]
+
+            # check 'substitute' attribute is present along with 'source'
+            if 'substitute' in stream and source is not None:
+                substitutions = []
+                for k, v in stream['substitute'].items():
+                    v['field_name'] = k
+                    substitutions.append(v)
+
+                schema += substitutions
+
+            # check 'encrypt' attribute is present along with 'source'
+
+            if 'encrypt' in stream and source is not None:
+                if 'encryption' in stream and type(stream['encryption']) is dict:
+                    encryption_type = stream.get('encryption').get('type', get_config_default().get('encryption').get('type', 'caesar'))
+                    encryption_key = stream.get('encryption').get('key', get_config_default().get('encryption').get('key', 'CloudTDMS@2020'))
+                else:
+                    encryption_type = get_config_default().get('encryption').get('type', 'caesar')
+                    encryption_key = get_config_default().get('encryption').get('key', 'CloudTDMS@2020')
+
+                if type(stream.get('encrypt')) is dict:
+                    encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                                   "ignore_headers": "no", "encrypt": {"type": stream['encrypt'].get(v).get('type'), "key": stream['encrypt'].get(v).get("encryption_key")}}
+                                  for v in stream['encrypt'].keys() if v in all_columns]
+                else:
+                    encryption = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                                   "ignore_headers": "no", "encrypt": {"type": encryption_type, "key": encryption_key}}
+                                  for v in stream['encrypt'] if v in all_columns]
+
+                schema += encryption
+
+            # check 'mask_out' attribute is present along with 'source'
+
+            if 'mask_out' in stream and source is not None:
+                if 'mask' in stream and type(stream['mask']) is dict:
+                    mask_with = stream.get('mask').get('with', get_config_default().get('mask').get('with', 'x'))
+                    mask_characters = stream.get('mask').get('characters', get_config_default().get('mask').get('characters', 6))
+                    mask_from = stream.get('mask').get('from', get_config_default().get('mask').get('from', 'mid'))
+                else:
+                    mask_with = get_config_default().get('mask').get('with', 'x')
+                    mask_characters = get_config_default().get('mask').get('characters', 6)
+                    mask_from = get_config_default().get('mask').get('from', 'mid')
+
+                if type(stream.get('mask_out')) is dict:
+                    mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
+                                  "column": k, "ignore_headers": "no", "mask_out": {"with": v['with'], "characters": v['characters'], "from": v["from"]}}
+                                 for k, v in stream['mask_out'].items() if k in all_columns]
+                else:
+                    mask_outs = [{"field_name": k, "type": "advanced.custom_file", "name": file_name,
+                                      "column": k, "ignore_headers": "no", "mask_out": {"with": mask_with, "characters": mask_characters, "from": mask_from}}
+                                     for k in stream['mask_out'] if k in all_columns]
+
+                schema += mask_outs
+
+            # check 'shuffle' attribute is present along with 'source'
+
+            if 'shuffle' in stream and source is not None:
+
+                shuffle = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                            "ignore_headers": "no", "shuffle": True} for v in stream['shuffle'] if v in all_columns]
+                schema += shuffle
+
+            # check 'nullying' attribute is present along with 'source'
+
+            if 'nullying' in stream and source is not None:
+
+                nullify = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                            "ignore_headers": "no", "set_null": True} for v in stream['nullying'] if v in all_columns]
+                schema += nullify
+
+            if source is not None:
+                schema_fields = [f['field_name'] for f in schema]
+                remaining_fields = list(set(all_columns) - set(schema_fields))
+                remaining = [{"field_name": v, "type": "advanced.custom_file", "name": file_name, "column": v,
+                                "ignore_headers": "no"} for v in remaining_fields if v in all_columns]
+                schema += remaining
+
+            stream['schema'] = schema
+
+        if not schema:
+            LoggingMixin().log.error(f"AttributeError: attribute `synthetic` not found or is empty in configuration file")
+            # continue
+
+        # Remove Duplicates In Schema
+        new_schema = {}
+        for s in schema:
+            new_schema[s['field_name']] = s
+        schema = list(new_schema.values())
+
+        for col in [f['field_name'] for f in schema]:
+            if col not in all_columns:
+                all_columns.append(col)
+
+        #stream['original_order_of_columns'] = all_columns
+
+        schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
+
+        for scheme in schema:
+            data, column = scheme['type'].split('.')
+            if data in meta_data['data_files']:
+                if column in meta_data['meta-headers'][data]:
+                    if data not in attributes:
+                        attributes[data] = [column]
+                    else:
+                        attributes[data].append(column)
+                else:
+                    raise AirflowException(f"TypeError: no data available for type {column} ")
+            elif data in meta_data['code_files']:
+                if column in meta_data['meta-functions'][data]:
+                    if data not in attributes:
+                        attributes[data] = [column]
+                    else:
+                        attributes[data].append(column)
+                else:
+                    raise AirflowException(f"TypeError: no data available for type {column} ")
+            else:
+                raise AirflowException(f"IOError: no data file found {data}.csv ")
+
+    locale=dag.params.get('stream').get('locale')
+
+    nrows = int(stream['number']) if int(stream['number']) < SOURCE_DOWNLOAD_LIMIT else SOURCE_DOWNLOAD_LIMIT
+    ncols = sum([len(f) for f in attributes.values()])
+    columns = []
+    labels = [columns.extend(f) for f in attributes.values()]
+    data_frame = pd.DataFrame(pd.np.zeros((nrows, ncols))*pd.np.nan, columns=[v + str(columns[:i].count(v)) if columns.count(v) > 1 and columns[:i].count(v) != 0 else v for i, v in enumerate(columns)])
+
+    for attrib in attributes:
+        if attrib in meta_data['data_files']:
+            try:
+                df = pd.read_csv(list(pathlib.Path(get_providers_home()).rglob(f"{attrib}.csv")).pop(0), usecols=[column for (field_name, column) in attributes[attrib]])
+            except (FileNotFoundError, IndexError):
+                df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=[column for (field_name, column) in attributes[attrib]])
+
+            df_temp = pd.DataFrame(index=range(nrows), columns=[column for (field_name, column) in attributes[attrib]])
+            for i in range(nrows):
+                df_temp.iloc[i] = df.iloc[random.randrange(len(df))]
+
+            data_frame[[column for (field_name, column) in attributes[attrib]]] = df_temp[[column for (field_name, column) in attributes[attrib]]]
+        elif attrib in meta_data['code_files']:
+            mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
+            args_array={f"{f['field_name']}-$-{f['type'].split('.')[1]}": {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if f.get('type').startswith(attrib)}
+            try:
+                args_array['locale']=locale
+                _all = getattr(mod, attrib)
+                _all(data_frame, nrows, args_array)
+            except AttributeError:
+                # args_array={f['type'].split('.')[1]: {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if len(f) > 2}
+                methods = [(getattr(mod, m), m) for m in attributes[attrib]]
+                generate_iterator(data_frame, methods,args_array)
+    file_name = f"{stream['title']}_{str(kwargs['execution_date'])[:19].replace('-','_').replace(':','_')}"
+    try:
+        #data_frame = data_frame[stream['original_order_of_columns']]
+
+        # Attribute output_schema
+
+        output_schema = stream['output_schema'] if 'output_schema' in stream else None
+        if output_schema is None:
+            raise AttributeError("attribute `output_schema` not defined in STREAM")
+
+        # truncate dataframe
+        try:
+            if type(output_schema) is dict:
+                data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema.keys()], inplace=True, axis=1)
+            else:
+                data_frame.drop(columns=[f'{f}' for f in data_frame.columns if f not in output_schema], inplace=True, axis=1)
+        except KeyError:
+            LoggingMixin().log.warn(exc_info=True)
+
+        # rename columns
+        if type(output_schema) is dict:
+            data_frame.columns = list(map(lambda x: f"{os.path.splitext(x)[0]}.{output_schema.get(x)}" if x in output_schema else  x, data_frame.columns))
+
+      # reorder
+        if type(output_schema) is dict:
+            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+            data_frame = data_frame.reindex(output_schema.values(), axis=1)
+        else:
+            data_frame = data_frame.reindex(output_schema, axis=1)
+            data_frame.columns = list(map(lambda x: x if os.path.splitext(x)[1] == '' else os.path.splitext(x)[1][1:], data_frame.columns))
+
+
+        # reduced data_frame
+        vector_length = np.vectorize(len)
+        for column in data_frame.columns:
+            if int(vector_length(data_frame[column].astype(str)).max(axis=0)) > 255:
+                data_frame[column] = data_frame[column].astype(str).str[:255]
+
+        if stream['format'] == 'csv':
+            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+        elif stream['format'] == 'json':
+            data_frame = data_frame.loc[:,~data_frame.columns.duplicated()]
+            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
+
+    except FileNotFoundError:
+        os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
+
+        if stream['format'] == 'csv':
+            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+        elif stream['format'] == 'json':
+            data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
+
+{% endblock operator_functions %}

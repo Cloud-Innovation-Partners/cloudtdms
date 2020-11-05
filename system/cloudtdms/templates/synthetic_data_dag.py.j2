@@ -1,0 +1,75 @@
+{% extends "dag.py.j2"%}
+
+{% block import_python_libraries %}
+import os
+import sys
+import importlib
+import random
+import yaml
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import pathlib
+from collections import defaultdict
+
+{% endblock import_python_libraries %}
+
+
+{% block import_tdms_modules %}
+
+from system.cloudtdms import providers
+from system.dags import get_providers_home
+from system.dags import get_output_data_home
+from system.dags import get_user_data_home
+from system.dags import get_config_default_path
+from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
+
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres', 'sftp'] %}
+{% set supported_destinations = ['csv', 'json', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres', 'sftp'] %}
+
+{% for key, value in data.source.items() %}
+
+{% if key in supported_sources and key in data.source %}
+from system.cloudtdms.extras.{{ key }} import {{ key }}_download
+{% endif %}
+
+{% endfor %}
+
+{% for key, value in data.destination.items() %}
+
+{% if key, value in supported_destinations and key in data.destination %}
+from system.cloudtdms.extras.{{ key }} import {{ key }}_upload
+{% endif %}
+
+{% endfor %}
+
+{% endblock import_tdms_modules %}
+
+
+{% block params %}
+        params={
+            'stream': {{ data.stream }},
+            'source': {{ data.source }},
+            'attributes': {{ data.attributes }},
+            'destination': {{ data.destination }}
+        }
+{% endblock %}
+
+{% block operator_functions %}
+{% include 'synthetic_data_dag_operator_functions.py.j2' %}
+{% endblock operator_functions %}
+
+{% block airflow_operators %}
+start = DummyOperator(task_id="start", dag=dag)
+end = PythonOperator(task_id="end", python_callable=clean_up, trigger_rule='all_done', op_kwargs={'execution_date': {% raw %}"{{ execution_date }}"{% endraw %}, 'prefix': f"{dag.owner}/{dag.params.get('stream').get('title')}"}, dag=dag)
+stream = PythonOperator(task_id="GenerateStream", python_callable=data_generator, op_kwargs={'execution_date': {% raw %}"{{ execution_date }}"{% endraw %} }, dag=dag)
+
+{% block source_tasks %}
+{% include 'synthetic_data_dag_source_tasks.py.j2' %}
+{% endblock source_tasks%}
+
+{% block destination_tasks%}
+{% include 'synthetic_data_dag_destination_tasks.py.j2' %}
+{% endblock destination_tasks %}
+
+{% endblock airflow_operators%}

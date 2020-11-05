@@ -1,0 +1,46 @@
+{% block import_python_libraries%}
+{# placeholder for importing python libraries #}
+{% endblock %}
+
+from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.configuration import get_airflow_home
+from airflow.exceptions import AirflowException
+
+{% block import_airflow_libraries%}
+{# placeholder for importing airflow libraries #}
+{% endblock %}
+
+sys.path.append(os.path.dirname(get_airflow_home()))
+
+{% block import_tdms_modules %}
+{# placeholder for importing tdms modules #}
+{% endblock %}
+
+dag = DAG(
+dag_id="{{ data.dag_id|string }}",
+        schedule_interval="@{{ data.frequency }}",
+        catchup=False,
+        default_args={
+            'owner': "{{ data.owner | string }}",
+            'depends_on_past': False,
+            'start_date': datetime(2020, 7, 8),
+            'retries': 1,
+            'retry_delay': timedelta(minutes=1)
+        },
+        {% block params %} {% endblock params %}
+)
+
+{% block operator_functions %}
+{# placeholder for DAG operator functions #}
+{% endblock operator_functions %}
+
+{% block airflow_operators %}
+{# placeholder for Airflow Operators #}
+{% endblock airflow_operators %}
+
+{% block dependencies %}
+{# placeholder for setting DAG Dependencies #}
+{% endblock dependencies %}

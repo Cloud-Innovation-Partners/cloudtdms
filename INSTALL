@@ -221,7 +221,9 @@ def copy():
             os.makedirs(f"/home/cloudtdms/{d}")
         except FileExistsError:
             print(f"{d} : File exists already !")
-
+    if os.path.exists("/home/cloudtdms/config_default.yaml"):
+        print("found existing config_default.yaml file")
+        shutil.copy('/home/cloudtdms/config_default.yaml', f'/home/cloudtdms/config_default.yaml.bak')
     shutil.copy("config_default.yaml", "/home/cloudtdms/")
     shutil.copy("__init__.py", "/home/cloudtdms/")
     try:
