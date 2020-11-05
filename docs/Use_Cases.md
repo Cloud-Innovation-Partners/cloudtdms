@@ -109,7 +109,7 @@ STREAM = {
 }
 ```
 
-# How To Load ServiceNow Incident Data to all Database.
+# How To Load ServiceNow Incident Data to MySQL, MsSQL and Postgres databases.
 **Statement** : Load recent 100 data records from `incident` table of ServiceNow instance named `dev5786` to MySQL, MSSQL and POSTGRES databases named `mysql_db`, `mssql_db`and `postgres_db` respectively. Before loading mask the `number` column
 of `incident` table.
 
@@ -156,7 +156,7 @@ STREAM = {
 }
 ```
 
-# How To Load Synthetic Data to all Database.
+# How To Load Synthetic Data to MySQL, MsSQL and Postgres databases.
 **Statement** : Load recent 100 data records from synthetic data to MySQL, MSSQL and POSTGRES databases named `mysql_db`, `mssql_db`and `postgres_db` respectively. Before loading mask the `card` column,
 encrypt the `fname` column, substitute the `ctype` column and shuffle `lname`, `passcode` of `synthetic` data.
 
