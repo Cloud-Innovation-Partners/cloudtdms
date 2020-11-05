@@ -10,3 +10,80 @@ email:
   username: ""
   password: ""
   subject: "Data Profiling"
+
+# Data Masking settings
+
+encryption:
+  type: "caesar"            # Default encryption type to be used for data_masking
+  key: "CloudTDMS@2020"     # Default encryption key to be used for data_masking
+
+mask:
+  with: "x"                 # Default masking character
+  characters: 6             # Default masking length
+  from: "mid"               # Default masking alignment
+
+# Source and Destination Connections
+
+# Local Static File Connections
+
+# CSV
+csv:
+  test_data:          # Connection Name
+    source: ""        # source is usually a path to CSV data file
+    target: ""        # target is usually a path to local folder where data must be saved
+
+# JSON
+json:
+  test_data:          # Connection Name
+    source: ""        # source is usually a path to CSV data file
+    target: ""        # target is usually a path to local folder where data must be saved
+
+# Database Connections
+
+# MySQL
+mysql:
+  mysql_test:         # Connection Name
+    host: ""          # MySQL host name
+    database: ""      # MySQL database name
+    username: ""      # MySQL username Base64 Encrypted
+    password: ""      # MySQL password Base64 Encrypted
+    port: "3306"      # MySQL port default is 3306
+
+# Postgres
+postgres:
+  postgres_test:      # Connection Name
+    host: ""          # Postgres host name
+    database: ""      # Postgres database name
+    username: ""      # Postgres username Base64 Encrypted
+    password: ""      # Postgres password Base64 Encrypted
+    port: "5432"      # Postgres port default is 5432
+
+# MSSQL
+mssql:
+  mssql_test:           # Connection Name
+    host: ""            # MSSQL host name
+    database: ""        # MSSQL database name
+    username: ""        # MSSQL user name Base64 Encrypted
+    password: ""        # MSSQL password Base64 Encrypted
+    port: "1433"        # MSSQL port default is 1433
+
+# Network Storages
+
+# SFTP
+sftp:
+  sftp_test:              # Connection Name
+    host: ""              # SFTP host name
+    username: ""          # SFTP login name Base64 Encrypted
+    password: ""          # SFTP login password Base64 Encrypted
+    port: 22              # SFTP port
+    ssh_public_key: ""    # path to ssh public key
+    passphrase: ""        # passphrase required for accessing ssh keys (optional)
+
+# SAAS Platforms
+
+# ServiceNow
+servicenow:
+  test:                         # Connection Name
+    host: ""                    # ServiceNow instance
+    username: ""                # Base64 encrypted username
+    password: ""                # Base64 encrypted password
