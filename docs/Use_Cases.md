@@ -32,21 +32,48 @@ servicenow:
     host: "dev5786"                                        # ServiceNow instance name
     username: "eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
     password: "eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password
+
 mysql:
   mysql_test:       
     host: "127.0.0.1"          
-    database: "test"      
+    database: "mysql_db"      
     username: "1eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
     password: "1eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password    
     port:  3306     
+
+mssql:
+  mssql_test:       
+    host: "127.0.0.1"          
+    database: "mssql_db"      
+    username: "1eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
+    password: "1eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password    
+    port:  1433     
+
+postgres:
+  postgres_test:       
+    host: "127.0.0.1"          
+    database: "postgres_db"      
+    username: "1eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
+    password: "1eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password    
+    port:  5432
+
+sftp:
+  sftp_test:       
+    host: "10.0.1.5"          
+    username: "1eW91cl91c2VybmFtZV9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded username
+    password: "1eW91cl9wYXNzd29yZF9iYXNlNjRfZW5jb2RlZA=="   # Base64 encoded password      
+    port: "22"         
+    ssh_public_key: ""  # path to ssh public key
+    passphrase: ""
+
 ```
 
 ## How To Load ServiceNow Incident Data to MySQL Database.
-**Statement** : Load recent 100 data records from `incident` table of ServiceNow instance named `dev5786` to MySQL database named `test`. Before Loading mask the `number` column
+**Statement** : Load recent 100 data records from `incident` table of ServiceNow instance named `dev5786` to MySQL database named `mysql_db`. Before loading mask the `number` column
 of `incident` table.
 
 In the above example `config_default.yaml` file we have registered a servicenow connection named `development` that points to ServiceNow instance `dev5786` and 
-also we have defined a connection named `mysql_test` for database `test` located at localhost.
+also we have defined a connection named `mysql_test` for database `mysql_db` located at localhost.
 
 Below configuration performs the task defined by above statement:
  
@@ -70,7 +97,7 @@ STREAM = {
              {"connection": "mysql_test", "table": "mysql_incident"}
          ]
     },
-    "encrypt": {
+    "mask_out": {
         "servicenow.development.incident.number"
     }, 
     "output_schema": {
@@ -82,14 +109,25 @@ STREAM = {
 }
 ```
 
-#####2. loading data from SERVICENOW to all DATABASES:
-In this use-case we will load the data from `servicenow` to all the available databases in `CLOUDTDMS`
+## How To Load ServiceNow Incident Data to all Database.
+**Statement** : Load recent 100 data records from `incident` table of ServiceNow instance named `dev5786` to MySQL, MSSQL and POSTGRES databases named `mysql_db`, `mssql_db`and `postgres_db` respectively. Before loading mask the `number` column
+of `incident` table.
+
+In the above example `config_default.yaml` file we have registered a servicenow connection named `development` that points to ServiceNow instance `dev5786` and 
+also we have defined a connections named `mysql_test`, `mssql_test`, `postgres_test` for database `mysql_db`, `mssql_db`and `postgres_db` respectively located at localhost.
+
+Below configuration performs the task defined by above statement:
 
 ```markdown
 STREAM = {
     "title": "load_servicenow_to_all_databases",
     "number": 100,
     "frequency": "once",
+     "mask": {
+            "with": "x",
+            "characters": 8,
+            "from": "mid"
+     },
     "source": {
         "servicenow": [
             {"connection": "development", "table": "incident"}
@@ -97,14 +135,17 @@ STREAM = {
     },
     "destination": {
          "mysql": [
-             {"connection": "mysql_development", "table": "mysql_incident"}
+             {"connection": "mysql_test", "table": "mysql_incident"}
          ],
         "postgres": [
-            {"connection": "postgres_development", "table": "postgres_incident"}
+            {"connection": "postgres_test", "table": "postgres_incident"}
          ],
         "mssql": [
-            {"connection": "mysql_developemnt", "table": "mssql_incident"}
+            {"connection": "mssql_test", "table": "mssql_incident"}
         ]
+    },
+  "mask_out": {
+        "servicenow.development.incident.number"
     },
     "output_schema": {
         "servicenow.development.incident.number",
@@ -115,113 +156,21 @@ STREAM = {
 }
 ```
 
-For `mysql` the entry in `config_default.yaml` file looks like:
-```markdown
-mysql:
-  mysql_development:       
-    host: "127.0.0.1"          
-    database: "YOUR DATABASE NAME"      
-    username: "YOUR USERNAME IN BASE64 ENCRYPTED HERE"     
-    password: "YOUR PASSWORD IN BASE64 ENCRYPTED HERE"      
-    port:  3306 
-```     
+## How To Load Synthetic Data to all Database.
+**Statement** : Load recent 100 data records from synthetic data to MySQL, MSSQL and POSTGRES databases named `mysql_db`, `mssql_db`and `postgres_db` respectively. Before loading mask the `card` column,
+encrypt the `fname` column, substitute the `ctype` column and shuffle `lname`, `passcode` of `synthetic` data.
 
-For `mssql` the entry in `config_default.yaml` file looks like:
-```markdown
-mssql:
-  mssql_development:       
-    host: "127.0.0.1"          
-    database: "YOUR DATABASE NAME"      
-    username: "YOUR USERNAME IN BASE64 ENCRYPTED HERE"     
-    password: "YOUR PASSWORD IN BASE64 ENCRYPTED HERE"      
-    port:  1433 
-```     
+In the above example `config_default.yaml` file we have registered connections named `mysql_test`, `mssql_test`, `postgres_test`
+for database `mysql_db`, `mssql_db`and `postgres_db` respectively located at localhost.
 
-For `postgres` the entry in `config_default.yaml` file looks like:
-```markdown
-postgres:
-  postgres_development:       
-    host: "127.0.0.1"          
-    database: "YOUR DATABASE NAME"      
-    username: "YOUR USERNAME IN BASE64 ENCRYPTED HERE"     
-    password: "YOUR PASSWORD IN BASE64 ENCRYPTED HERE"      
-    port:  5432 
-```  
+Below configuration performs the task defined by above statement:
 
-#####3. loading masked data from SERVICENOW to mysql:
-In this use-case we load masked data into the `mysql` database
 
-```markdown
+```python
 STREAM = {
-    "title": "load_masked_data",
+    "title": "load_synthetic_data_to_all_databases",
     "format": "csv",
-    "number": 10,
-    "frequency": "once",
-     "encryption": {
-         "type": "caesar",
-         "key": "Jd28hja8HG9wkjw89yd"
-     },
-    "mask": {
-        "with": "x",
-        "characters": 4,
-        "from": "end"
-    },
-     "source": {
-         "servicenow": [
-             {"connection": "development", "table": "incident", "limit": 20}
-         ],
-     },
-    "destination": {
-         "mysql": [
-             {"connection": "mysql_development", "table": "mysql_table"}
-         ],
-        "postgres": [
-            {"connection": "postgres_development", "table": "postgres_table"}
-         ],
-        "mssql": [
-            {"connection": "mysql_developemnt", "table": "mssql_table"}
-        ]
-    "substitute": {
-        "servicenow.development.incident.caller_id": {"type": "advanced.custom_list",
-                                                       "set_val": "System Administrator"},
-    },
-    "encrypt": {
-        "servicenow.development.incident.description"
-    },
-    "mask_out": {
-        "postgres.tdms_test.synthetic_source.name"
-    },
-    "shuffle": {
-        "servicenow.development.incident.number"
-    },
-    "output_schema": {
-        "servicenow.development.incident.caller_id",
-        "servicenow.development.incident.number",
-        "servicenow.development.incident.country",
-        "servicenow.development.incident.description",
-        "servicenow.development.incident.short_description",
-        "postgres.tdms_test.synthetic_source.name"
-    }
-
-}  
-```
-
-In the above configuration, `substitute`, `encrypt`, `mask_out` and `shuffle` are used as data masking attributes.
-In the beginning of the configuration script `encryption` is used as a encryption technique for `encrypt` data masking attribute.
-Similarly  `mask` is used for `mask_out` data masking attribute.
-Now when data is downloaded from the `servicenow`, column `description` will encrypted by using `caesar` method,
-column `caller_id` will be replaced with `System Administrator`, column `name` will be masked with `*` and 
-column `number` will be shuffled.
-The number of columns stored in the `mysql` database depends upon the columns in `output_schema`.
-
-In the same way we can load the `synthetic` data to the databases. The configuration is gven below:
-
-
-```markdown
-STREAM = {
-    "title": "load_masked_data",
-    "format": "csv",
-    "number": 10,
+    "number": 100,
     "frequency": "once",
      "encryption": {
          "type": "caesar",
@@ -241,13 +190,13 @@ STREAM = {
     ],
     "destination": {
          "mysql": [
-             {"connection": "mysql_development", "table": "mysql_table"}
+             {"connection": "mysql_test", "table": "mysql_table"}
          ],
         "postgres": [
-            {"connection": "postgres_development", "table": "postgres_table"}
+            {"connection": "postgres_test", "table": "postgres_table"}
          ],
         "mssql": [
-            {"connection": "mysql_developemnt", "table": "mssql_table"}
+            {"connection": "mysql_test", "table": "mssql_table"}
         ]
      },
     "substitute": {
@@ -275,6 +224,68 @@ STREAM = {
 }  
 ```
 
+## How To Load Synthetic Data to SFTP storage.
+**Statement** : Load recent 100 data records from synthetic data to SFTP server with host `10.0.1.5`. Before loading mask the `card` column,
+encrypt the `fname` column, substitute the `ctype` column and shuffle `lname`, `passcode` of `synthetic` data.
+
+In the above example `config_default.yaml` file we have registered a sftp connection named `sftp_test` for sftp server 
+with host `10.0.1.5`.
+
+Below configuration performs the task defined by above statement:
+
+
+```python
+STREAM = {
+    "title": "load_synthetic_data_to_all_databases",
+    "format": "csv",
+    "number": 100,
+    "frequency": "once",
+     "encryption": {
+         "type": "caesar",
+         "key": "Jd28hja8HG9wkjw89yd"
+     },
+    "mask": {
+        "with": "x",
+        "characters": 4,
+        "from": "end"
+    },
+    "synthetic":[
+        {"field_name": "fname", "type": "personal.first_name", "category": "male"},
+        {"field_name": "lname", "type": "personal.last_name"},
+        {"field_name": "passcode", "type": "basics.password", "length": 12},
+        {"field_name": "card", "type": "commerce.credit_card"},
+        {"field_name": "ctype", "type": "commerce.credit_card_type"},
+    ],
+    "destination": {
+         "sftp": [
+             {"connection": "sftp_test", "file": "prod/test.csv"},
+             {"connection": "sftp_test", "file": "dev/test.csv", "overwrite":True}
+         ],
+     },
+    "substitute": {
+        "synthetic.ctype": {"type": "advanced.custom_list",
+                       "set_val": "Master Card"},
+    },
+    "encrypt": {
+        "synthetic.fname"
+    },
+    "mask_out": {
+        "synthetic.card"
+    },
+    "shuffle": {
+        "synthetic.lname",
+        "synthetic.passcode"
+    },
+    "output_schema": {
+        "synthetic.fname",
+        "synthetic.lname",
+        "synthetic.passcode",
+        "synthetic.card",
+        "synthetic.ctype",
+    }
+
+}  
+```
 
 
 
