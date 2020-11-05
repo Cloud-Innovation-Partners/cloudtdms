@@ -47,11 +47,11 @@ With `CloudTDMS` you can?
 * **[Data Profiling](data_profiling.md)**
 * **[Email Notifications](email_notify.md)**
 * **[Advanced Users & Troubshooting](installation.md#advanced-users--troubleshooting)**
-* **[Use Case examples](Use_Cases.md#CloudTDMS-Example-Usecases)**
-    - **[How To Load ServiceNow Incident Data to MySQL Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-Database)**
-    - **[How To Load ServiceNow Incident Data to all Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-all-Database)**
-    - **[How To Load Synthetic Data to all Database.](Use_Cases.md#How-To-Load-Synthetic-Data-to-all-Database)**
-    - **[How To Load Synthetic Data to SFTP storage.](Use_Cases.md#How-To-Load-Synthetic-Data-to-SFTP-storage)**
+* **[Use Case Examples](Use_Cases.md#CloudTDMS-Example-Usecases)**
+    - [How To Load ServiceNow Incident Data to MySQL Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-Database)
+    - [How To Load ServiceNow Incident Data to all Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-all-Database)
+    - [How To Load Synthetic Data to all Database.](Use_Cases.md#How-To-Load-Synthetic-Data-to-all-Database)
+    - [How To Load Synthetic Data to SFTP storage.](Use_Cases.md#How-To-Load-Synthetic-Data-to-SFTP-storage)
 
 
 
