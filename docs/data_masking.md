@@ -140,7 +140,6 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     STREAM = {
     "number": 1000,
     "title": 'substitute_example',
-    "format": "csv",
     "frequency": "once",
     
     "source": {
