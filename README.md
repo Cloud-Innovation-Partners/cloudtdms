@@ -47,11 +47,11 @@ With `CloudTDMS` you can?
 * **[Data Profiling](docs/data_profiling.md)**
 * **[Email Notifications](docs/email_notify.md)**
 * **[Advanced Users & Troubshooting](docs/installation.md#advanced-users--troubleshooting)**
-* **[Use Case examples](Use_Cases.md#CloudTDMS-Example-Usecases)**
-    - [How To Load ServiceNow Incident Data to MySQL Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-Database)
-    - [How To Load ServiceNow Incident Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL,-MsSQL-and-Postgres-databases)
-    - [How To Load Synthetic Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-Synthetic-Data-to-MySQL,-MsSQL-and-Postgres-databases)
-    - [How To Load Synthetic Data to SFTP storage.](Use_Cases.md#How-To-Load-Synthetic-Data-to-SFTP-storage)
+* **[Use Case examples](docs/Use_Cases.md#CloudTDMS-Example-Usecases)**
+    - [How To Load ServiceNow Incident Data to MySQL Database.](docs/Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-Database)
+    - [How To Load ServiceNow Incident Data to MySQL, MsSQL and Postgres databases.](docs/Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL,-MsSQL-and-Postgres-databases)
+    - [How To Load Synthetic Data to MySQL, MsSQL and Postgres databases.](docs/Use_Cases.md#How-To-Load-Synthetic-Data-to-MySQL,-MsSQL-and-Postgres-databases)
+    - [How To Load Synthetic Data to SFTP storage.](docs/Use_Cases.md#How-To-Load-Synthetic-Data-to-SFTP-storage)
 
 
 
