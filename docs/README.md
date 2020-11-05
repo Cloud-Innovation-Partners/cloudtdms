@@ -92,6 +92,10 @@ STREAM = {
     }
 }
 ```
+>Note : If you have specify the `destination` attribute in the above configuration then in that case the file will be at the destination part. If `destination`
+      is not present in that case the file will be stored in `data` directory inside the `cloudtdms`.
+      
+>Note : The configuration file is located in `config` directory inside the `cloudtdms`.
 
 + `number` defines the number of records to be generated, In this case, we ask `cloudtdms` to generate 1000 records
 + `title` defines the name of the generated file, In this case, the generated data file will be inside `data/CloudTDMS/synthetic_data` folder of 
