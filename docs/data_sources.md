@@ -260,13 +260,15 @@ STREAM = {
     },
     "destination": {
         "sftp": [
-            {"connection": "development", "file": "PATH_TO_SAVE"}
+            {"connection": "development", "file": "PATH_TO_SAVE","overwrite":True}
         ]            
     }   
 }
 ```
 Each connection entry for sftp must have `file` attribute value set. This attribute specifies the file path in 
-sftp to be used as source or destination. 
+sftp to be used as source or destination. The sftp destination can also have an optional attribute `overwirte`.
+If the `overwrite` attribute is set to `True` it will overwrite the existing file on the sftp server otherwise not.
+By default it is set to `False`.
 
 > **Note:** credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
