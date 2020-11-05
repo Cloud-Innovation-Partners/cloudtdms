@@ -35,12 +35,13 @@ def clean_up(**kwargs):
 
     # clean_up source extract files
     suffix = f"{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
-    for item in os.listdir(f'{get_user_data_home()}/.__temp__/'):
-        if item.__contains__(suffix):
-            try:
-                os.remove(f'{get_user_data_home()}/.__temp__/{item}')
-            except Exception:
-                LoggingMixin().log.error("Exception Occurred while deleting temporary files from `__temp__` folder!", exc_info=True)
+    if os.path.exists(f'{get_user_data_home()}/.__temp__/'):
+        for item in os.listdir(f'{get_user_data_home()}/.__temp__/'):
+            if item.__contains__(suffix):
+                try:
+                    os.remove(f'{get_user_data_home()}/.__temp__/{item}')
+                except Exception:
+                    LoggingMixin().log.error("Exception Occurred while deleting temporary files from `__temp__` folder!", exc_info=True)
 
 
 
