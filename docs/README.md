@@ -49,8 +49,8 @@ With `CloudTDMS` you can?
 * **[Advanced Users & Troubshooting](installation.md#advanced-users--troubleshooting)**
 * **[Use Case examples](Use_Cases.md#CloudTDMS-Example-Usecases)**
     - [How To Load ServiceNow Incident Data to MySQL Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-Database)
-    - [How To Load ServiceNow Incident Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL,-MsSQL-and-Postgres-databases)
-    - [How To Load Synthetic Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-Synthetic-Data-to-MySQL,-MsSQL-and-Postgres-databases)
+    - [How To Load ServiceNow Incident Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-MsSQL-and-Postgres-databases)
+    - [How To Load Synthetic Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-Synthetic-Data-to-MySQL-MsSQL-and-Postgres-databases)
     - [How To Load Synthetic Data to SFTP storage.](Use_Cases.md#How-To-Load-Synthetic-Data-to-SFTP-storage)
 
 
