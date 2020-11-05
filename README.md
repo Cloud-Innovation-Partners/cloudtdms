@@ -47,11 +47,13 @@ With `CloudTDMS` you can?
 * **[Data Profiling](docs/data_profiling.md)**
 * **[Email Notifications](docs/email_notify.md)**
 * **[Advanced Users & Troubshooting](docs/installation.md#advanced-users--troubleshooting)**
-* **[Use Case Examples](Use_Cases.md#CloudTDMS-Example-Usecases)**
+* **[Use Case examples](Use_Cases.md#CloudTDMS-Example-Usecases)**
     - [How To Load ServiceNow Incident Data to MySQL Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL-Database)
-    - [How To Load ServiceNow Incident Data to all Database.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-all-Database)
-    - [How To Load Synthetic Data to all Database.](Use_Cases.md#How-To-Load-Synthetic-Data-to-all-Database)
+    - [How To Load ServiceNow Incident Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-ServiceNow-Incident-Data-to-MySQL,-MsSQL-and-Postgres-databases)
+    - [How To Load Synthetic Data to MySQL, MsSQL and Postgres databases.](Use_Cases.md#How-To-Load-Synthetic-Data-to-MySQL,-MsSQL-and-Postgres-databases)
     - [How To Load Synthetic Data to SFTP storage.](Use_Cases.md#How-To-Load-Synthetic-Data-to-SFTP-storage)
+
+
 
 
 
@@ -92,6 +94,9 @@ STREAM = {
     }
 }
 ```
+>**Note**: The output from the above configuration will be available in `cloudtdms/data/CloudTDMS/synthetic_data/` folder of `cloudtdms`
+
+>**Note**: If you have installed `CloudTDMS` via INSTALL script than `cloudtdms` folder will be available at `/home/cloudtdms`
 
 + `number` defines the number of records to be generated, In this case, we ask `cloudtdms` to generate 1000 records
 + `title` defines the name of the generated file, In this case, the generated data file will be inside `data/CloudTDMS/synthetic_data` folder of 
