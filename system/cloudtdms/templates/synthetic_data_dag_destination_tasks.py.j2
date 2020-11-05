@@ -1,0 +1,87 @@
+{% block destination_tasks %}
+
+{% set supported_destinations = ['csv', 'json', 'mysql', 'servicenow', 's3', 'json', 'postgres', 'mssql', 'sftp'] %}
+
+{% for key, value in data.destination.items() %}
+{% if key in supported_destinations and value %}
+
+{% for item in value %}
+{{ key }}_{{ item.connection }}_kwargs = {}
+{{ key }}_{{ item.connection }}_kwargs['execution_date'] = {% raw %}"{{ execution_date }}"{% endraw %}
+{{ key }}_{{ item.connection }}_kwargs['prefix'] = f"{dag.owner}/{dag.params.get('stream').get('title')}"
+{{ key }}_{{ item.connection }}_kwargs['format'] = f"{dag.params.get('stream').get('format')}"
+
+{% if key == 'csv' %}
+# Initialize task for CSV file creation
+
+{{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="CSV_{{ item.connection }}", python_callable=csv_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'json' %}
+# Initialize task for JSON file creation
+
+{{ key }}_{{ item.connection }}_kwargs['type'] = "{{ item.type }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="JSON_{{ item.connection }}", python_callable=json_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'mysql' %}
+
+# Initialize task for MySQL db Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="MySQL_{{ item.connection }}", python_callable=mysql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'mssql' %}
+
+# Initialize task for MsSQL db Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="MsSQL_{{ item.connection }}", python_callable=mssql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'postgres' %}
+
+# Initialize task for Postgres db Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Postgres_{{ item.connection }}", python_callable=postgres_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'sftp' %}
+
+# Initialize task for SFTP  Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['file_path'] = "{{ item.file }}"
+{{ key }}_{{ item.connection }}_kwargs['overwrite'] = "{{ item.overwrite }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Sftp_{{ item.connection }}", python_callable=sftp_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+
+{% elif key == 'servicenow' %}
+
+# Initialize task for ServiceNow Instance Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 's3' %}
+# Initialize task for Amazon S3 Upload for {{ item.connection }} and bucket {{ item.bucket }}
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="AmazonS3_{{ item.connection }}", python_callable=s3_upload, dag=dag)
+
+{% endif %}
+
+{{ key }}_{{ item.connection }}.set_upstream(stream)
+{{ key }}_{{ item.connection }}.set_downstream(end)
+
+{% endfor %}
+
+{% endif %}
+{% endfor %}
+
+
+{% if 'mysql' not in data.destination  and 'servicenow' not in data.destination and 's3' not in data.destination and 'mssql' not in data.destination and 'postgres' not in data.destination and 'sftp' not in data.destination and 'csv' not in data.destination and 'json' not in data.destination %}
+stream >> end
+{% elif data.destination.mysql | length == 0 and data.destination.s3 | length == 0 and data.destination.servicenow | length == 0 and data.destination.mssql | length == 0  and data.destination.postgres | length == 0 and data.destination.sftp | length == 0 and data.destination.csv | length == 0 and data.destination.json | length == 0 %}
+stream >> end
+{% endif %}
+
+{% endblock %}

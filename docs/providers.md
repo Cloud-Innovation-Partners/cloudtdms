@@ -16,10 +16,10 @@ specific category. for example, **`personal`** is a provider and it is comprised
 `last_name`, `gender` etc. **`personal`** provider can be used to generate personal data. Similarly, **`location`** provider 
 can generate `location` data such as `country`, `city` etc.
 
-Here we shall list providers that are available in cloudtdms and there syntax and control attributes that can be used to change the data 
-generation process. 
+Following is the list of providers available in cloudtdms.
+Each provider has a collection of generator functions available that can be used to generate data related to the provider class
 
-### Basics
+- ### Basics
 1. **boolean :** Generates a `boolean` value `true,false`, you can provide custom values instead of `default` value using
     `set_val` attribute.
     
@@ -129,7 +129,7 @@ generation process.
     {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200}
     ```
 
-### Personal
+- ### Personal
 
 1. **first_name :** Generates random First Names.
     
@@ -213,7 +213,7 @@ generation process.
    ```
 
     
-### Location
+- ### Location
 1. **country :** Generates a random `country` name such as `United Kingdom, Spain, Algeria...` etc
     
     *syntax*:
@@ -321,7 +321,7 @@ generation process.
    {"field_name":  "city", "type" :  "location.city", "locale" : "en_US"}
    ```
 
-### Company
+- ### Company
 
 1. **company_name :** Generates a random company name.
     
@@ -349,7 +349,7 @@ generation process.
     ```
   **```The `company` provider currently supports `en_GB` locale. ```**
 
-### Commerce
+- ### Commerce
 
 1. **credit_card :** Generates a random credit card number.
     
@@ -377,7 +377,7 @@ generation process.
     {"field_name" :  "ccode", "type" :  "commerce.currency_code"}
     ```
 
-### IT
+- ### IT
 
 1. **ip_address :** Generates an IP address. such as `192.168.0.1, 251.150.202.132... `etc for `v4` category, 
     `43de:c4ea:7529:ebbc:754b:81a:be18:d2a1, 10d0:c44:63d:401a:440b:538f:8afc:fb0f...` etc for `v6` category
@@ -415,7 +415,7 @@ generation process.
     ```json
     {"field_name" :  "domain", "type" :  "it.domain_name"}
     ```
-### Dates
+- ### Dates
 
 1. **date :** Generates a random `date` , based on the format value specified. The default value for format is `dd/mm/YYYY`. 
     Few format options are listed below for your reference. 
@@ -464,7 +464,7 @@ generation process.
     ```
 
 
-### Advanced
+- ### Advanced
 
 1. **custom_list :** Generates a random value from a user specified list. With `custom_list` you can simulate generation of
     any finite set as per your needs.
@@ -609,7 +609,7 @@ generation process.
    
     
 
-### Statistics
+- ### Statistics
     
 1. **normal :** Generates random numbers from a `normal distribution`. Such as `0.51984538, -0.01018767, -2.07595922', -0.35596830...`etc.
            

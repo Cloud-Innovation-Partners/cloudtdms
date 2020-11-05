@@ -295,10 +295,10 @@ def currency(data_frame, number,args=None):
     :param number: Number of records to generate
     :type int
      """
-    currencies_list=[]
     dcols = [f for f in data_frame.columns if f.startswith("currency") and not 'currency_code' in f]
     for column_name, data_frame_col_name in zip(args, dcols):
         for code, country in currencies:
+            currencies_list = []
             currency=code + ' (' + country + ')'
             currencies_list.append(currency)
 

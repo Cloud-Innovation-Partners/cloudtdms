@@ -8,9 +8,9 @@ These topics describe `version 0.1` of the configuration file format. This is th
 The `CloudTDMS` configuration file is a `python` file that defines what type of data is to be generated.
 
 The default path for a `configuration` file is `./config/<file_name>.py`. 
-Each `configuration` file must have a variable named `STREAM` defined in it, This variable must be of type `dictionary`. It's this
-variable that represents a configuration for synthetic data generation and masking. This variable contains `configuration`
-attributes as key value pair. 
+Each `configuration` file must have a variable named `STREAM` of the type `dictionary` defined in it. `STREAM` variable 
+represents the configuration for synthetic data generation and masking. This variable contains `configuration`
+attributes as key value pairs. 
 
 **`./config/example.py`**
 
@@ -20,75 +20,313 @@ STREAM = {
 }
 ```
 
-A `configuration` file represents a stream of data. When a configuration is defined it must have some mandatory attributes defined in it
-like, `frequency`. frequency defines how often data is to be generated. If a stream has frequency `hourly` it means that data would be 
-generated each hour, With this approach user can generate data in streams. Like `frequency`  there are other mandatory attributes
-that must be defined in order to get data generated. In the subsequent sections we shall define all the configuration attributes
-supported by current version
+A `configuration` file must have some mandatory attributes defined in it like,`frequency`, `title` etc. 
+In the subsequent sections we shall define all the configuration attributes supported by current version.
+
+#### Application
+`Application` in CloudTDMS refers to a grouping of configuration scripts. In order to better organise and maintain your configuration scripts, You
+can create a child folder inside `config` folder of CloudTDMS and place all related configuration scripts inside the child folder. The
+child folder will act as Application and all configuration inside this folder will be the part of the Application named as folder name. As an example,
+we can define a folder `ServiceNow` and save all servicenow related configuration scripts inside this folder. CloudTDMS will set the application 
+name as owner of these scripts e.g `ServiceNow` when scheduled for execution. Also If you want your output data to be written as a file like CSV or JSON than 
+that file will be created at the destination specified inside the folder named as `Application` folder. 
+
+>If you dont use `Application` folder concept and simply place your configuration files inside `config` folder by default they will
+be assigned owner and application as `CloudTDMS`.
 
 #### Configuration Attributes  
 
-This section contains a list of all configuration options supported by `CloudTDMS` in current version.
+This section contains a list of all configuration options supported by `CloudTDMS` in current version. Before diving into 
+details of each configuration attribute, few things need to be kept in mind.
 
-**Mandatory Attributes :**
+configuration files in `CloudTDMS` are used for either generating synthetic data or for masking the already existing data or both.
+This means `CloudTDMS` has two modes:
 
-Following configuration attributes are mandatory for a `configuration` file, Absence of any one of the attributes will not lead to 
-data generation.
+1. Synthetic Data Mode
+2. Data Masking Mode
 
-+ **`number`** : This attribute defines how many number of records need to be generated. The generated output file will have 
-                 this many records stored in it.
+Although, `CloudTDMS` also provides Data Profiling feature, But that does not require any configuration to be created. To know more
+about profiling feature please check out [Data Profiling](data_profiling.md) section
+
+Attributes in configuration file are categorised based on above two modes. Mandatory attributes are those attributes which are 
+required in both the cases, whether your configuration file is generating only synthetic data or it is masking the already existing
+data, mandatory attributes are the required.
+
+**List of Mandatory Attributes:**
+
+- *title*
+- *number*
+- *frequency*
+- *output_schema*
+
+**List of Synthetic Data Attributes:**
+- *source*
+- *destination*
+- *synthetic*
+
+**List of Data Masking Attributes:**
+- *source*
+- *destination*
+- *encrypt*
+- *mask_out*
+- *shuffle*
+- *nullying*
+
+In above listing `source` and `destination` attributes have been categorised as both Synthetic Data Attribute as-well as Data Masking attribute. 
+As already mentioned above we can use configuration files for synthetic data generation or data masking or both. In real world implementation
+you may be using `CloudTDMS` in both modes, i.e your configuration file would be fetching some production data, masking it, adding
+some synthetic data and then pushing the same data to destination storage. Please refer to [Example UseCases]() section 
+to check out various real world use case of `CloudTDMS`.
+    
+**Attribute Details :**
+
+Following configuration attributes are part of current version of `CloudTDMS`.
+
++ **`number`** : If the configuration is generating only synthetic data the `number` attribute specifies the number of records
+                 to be generated. If your configuration is performing data masking or uploading data into storage than `number` 
+                 attribute will define the number of records fetched from the `source` and ingested into `destination`. 
+                 `number` is a mandatory attribute, absence of this attribute will lead to parsing error.
  ```python
 STREAM = {
     "number" : 1000
  }
  ```
-                 
-+ **`title`** : This attribute is used to provide a name to the output file. If you want your output file to be named say,
-                `example.csv` then you will set value to this attribute as `example`
+> **Note :** There is a upper limit set for the `number` value, You cannot fetch, generate or upload more than 5000 records.
+
++ **`title`** : This attribute is used to provide a name to the configuration stream. The value for `title` attribute will 
+    also be used as a name for any output data generated by the configuration stream.
+    
+    If your configuration is writing data to any SAAS solution such as ServiceNow or database such as MySQL etc, 
+    then the `title` may not be useful to you in such case.
+    
+    But If your configuration is generating data and you need to save them 
+    as CSV or JSON file say, `example.csv` or `example.json` than you will set value to this attribute as `example`.
+     
+    Although the output will not be named exactly as specified `title` because it will have `execution_date` 
+    associated with it. i.e if your `title` is set as `example` than the output file will have name similar to 
+    `example_YYYY_MM_DDThh_mm_ss.csv`. Also, the output file will be created inside a folder named same as value 
+    of `title` at the destination specified.
+    
+    `title` is a mandatory attribute, absence of this attribute will lead to parsing error.
 
 ```python
 STREAM = {
     "title" : "example"
  }
  ```   
-+ **`format`** : This attribute is used to specify the format for the output file.
-
-> **Note** : currently only `csv` format is supported
-
-```python
-STREAM = {
-    "format" : "csv"
- }
- ```   
-+ **`frequency`** : This attribute is used to specify how often should data be generated, `CloudTDMS` uses scheduler to 
-                    to run configurations inside the `config` folder. `frequency` defines how often should scheduler run your
-                    configuration to generate random data for you. It can take cron values like
++ **`frequency`** : This attribute is a mandatory attribute and is used to specify how often should data be generated, `CloudTDMS` uses scheduler to 
+    run configurations inside the `config` folder. `frequency` defines how often should scheduler run your
+    configuration to generate random data for you. It can take cron values like
                     
     - `once` : This will run configuration only once
     - `hourly` : This will run configuration each hour
     - `daily` : This will run configuration daily at `00:00:00` hours.
     - `monthly` : This will run configuration on 1st of every month at `00:00:00` hours
+    
 ```python
 STREAM = {
     "frequency" : "once"
  }
- ``` 
-
-**Optional Mandatory (Data Masking only)**                    
-+ **`source`** : If you are using `CloudTDMS` for data masking purpose, then this attribute is mandatory else for synthetic 
-                 data generation this is not necessary. For data masking you must specify the name of the data file as value to this
-                 attribute, from which data needs to be read and masked. The file must be in `user-data` folder of `cloudtdms`.
-                 All data-masking attributes require this attribute to be set.
-                 As an example suppose, I want to mask data from file named `transaction_daily.csv` which is inside the
-                 `user-data` folder of `cloudtdms`, Then my `source` attribute will have value as follows
-
->**Note** : Files inside `user-data` should be `.csv` files only, As of now only `csv` files are supported
+```
++ **`source`** : This attribute is used to specify the data source. `CloudTDMS` provides you option to fetch data from different
+      sources. Supported data sources involves static files, databases and SAAS solutions. Following are the supported
+      data sources in current version of `CloudTDMS`.
                  
-```python
-STREAM = {
-    "source" : "transaction_daily"
- }
- ```             
+     | Static Files | Databases | SAAS Platforms | Network Storages |
+     |--------------|-----------|----------------|------------------|
+     | CSV          | MySQL     | ServiceNow     | SFTP             |
+     | JSON         | Postgres  |                |                  |
+     |              | MSSQL     |                |                  |
+     
+     This attribute takes a dictionary of key value pairs. Each key inside the dictionary represents a data source and
+     each key has a list of `connections` as associated value. Below is an example of a typical instance of `source` attribute.
+     Data source in `CloudTDMS` is identified by a connection name. As you can see in an example, each data source has a list
+     of connections associated with it. Each connection represents a unique data source. connections are registered inside
+     `config_default.yaml` file present in the root directory of `cloudtdms` folder.                  
+                 
+    ```python
+    STREAM = {
+        "source" : {
+            "csv": [
+                {"connection": "csv_local", "delimiter": ","},
+            ],
+            "servicenow": [
+                {"connection": "dev", "table": "incident"}
+            ],
+            "json": [
+                {"connection": "json_local", "type": "lines"},
+            ],
+            "postgres": [
+                {"connection": "postgres_test", "table": "master"},
+                {"connection": "postgres_test", "table": "secondary"},
+            ]
+        }   
+     }
+     ```
+    The above snippet defines five data sources one of type CSV, one of JSON, one of ServiceNow and two of Postgres. `csv_local` 
+    is the connection name registered under key `csv` in `config_default.yaml` file. This represents a `csv` file that acts as source data
+    similarly, `postgres_test` is a connection name registered under key `postgres` of `config_default.yaml` file, It holds
+    the login details of the database from which data for table `master` and `secondary` is to be fetched and used as a source data.
+    
+    Please refer to [Supported Data Sources and Destination](data_sources.md) section for more details about the different
+    types of sources and destination available for configurations.
+    
++ **`destination`** : This attribute is used to specify the end point to store resultant data. `CloudTDMS` provides you option 
+    to store data into various destinations. Supported data storages involves static files, databases and SAAS solutions. Following are the supported
+    data storages in current version of `CloudTDMS`.
+             
+    | Static Files | Databases | SAAS Platforms | Network Storages |
+    |--------------|-----------|----------------|------------------|
+    | CSV          | MySQL     | ServiceNow     | SFTP             |
+    | JSON         | Postgres  |                |                  |
+    |              | MSSQL     |                |                  |
+    
+    like `source` attribute `destination` attribute also takes a dictionary of key value pairs. Each key inside the dictionary represents a data storage and
+    each key has a list of `connections` as associated value. Below is an example of a typical instance of `destination` attribute.
+    Data storages in `CloudTDMS` are identified by a connection name. As you can see in an example, each data storage has a list
+    of connections associated with it. Each connection represents a unique data storage. connections are registered inside
+    `config_default.yaml` file present in the root directory of `cloudtdms` folder.                  
+                 
+    ```python
+    STREAM = {
+        "destination" : {
+            "csv": [
+                {"connection": "csv_local", "delimiter": ","},
+            ],
+            "servicenow": [
+                {"connection": "dev", "table": "incident"}
+            ],
+            "json": [
+                {"connection": "json_local", "type": "lines"},
+            ],
+            "mysql": [
+                {"connection": "postgres_test", "table": "primary"},
+            ]
+        }   
+     }
+     ```
+    The above snippet defines four data storages one of type CSV, one of JSON, one of ServiceNow and one of Postgres. `csv_local` 
+    is the connection name registered under key `csv` in `config_default.yaml` file. This represents the output `csv` file that will be created
+    similarly, `postgres_test` is a connection name registered under key `postgres` of `config_default.yaml` file, It holds
+    the login details of the database to which data into table `primary`is to be stored.
+    
+    Please refer to [Supported Data Sources and Destination](data_sources.md) section for more details about the different
+    types of sources and destination available for configurations.
+    
++ **`synthetic`** : This attribute is used to describe what type of synthetic data must be generated using `CloudTDMS` providers. 
+    `CloudTDMS` generates synthetic data in columnar layout, you need to specify the column name and the type of data that 
+    need to be populated inside the specified column. 
+    
+    `synthetic` attribute takes a list of dictionary objects as a value. The length of list will define how many data columns 
+    are to be generated. Each dictionary entry in the list contains a `field_name` which is used to define the name of the 
+    column and `type` which is used to defined what type of data is to be generated. 
+    
+    Since data in `CloudTDMS` is generated using generator functions available in different providers, `type` attribute must have a 
+    valid provider and generator value. `type` attribute takes a dot `(.)` concatenated value of providers and there  corresponding 
+    generator functions. 
+    
+    As an Example, Suppose we need to generate synthetic `first_name`'s and `last_name`'s. From [Provider](providers.md) section
+    we can see that `first_name` and `last_name` are two generator functions available in `personal` provider, Thus we can
+    set the value for `type` attribute as `personal.first_name` or `personal.last_name` to define the type of data to be generated.
+    
+    In this case our `synthetic` attribute will take following form:
+    
+    ```python
+      STREAM= {
+      "synthetic": [
+          {"field_name": "FirstName", "type": "personal.first_name"},
+          {"field_name": "LastName", "type": "personal.last_name"}
+      ]
+
+      }   
+    ```
+    Please refer to [Providers](providers.md) sections to get a
+    list of all `providers` and corresponding `generator` functions available in `CloudTDMS`.
+
+    **Example configuration**
+       
+    ```python
+    STREAM = {
+            "number": 1000,
+            "title": 'synthetic_data',
+            "format": "csv",
+            "frequency": "once",
+            "synthetic": [
+                {"field_name" :  "id", "type" :  "basics.auto_increment", "prefix" :  "INC", "suffix" :  "NZD", "start":  2000, "increment" :  1},
+                {"field_name": "fname", "type": "personal.first_name"},
+                {"field_name": "lname", "type": "personal.last_name",},
+                {"field_name": "sex", "type": "personal.gender"},
+                {"field_name": "email", "type": "personal.email_address"},
+                {"field_name": "country", "type": "location.country"},
+                {"field_name": "city", "type": "location.city"},
+            ]
+           }
+    ```
+    In the example above, we see 7 dictionary objects inside the `synthetic` list. It means we are supposed
+    to generate data for 7 columns. First column will be name `id` as the `field_name` of the object is set value `id`. The `id`
+    is to be generated using `auto_increment` generator fucntion available inside `basics` provider.
+    
+    Which `generator` function to use is defined using `type` attribute of the dictionary object. The other attributes like `prefix`,
+    `suffix`, `start` etc. are specific to a particular `generator` function. All attributes specified in the dictionary object
+    are passed as arguments to the functions. Different `generator` functions have different attributes available to tweak their
+    data generation settings.
+    
+    In the example above we are generating `id` which is an integer value starting from 2000 and for each record it will be 
+    incremented by 1. Similarly we have `fname` which is generated using `first_name` function and like wise other are defined.
+    
+    The output of the above configuration would be something like this:
+    
+    |id    | fname | lname | sex | email | country | city |
+    |------|-------|-------|-----|-------|---------|------|                
+    | 2000 | David |Savage |Male |d.savage87@gmail.com | United States of America | New York
+    | 2001 | Paul  |Winter |Male |p_winter234@outlook.com | United Kingdom | London |
+    | 2002 | Christopher|Metcalfe|Male |c.metcalfe901@mail.com | United Kingdom | Manchester |
+    
++ **`output_schema`** : This attribute is a mandatory attribute and it defines what must be outputted. `output_schema` acts
+    as a window to define what must be the part of the output data. While `synthetic` attribute defines what data is to be generated, 
+    `output_schema` specifies what must be outputted. You may define 6 columns to be generated using `synthetic` attribute but
+    you may only output 5 columns using `output_schema`. This attribute can also be used to rename your generated columns, The renaming
+    process comes handy when you are fetching data from different sources.
+    
+    When dealing with multiple data sources in configuration identifying a column becomes difficult as there can be same
+    column names coming from multiple sources. In order to over come this issue and uniquely identify the column, `ClouTDMS`
+    uses dot `(.)` concatenated names for each columns coming from the sources. Following naming convention is used
+    
+        [SOURCE_TYPE].[CONNECTION_NAME].[TABLENAME].[COLUMN_NAME]
+        
+    Lets understand this with an example, consider the following script having multiple sources defined.
+    
+    ```python
+    STREAM = {
+        "source": {
+            "mysql": [
+                {"connection": "dev", "table": "users"}
+            ],
+            "csv": [
+                {"connection": "csv_local", "delimiter": "|"}
+            ]
+        },
+        "synthetic": [
+            {"field_name": "Country", "type": "location.country"},
+            {"field_name": "City", "type": "location.city"}
+        ],
+        "output_schema": {
+            "mysql.dev.users.name": "CustomerName",
+            "csv.csv_local.description": "CustomerDescription",
+            "synthetic.Country": "Country",
+            "synthetic.City": "CurrentCity"
+        }
+    }
+    ```
+    The above snippet of configuration has two sources defined one for `mysql` and one for `csv` also we are generating
+    some synthetic data for columns `Country` and `City`. `output_schema` defines what needs to be outputted, `name` column
+    from `users` table in database identified by connection `dev` of `mysql` is to be outputted and renamed with `CustomerName`.
+    Similarly, `description` column coming from `csv` file defined by `csv_local` is renamed and outputted as `CustomerDescription`.
+    
+    Also, `Country` and `City` which are being generated using `synthetic` attribute are identified by `synthetic.Country` and 
+    `synthetic.City`.
+    
+   
 
 **Data Masking Attributes :**
 Following are configuration attributes that user can use to mask his data using `cloudtdms`. For
@@ -101,113 +339,117 @@ more details about data masking feature provided by `CloudTDMS` please refer to 
                      under `providers` of `CloudTDMS`. User can use `substitute` attribute to specify which column values in
                      the production data file must be substituted with the values from the generator function. for example:
                      Suppose my production data has `Surname`, `Age` columns which I would require to anonymize. The compatible
-                     generator functions `last_name` and `random_number` are available are under `personal` and `basics` provider
+                     generator functions `last_name` and `random_number` are available under `personal` and `basics` provider
                      respectively. With respect to this example `substitute` attribute will take following values.
                      
 ```python
 STREAM = {
-    "source" : "production_data",
+    "source": {
+        "mysql": [
+            {"connection": "prod", "table": "profile"}
+        ]
+    },   
     "substitute" : {
-        "Surname" : {"type" : "personal.last_name"},
-        "Age" : {"type" :  "basics.random_number", "start" :  23, "end" :  45}
+        "mysql.prod.profile.Surname" : {"type" : "personal.last_name"},
+        "mysql.prod.profile.Age" : {"type" :  "basics.random_number", "start" :  23, "end" :  45}
     }
  }
  ```          
 + **`encrypt`** : This attribute is used to encrypt values of the columns. `CloudTDMS` provides various encryption techniques
-                  that can be used to encrypt any number of columns in data. Please refer to  [Data Masking](data_masking.md) section
-                  for more details about encryption techniques available.
+    that can be used to encrypt any number of columns in data. `encrypt` attribute takes a set of column names as 
+    a value. Each column listed inside the `encrypt` attribute will be encrypted using the encryption type defined 
+    in `encryption` attribute.
+
+    `encryption` attribute is an optional attribute that can be used to define what type of encryption technique to use for encryption in a STREAM.
+    By default this attribute gets its values from `config_default.yaml` file. In order to override the default behaviour we can define the `encryption`
+    attribute within the scope of STREAM and set the values for `type` and `key` attributes specific to current STREAM. 
+    
+    `type` defines what type of encryption to use and `key` defines the encryption key to be used for encryption.
+
+    Please refer to  [Data Masking](data_masking.md) section for more details about encryption techniques available.
+                  
+                  
                   
 ```python
 STREAM = {
-    "source" : "production_data",
+    "source": {
+        "mysql": [
+            {"connection": "prod", "table": "profile"}
+        ]
+    }, 
+    "encryption": {
+         "type": "caesar",
+         "key": "Jd28hja8HG9wkjw89yd"
+    },
     "encrypt": {
-            "columns": ["EstimatedSalary", "Balance"],
-            "type" : "ceaser",
-            "encryption_key": "Jd28hja8HG9wkjw89yd"
+        "mysql.prod.profile.EstimatedSalary",
+        "mysql.prod.profile.InvestmentScore"
     }
  }
  ```    
++ **`mask_out`** : This attribute is used to mask the column values. By masking we mean replacing the characters of field value of a record with some random
+    characters e.g `x` or `#` etc. `mask_out` attribute takes a set of column names as value. Each column listed inside the `mask_out` attribute will be 
+    masked out using the character defined in `with` attribute of `mask` attribute.
+
+    `mask` attribute is an optional attribute that can be used to define what type of masking values to use for `mask_out` in a STREAM.
+    By default this attribute gets its values from `config_default.yaml` file. In order to override the default behaviour we can define the `mask`
+    attribute within the scope of STREAM and set the values for `with`, `characters` and `from` attributes specific to current STREAM. 
+    
+    `with` defines what character to use for masking, `characters` defines number of characters to be masked in a field value and `from` defines the alignment
+    from where to start the masking operation. `from` takes values as `start`, `mid` and `end`.
+
+    Please refer to  [Data Masking](data_masking.md) section for more details about encryption techniques available.
+
+```python
+STREAM = {
+    "source": {
+        "mysql": [
+            {"connection": "prod", "table": "profile"}
+        ]
+    }, 
+    "mask": {
+         "with": "x",
+         "characters": 4,
+         "from": "mid"
+    },
+    "mask_out": {
+        "mysql.prod.profile.FullName",
+        "mysql.prod.profile.Zip"
+    }
+ }
+ ```                      
+
 
 + **`nullying`** : This attribute is used to make column values `null` i.e It would make column/column's empty. It takes
-                   any array of column names as value, Each column in the list will be made `null` / empty in output file.
+                   a set of column names as value, Each column in the list will be made `null` / empty in output file.
                    
 ```python
 STREAM = {
-    "source" : "production_data",
-    "nullying" : ["RowNumber", "Tenure"]
+    "source": {
+        "mysql": [
+            {"connection": "prod", "table": "profile"}
+        ]
+    },
+    "nullying" : {
+        "mysql.prod.profile.RowNumber",
+        "mysql.prod.profile.Tenure"
+    }
  }
- ```                                             
-
-+ **`delete`** : This attribute takes a list of columns as value, And any column in this list will not be present in the
-                 output file. The column/columns will not take part in data masking operation. 
-                 
-```python
-STREAM = {
-    "source" : "production_data",
-    "delete" : ["CustomerID", "CreditScore"]
- }
- ```                                      
+ ```                                                                               
 
 + **`shuffle`** : This attribute takes a list of columns as value, each column inside this list will be shuffled randomly
                   before writing it to the output file.
                   
 ```python
 STREAM = {
-    "source" : "production_data",
-    "shuffle" : ["NoOfProducts", "PurchasedItems"]
+    "source": {
+        "mysql": [
+            {"connection": "prod", "table": "profile"}
+        ]
+    },
+    "shuffle" : {
+        "mysql.prod.profile.NoOfProducts", 
+        "mysql.prod.profile.PurchasedItems"
+    }
  }
  ```                   
-**Realistic Synthetic Data attribute :**                     
-Following are the configuration attributes required for generating realistic synthetic data.
-
-+ **`schema`** : In order to use `CloudTDMS` for realistic synthetic data generation, You need to use `schema` attribute
-                 inside your `STREAM` variable to define the schema of the output data file. As the name suggests in this
-                 attribute you define the schema of the output data to be generated. The schema of the data to be generated is 
-                 defined using the `generator` functions available under different `providers` of `CloudTDMS`. 
-                 `CloudTDMS` provides various `generator` functions inside different `providers` for example, In `personal`
-                 provider `first_name`, `last_name`, `gender`, `full_name`, `username` etc. are various generator functions
-                 which generate corresponding synthetic data. Please refer to [Providers](providers.md) sections to get a
-                 list of all `providers` and corresponding `generator` functions available in `CloudTDMS`.
-
-**example configuration**
-   
-```python
-STREAM = {
-        "number": 1000,
-        "title": 'synthetic_data',
-        "format": "csv",
-        "frequency": "once",
-        "schema": [
-            {"field_name" :  "id", "type" :  "basics.auto_increment", "prefix" :  "INC", "suffix" :  "NZD", "start":  2000, "increment" :  1},
-            {"field_name": "fname", "type": "personal.first_name"},
-            {"field_name": "lname", "type": "personal.last_name",},
-            {"field_name": "sex", "type": "personal.gender"},
-            {"field_name": "email", "type": "personal.email_address"},
-            {"field_name": "country", "type": "location.country"},
-            {"field_name": "city", "type": "location.city"},
-        ]
-       }
-```
-`schema` attribute takes a list of `generator` functions as value. Each `generator` function is defined using a dictionary
-object and represents a column in the output data file. The dictionary object contains different attributes depending upon 
-the `generator` function. In the example above, we see 7 dictionary objects inside the `schema` list. It means we are supposed
-to generate data for 7 columns. First column will be name `id` as the `field_name` of the object is set value `id`. The `id`
-is to be generated using `auto_increment` generator fucntion available inside `basics` provider.
-
-Which `generator` function to use is defined using `type` attribute of the dictionary object. The other attributes like `prefix`,
-`suffix`, `start` etc. are specific to a particular `generator` function. All attributes specified in the dictionary object
-are passed as arguments to the functions. Different `generator` functions have different attributes available to tweak their
-data generation settings.
-
-In the example above we are generating `id` which is an integer value starting from 2000 and for each record it will be 
-incremented by 1. Similarly we have `fname` which is generated using `first_name` function and like wise other are defined.
-
-The output of the above configuration would be something like this:
-
-|id    | fname | lname | sex | email | country | city |
-|------|-------|-------|-----|-------|---------|------|                
-| 2000 | David |Savage |Male |d.savage87@gmail.com | United States of America | New York
-| 2001 | Paul  |Winter |Male |p_winter234@outlook.com | United Kingdom | London |
-| 2002 | Christopher|Metcalfe|Male |c.metcalfe901@mail.com | United Kingdom | Manchester |
-
----                 
