@@ -169,7 +169,6 @@ Below configuration performs the task defined by above statement:
 ```python
 STREAM = {
     "title": "load_synthetic_data_to_all_databases",
-    "format": "csv",
     "number": 100,
     "frequency": "once",
      "encryption": {
@@ -196,7 +195,7 @@ STREAM = {
             {"connection": "postgres_test", "table": "postgres_table"}
          ],
         "mssql": [
-            {"connection": "mysql_test", "table": "mssql_table"}
+            {"connection": "mssql_test", "table": "mssql_table"}
         ]
      },
     "substitute": {
@@ -237,7 +236,6 @@ Below configuration performs the task defined by above statement:
 ```python
 STREAM = {
     "title": "load_synthetic_data_to_all_databases",
-    "format": "csv",
     "number": 100,
     "frequency": "once",
      "encryption": {
