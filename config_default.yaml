@@ -87,3 +87,11 @@ servicenow:
     host: ""                    # ServiceNow instance
     username: ""                # Base64 encrypted username
     password: ""                # Base64 encrypted password
+
+# SalesForce
+salesforce:
+  test:                         # Connection Name
+    host: ""                    # SalesForce instance name (Don't  use full url)
+    username: ""                # Base64 encrypted username
+    password: ""                # Base64 encrypted password
+    security_token: ""          # Base64 encrypted security token
