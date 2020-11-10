@@ -210,6 +210,61 @@ is used as a source and of another instance is used as destination
 
 > **Note:** credentials for a servicenow inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
+### SalesForce
+`CloudTDMS` supports data retrieval and ingestion from a salesforce instance. You can use salesforce instance both as source 
+as well as destination. Before using salesforce instance as a source or destination, in configuration
+you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
+key `salesforce:` present in `config_default.yaml` file.
+
+A typical instance of `config_default.yaml` file containing connection entries for salesforce looks something like this.
+Each salesforce connection must have `host`, `username`, `password` and `security_token` defined. The `host` represent salesforce instance
+name, If your salesforce instance has url `https://mn12.salesforce.com` you need to provide the instance name `mn12` as
+a value to `host` not the full url.
+
+>**Note :** values for `username`, `password` and `security_token` for salesforce connections must be Base64 encoded. 
+
+```yaml
+salesforce:
+  production:
+    host: "mn12"
+    username: ""
+    password: ""
+    security_token: ""
+  development:
+    host: "um12"
+    username: ""
+    password: ""
+    security_token: ""
+```
+
+The above snippet of `config_default.yaml` shows 2 salesforce connection registered named as `production` and `development`. 
+The `production` connection refers to instance `https://mn12.salesforce.com` and `development` connection refers to
+`https://um12.salesforce.com`
+
+You can use the connections registered inside the `config_default.yaml` file in your configuration
+scripts. Below is an example snippet of configuration file using above salesforce connections as source and destinations
+
+*Example:*
+```python
+STREAM = {
+    "source": {
+        "salesforce": [
+            {"connection": "production", "table": "Account"},
+        ],         
+    },
+    "destination": {
+        "salesforce": [
+            {"connection": "development", "table": "Account"}
+        ]            
+    }   
+}
+```
+Each connection entry for salesforce must have `table` attribute value set. This attribute specifies the Object name in 
+Salesforce instance to be used as source or destination. In above configuration script `Account` Object of one instance 
+is used as a source and of another instance is used as destination
+
+> **Note:** credentials for a salesforce inside `config_default.yaml` file must have requisite permissions for reading and writing data via REST Bulk API.
+
 ### Network Storages
 
 ### SFTP
