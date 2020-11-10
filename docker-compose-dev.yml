@@ -1,7 +1,6 @@
 version: "3"
 services:
-
-  webserver:
+  scheduler:
     build: .
     command: "scheduler"
     environment:
@@ -16,6 +15,7 @@ services:
 #      timeout: 30s
 #      retries: 3
     volumes:
+    - .:/opt/cloudtdms
     - ./config:/opt/cloudtdms/config
     - ./data:/opt/cloudtdms/data
     - ./user-data:/opt/cloudtdms/user-data
@@ -25,4 +25,3 @@ services:
     - ./profiling_data:/opt/cloudtdms/profiling_data
     ports:
     - "8080:8080"
-
