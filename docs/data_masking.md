@@ -21,6 +21,8 @@ With `CloudTDMS` you can perform various data masking operations besides generat
 We shall take an example to describe the basic usage of the data masking feature. Suppose we have a sample bank data named 
 **`Churn-Modeling.csv`** with following contents. We shall apply various data masking technique on this data.
 
+ >**Note** : Each of the data masking attribute requires `source` attribute to be present.
+
 ```csv
 RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,NumOfProducts,HasCrCard,IsActiveMember,EstimatedSalary,Exited
 1,15634602,Hargrave,619,France,Female,42,2,0,1,1,1,101348.88,1
@@ -31,8 +33,15 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
 ```
 ### Steps
 
-1. Place your data file inside **`user-data`** folder of the `cloutdms`. Only `csv` data files are allowed, for any
-   other file type system will throw exception.
+
+1. Create a `connection` entry named `modeling` inside `config_default.yaml` for the source CSV file like:
+
+   ```yaml
+    csv:
+       modeling:          # Connection Name
+          source: ""        # source is usually a path to CSV data file
+          target: ""        # target is usually a path to local folder where data must be saved
+   ```
    
 2. Create a configuration inside **`config`** folder with name say `example.py`. Now we shall create a **`STREAM`** variable 
    which represents a python dictionary for specifying our configuration. `cloudtdms` will load your configuration and start the 
@@ -44,33 +53,68 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     STREAM = {
         "number": 1000,
         "title": 'Stream6',
-        "source": 'Churn-Modeling',
-        "substitute": {
-            "Surname": {"type" : "personal.last_name"},
-            "Gender": {"type": "personal.gender"},
-            "Geography": {"type" : "location.country"}
+        "frequency": "once"
+       
+        "encryption": {
+         "type": "caesar",
+         "key": "Jd28hja8HG9wkjw89yd"
+         },
+         
+         "mask": {
+         "with": "x",
+         "characters": 4,
+         "from": "mid"
+         },
+        
+        "source": {
+           "csv": [
+                  {"connection": "modeling", "delimiter": ","},
+             ]
         },
+        
+        "substitute" : {
+                 "csv.modeling.Surname" : {"type" : "personal.last_name"},
+                 "csv.modeling.Gender" : {"type": "personal.gender"},
+                 "csv.modeling.Geography" : {"type" : "location.country"}
+       },
+       
         "encrypt": {
-            "columns": ["EstimatedSalary", "Balance"],
-            "type" : "caesar",
-            "encryption_key": "Jd28hja8HG9wkjw89yd"
+          "csv.modeling.EstimatedSalary",
+          "csv.modeling.Balance"
         },
+        
         "mask_out": {
-        "CustomerId": {
-                    "with": "x",
-                    "characters": 4,
-                    "from": "start"	
-        }
+            "csv.modeling.CustomerId"
         },
-        "shuffle": ["NumOfProducts", "IsActiveMember"],
-        "nullying" : ["RowNumber"],
-        "delete" : ["CreditScore"],
-        "schema": [
+        
+        "shuffle": {
+            "csv.modeling.NumOfProducts",
+            "csv.modeling.IsActiveMember"
+        },
+        
+        "nullying" : {
+                  "csv.modeling.RowNumber"
+        },
+          
+           
+        "synthetic": [
             {"field_name": "email", "type": "personal.email_address"},
             {"field_name": "univ", "type": "personal.university"},
         ],
-        "format": "csv",
-        "frequency": "once"
+        
+        "output_schema": {
+        "csv.modeling.Surname" ,
+        "csv.modeling.Gender" ,
+        "csv.modeling.Geography",
+        "csv.modeling.EstimatedSalary",
+        "csv.modeling.Balance",
+        "csv.modeling.CustomerId",
+        "csv.modeling.NumOfProducts",
+        "csv.modeling.IsActiveMember",
+        "csv.modeling.RowNumber",
+        "synthetic.email","synthetic.univ",
+     }
+       
     }
     ``` 
 
@@ -96,15 +140,20 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     STREAM = {
     "number": 1000,
     "title": 'substitute_example',
-    "source": 'Churn-Modeling',
-    "format": "csv",
     "frequency": "once",
-
-    "substitute": {
-        "Surname": {"type" : "personal.last_name"},
-        "Gender": {"type": "personal.gender"},
-        "Geography": {"type" : "location.country"}
-    }
+    
+    "source": {
+           "csv": [
+                  {"connection": "modeling", "delimiter": ","},
+             ]
+        },
+    
+      "substitute" : {
+                 "csv.modeling.Surname" : {"type" : "personal.last_name"},
+                 "csv.modeling.Gender" : {"type": "personal.gender"},
+                 "csv.modeling.Geography" : {"type" : "location.country"}
+       },
+    
     }
    ```
     
@@ -117,11 +166,9 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
    time consuming*.   
    
    In case of bank data example mentioned above. We are using encryption for two columns `EstimatedSalary`, `Balance`,
-   To encrypt the values for these columns we need to use attribute `encrypt` inside our `STREAM` dictionary. `encrypt` key
-   take a dictionary as a value which contains information about the type of encryption and encryption key besides
-   the names of the columns to be used for encryption. Lets discuss each attribute of `encrypt` attribute.
-   
-    - *columns* : This is an array of column names that need to be encrypted 
+   To encrypt the values for these columns we need to use attribute `encryption` inside our `STREAM` dictionary. `encryption` 
+   take a dictionary as a value which contains information about the `type` of encryption and `key`. `encrypt` attribute is a `set` which contains the names 
+   of the columns to be used for encryption. Lets discuss each attribute of `encryption` attribute.
    
     - *type* : This attribute is used to specify the type of encryption to be used in the process. Currently `cloutdms`
                 has support for following encryption techniques:
@@ -130,20 +177,32 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
      
     - *key* : This attribute is used to specify the encryption key. Key value need to be string or integer depending on the
                the technique used to encrypt. e.q in `caesar` cipher key must always be integer else exception will be raised
+    
+    `encryption` attribute is an optional attribute. By default this attribute gets its values from `config_default.yaml` file. 
+     In order to override the default behaviour we can define the `encryption` attribute within the scope of STREAM and set the values for `type` and 
+    `key` attributes specific to current STREAM. 
   
    ```
     STREAM = {
     "number": 1000,
     "title": 'encrypt_example',
-    "source": 'Churn-Modeling',
-    "format": "csv",
     "frequency": "once",
+    
+    "source": {
+           "csv": [
+                  {"connection": "modeling", "delimiter": ","},
+             ]
+        },
 
+    "encryption": {
+         "type": "caesar",
+         "key": "Jd28hja8HG9wkjw89yd"    "source": 'Churn-Modeling',
+         },
+         
     "encrypt": {
-            "columns": ["EstimatedSalary", "Balance"],
-            "type" : "caesar",
-            "encryption_key": "Jd28hja8HG9wkjw89yd"
-    }
+          "csv.modeling.EstimatedSalary",
+          "csv.modeling.Balance"
+        },
     }
    ```
    
@@ -230,8 +289,49 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
             text:  My name is Jhon
             
             aes:   b'\xd3\xf6;i\xad\x01\xfe\xc5\x8a\xdb\xd2\x80\xa3\xfa\xb6A' 
+            
+            
+3. **Masking :**
 
-3. **Nullying :** 
+    This technique is used to mask the column values. By masking we mean replacing the characters of field value of a record with some random
+    characters e.g `x` or `#` etc. In case of bank data example mentioned above we are using masking for `CustomerId` column, To mask the values for columns we 
+    need to use attribute `mask_out` inside our `STREAM` dictionary.
+    `mask_out` attribute takes a set of column names as value. Each column listed inside the `mask_out` attribute will be 
+    masked out using the character defined in `with` attribute of `mask` attribute.
+
+    `mask` attribute is an optional attribute that can be used to define what type of masking values to use for `mask_out` in a STREAM.
+    By default this attribute gets its values from `config_default.yaml` file. In order to override the default behaviour we can define the `mask`
+    attribute within the scope of STREAM and set the values for `with`, `characters` and `from` attributes specific to current STREAM. 
+    
+    `with` defines what character to use for masking, `characters` defines number of characters to be masked in a field value and `from` defines the alignment
+    from where to start the masking operation. `from` takes values as `start`, `mid` and `end`.
+
+
+```
+    STREAM = {
+    "number": 1000,
+    "title": 'encrypt_example',
+    "frequency": "once",
+
+    "source": {
+        "csv": [
+               {"connection": "modeling", "delimiter": ","},
+          ]
+     },
+
+   "mask": {
+            "with": "x",
+            "characters": 4,
+            "from": "mid"
+         },
+        
+   "mask_out": {
+      "csv.modeling.CustomerId"
+   }
+}
+```
+
+4. **Nullying :** 
  
    Nullying is a simple data masking technique, It replaces all the data in a column with null values. The column is there 
    but there will be no data available. This technique is mostly used when we neither anonymize / substitute the data nor 
@@ -240,41 +340,24 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
    
    In case of bank data example mentioned above. We are using `nullying` for `RowNumber`,
    to nullify the values for these column we need to use attribute `nullying` inside our `STREAM` dictionary. `nullying` key
-   take a list as a value which contains information about the column/columns which are supposed to be nullified.
+   take a `set` as a value which contains information about the column/columns which are supposed to be nullified.
    
    ```
     STREAM = {
     "number": 1000,
     "title": 'encrypt_example',
-    "source": 'Churn-Modeling',
-    "format": "csv",
     "frequency": "once",
 
-    "nullying" : ["RowNumber"]
+    "source": {
+        "csv": [
+               {"connection": "modeling", "delimiter": ","},
+          ]
+     },
+
+    "nullying" : {
+               "csv.modeling.RowNumber"
+       },
     }
-   ```
-
-4. **Delete :**
-
-   `Delete` technique deletes a column entirely.This technique is also used when we neither anonymize / substitute the 
-   data nor encrypt the data. In order to use `delete` on an sensitive data, you have to specify which column/columns 
-   you want to deleted in generated data file. 
-   
-   In case of bank data example mentioned above. We are using `delete` for `CreditScore`, to `delete` the values 
-   for these column we need to use attribute `delete` inside our `STREAM` dictionary. `delete` key
-   take a list as a value which contains information about the column/columns which are supposed to be deleted.
-   
-   ```
-    STREAM = {
-    "number": 1000,
-    "title": 'encrypt_example',
-    "source": 'Churn-Modeling',
-    "format": "csv",
-    "frequency": "once",
-
-    "delete" : ["CreditScore"]
-    }
-    
    ```
 
 5. **Shuffle :** 
@@ -282,17 +365,24 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
        
    In case of bank data example mentioned above. We are using `shuffle` for `NumOfProducts` and `IsActiveMember`, 
    to `shuffle` the values for these column we need to use attribute `shuffle` inside our `STREAM` dictionary. 
-   `shuffle` key take a list as a value which contains information about the column/columns which are supposed to be shuffled.
+   `shuffle` key take a `set` as a value which contains information about the column/columns which are supposed to be shuffled.
    
    ```
     STREAM = {
     "number": 1000,
     "title": 'encrypt_example',
-    "source": 'Churn-Modeling',
-    "format": "csv",
     "frequency": "once",
 
-    "shuffle": ["NumOfProducts", "IsActiveMember"],
+    "source": {
+           "csv": [
+                  {"connection": "modeling", "delimiter": ","},
+             ]
+        },
+
+    "shuffle": {
+            "csv.modeling.NumOfProducts",
+            "csv.modeling.IsActiveMember"
+        },
     }
     
    ```
