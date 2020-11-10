@@ -1,7 +1,7 @@
 {% block source_tasks %}
 
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql','postgres', 'sftp'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp'] %}
 
 {% if data.source| length == 0 %}
 
@@ -73,6 +73,14 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'salesforce' %}
+
+# Initialize task for SalesForce Instance Extract {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractSalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 's3' %}
 # Initialize task for Amazon S3 {{ item.connection }} and bucket {{ item.bucket }}

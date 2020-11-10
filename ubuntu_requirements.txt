@@ -109,6 +109,7 @@ scipy==1.5.2
 seaborn==0.11.0
 Send2Trash==1.5.0
 setproctitle==1.1.10
+simple_salesforce==1.10.1
 SQLAlchemy==1.3.19
 SQLAlchemy-JSONField==0.9.0
 SQLAlchemy-Utils==0.36.8
@@ -138,4 +139,4 @@ psycopg2-binary==2.8.6
 paramiko==2.7.2
 pymssql==2.1.5
 pycrypto==2.6.1
-PyMySQL
+PyMySQL==0.10.1

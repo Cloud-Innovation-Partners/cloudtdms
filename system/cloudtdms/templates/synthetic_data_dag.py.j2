@@ -24,8 +24,8 @@ from system.dags import get_user_data_home
 from system.dags import get_config_default_path
 from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres', 'sftp'] %}
-{% set supported_destinations = ['csv', 'json', 'mysql', 'servicenow', 's3', 'json', 'mssql', 'postgres', 'sftp'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql', 'postgres', 'sftp'] %}
+{% set supported_destinations = ['csv', 'json', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql', 'postgres', 'sftp'] %}
 
 {% for key, value in data.source.items() %}
 
