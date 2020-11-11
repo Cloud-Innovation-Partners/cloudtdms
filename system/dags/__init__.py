@@ -2,6 +2,7 @@
 #  CloudTDMS - Test Data Management Service
 
 import os
+import datetime
 import sys
 import importlib
 import subprocess
@@ -116,18 +117,65 @@ def create_profiling_dag(file_name, owner):
     LoggingMixin().log.info(f"Creating DAG: profile_{file_name}.py")
 
 
+def filter_updated_dag(config_file_path, dag_file_path, dag_delete=False, owner=None):
+
+    config_stat = os.stat(config_file_path)
+    config_mtime = config_stat.st_mtime
+    config_timestamp = datetime.datetime.fromtimestamp(config_mtime).strftime('%Y-%m-%d-%H:%M:%S')
+    # config_mtime=os.path.getmtime(config_file_path)
+
+    try:
+        dag_stat = os.stat(dag_file_path)
+        dag_mtime = dag_stat.st_mtime
+        dag_timestamp = datetime.datetime.fromtimestamp(dag_mtime).strftime('%Y-%m-%d-%H:%M:%S')
+    except FileNotFoundError:
+        LoggingMixin().log.info(f" Creating DAG {os.path.basename(dag_file_path)} for the first time ")
+        return True
+
+    # print(f"CONFIG_{os.path.basename(config_file_path).split('.')[0]}: {config_timestamp}")
+    # print(f"DAG_{os.path.basename(dag_file_path).split('.')[0]}: {dag_timestamp}")
+
+    result = config_timestamp > dag_timestamp
+
+    if result:
+        LoggingMixin().log.info(
+            f"config file {os.path.basename(config_file_path)} is modified. Creating updated DAG...")
+        if dag_delete and os.path.exists(dag_file_path):
+            dag_id = f"data_{owner}_{os.path.basename(config_file_path).split('.')[0]}"
+            os.remove(dag_file_path)
+            delete_dag(dag_id)
+            print(f"DELETING DAG_ID: {dag_id}")
+    return result
+
+
 scripts = []
 modules = []
 
 for config in os.walk(f"{get_scripts_home()}"):
+
     try:
         root, dirs, files = config
         if len(dirs) != 0:
             for each_dir in dirs:
                 if '__init__.py' not in os.listdir(f"{root}/{each_dir}"):
                     open(f"{root}/{each_dir}/__init__.py", 'w').close()
+
         files = list(filter(lambda x: x.endswith('.py') and x != '__init__.py', files))
         scripts += files
+
+        owner = os.path.basename(root) if os.path.basename(root) != 'config' else 'CloudTDMS'
+        modified_dags = list(
+            filter(lambda x:
+                   filter_updated_dag(config_file_path=f"{root}/{x}",
+                                      dag_file_path=f"{get_airflow_home()}/dags/data_{x}",
+                                      dag_delete=True,
+                                      owner=owner),
+                   files
+                   )
+        )
+
+        files = modified_dags
+
         root = root.replace(f"{get_cloudtdms_home()}/", '').replace('/', '.')
         packages = list(map(lambda x: f"{root}.{x}"[:-3], files))
         root = os.path.basename(root.replace('.', '/')) if os.path.basename(
@@ -170,7 +218,6 @@ for (module, name, app) in modules:
         source = stream['source'] if 'source' in stream else None
 
         if source is None:
-
             # check 'schema' attribute is present
             schema = stream['synthetic'] if 'synthetic' in stream else []
 
@@ -226,7 +273,6 @@ for (module, name, app) in modules:
             LoggingMixin().log.info(f"Creating DAG: {name}")
         else:
             if type(source) is dict:
-
                 TEMPLATE_FILE = "synthetic_data_dag.py.j2"
                 template = templateEnv.get_template(TEMPLATE_FILE)
                 output = template.render(
@@ -263,7 +309,8 @@ for profile in os.walk(get_profiling_data_home()):
     root = root.replace(f"{get_cloudtdms_home()}/", '')
     root = os.path.basename(root) if os.path.basename(root) != 'profiling_data' else 'CloudTDMS'
     list(map(create_profiling_dag, files, [f'{root}'] * len(files)))
-    profiling_data_files += list(map(lambda x: x[:-4] if x.endswith('.csv') else x[:-5] if x.endswith('.json') else x[:-4], files))
+    profiling_data_files += list(
+        map(lambda x: x[:-4] if x.endswith('.csv') else x[:-5] if x.endswith('.json') else x[:-4], files))
 
 # fetch all dags in directory
 
