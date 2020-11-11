@@ -48,7 +48,7 @@ def generate_sensitive_data_profile():
     columns =  list(column_mapping.keys())
     df.columns = columns
     profile = PIIReport(
-        df.loc[0:10000], filename=file_name, title=f"CloudTDMS Sensitive Data Report", explorative=True,
+        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
         column_mapping = column_mapping, prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
     )
     try:

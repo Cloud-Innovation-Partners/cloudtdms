@@ -1,5 +1,6 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
+import os
 
 from pandas_profiling.profile_report import ProfileReport
 from pandas_profiling.report.presentation.core.renderable import Renderable
@@ -22,6 +23,7 @@ from pandas_profiling.report.presentation.core import (
 from pandas_profiling.report.presentation.core import Sample as p_Sample
 from pandas_profiling.model.sample import Sample, get_sample
 from pandas_profiling.report.presentation.flavours.html.html import HTMLHTML
+from system.dags import get_profiling_data_home
 
 config = Config()
 
@@ -61,11 +63,21 @@ def generate_script(filename, pii, column_mapping):
     for key in pii:
         result = pii[key]
         results.extend(result)
+    temp_file_name, _ = os.path.splitext(filename) #filename is example.csv
+    title_filename = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$','_')
 
-    title_filename = str(filename).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$',
-                                                                                                                   '_')
+    if filename.endswith('.csv'):
+        type='csv'
+    elif filename.endswith('.json'):
+        type='.json'
 
-    STREAM = {'number': 1000, "title": title_filename, "source": filename, "format": "csv", "frequency": "once"}
+    source_value= {
+                  type:[
+                      {f'connection':f'{temp_file_name}', 'delimeter':','}
+                  ]
+            }
+
+    STREAM = {'number': 1000, "title": title_filename, "source": source_value, "frequency": "once"}
 
     enc_type = {'high': 'mask_out', 'mid': 'ceasar', 'low': 'substitute'}
 
@@ -151,11 +163,34 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     column_mapping = summary['column_mapping']
     STREAM = generate_script(filename, pii, column_mapping)
     STREAM = json.dumps(STREAM, indent=3)
+    type=''
 
-    filename = str(filename).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$', '_')
+    temp_file_name, _ = os.path.splitext(filename)  # filename is example.csv
+    filename_write = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$', '_')
 
-    with open(f'{get_reports_home()}/{prefix}/config_{filename}.txt', 'w') as o:
-        o.write('''
+    # csv:
+    # big_cities_health_data_inventory:
+    # source: "/home/cloudtdms/profiling_data/Big_Cities_Health_Data_Inventory.csv"
+    if filename.endswith('.csv'):
+        type = 'csv'
+    elif filename.endswith('.json'):
+        type = '.json'
+
+    yaml_data=f"""
+                 {type}:
+                    {temp_file_name}:
+                        source: {f"{get_profiling_data_home()}/{filename}"}
+              """
+
+
+
+    with open(f'{get_reports_home()}/{prefix}/config_{filename_write}.txt', 'w') as o:
+        o.write(f'''
+       # This a connection definition required by the proposed configuration file
+       # Save this connection entry for `csv` in config_default.yaml file present in `cloudtdms` folder    
+
+        {yaml_data} 
+            
         # This is a proposed cloudtdms data masking configuration file for your data set.
         # Save this file with '.py' extension inside 'config` folder.
          
