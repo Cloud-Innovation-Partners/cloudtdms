@@ -168,9 +168,6 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     temp_file_name, _ = os.path.splitext(filename)  # filename is example.csv
     filename_write = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$', '_')
 
-    # csv:
-    # big_cities_health_data_inventory:
-    # source: "/home/cloudtdms/profiling_data/Big_Cities_Health_Data_Inventory.csv"
     if filename.endswith('.csv'):
         type = 'csv'
     elif filename.endswith('.json'):
