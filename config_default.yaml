@@ -2,13 +2,13 @@
 
 # For sending reports to email
 email:
-  to: ""                    # Receiver Email Address
-  from: ""                     # Sender Email Address
+  to: ""                           # Receiver Email Address
+  from: ""                         # Sender Email Address
   smtp_host: ""                    # SMTP Host Address
-  smtp_port: 587                                    # SMTP PORT, 465 (SSL), 587(Legacy) or 25 (some providers block port 25)
-  smtp_ssl: False                                   # IF Smtp_port is 465 then set smtp_ssl to True
-  username: ""
-  password: ""
+  smtp_port: 587                   # SMTP PORT, 465 (SSL), 587(Legacy) or 25 (some providers block port 25)
+  smtp_ssl: False                  # IF Smtp_port is 465 then set smtp_ssl to True
+  username: ""                     # Base64 encryted username of SMTP
+  password: ""                     # Base64 encrypted password of SMTP
   subject: "Data Profiling"
 
 # Data Masking settings
