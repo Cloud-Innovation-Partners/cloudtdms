@@ -67,15 +67,20 @@ def generate_script(filename, pii, column_mapping):
     title_filename = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$','_')
 
     if filename.endswith('.csv'):
-        type='csv'
-    elif filename.endswith('.json'):
-        type='.json'
+        type = 'csv'
+        source_value = {
+            type: [
+                {f'connection': f'{temp_file_name}', 'delimiter': ','}
+            ]
+        }
 
-    source_value= {
-                  type:[
-                      {f'connection':f'{temp_file_name}', 'delimeter':','}
-                  ]
-            }
+    if filename.endswith('.json'):
+        type = 'json'
+        source_value= {
+                      type:[
+                          {f'connection': f'{temp_file_name}', 'type':'lines'}
+                      ]
+                }
 
     STREAM = {'number': 1000, "title": title_filename, "source": source_value, "frequency": "once"}
 
@@ -171,12 +176,12 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     if filename.endswith('.csv'):
         type = 'csv'
     elif filename.endswith('.json'):
-        type = '.json'
+        type = 'json'
 
     yaml_data=f"""
                  {type}:
                     {temp_file_name}:
-                        source: {f"{get_profiling_data_home()}/{filename}"}
+                        source: {f'"{get_profiling_data_home()}/{filename}"'}
               """
 
 
@@ -184,12 +189,12 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     with open(f'{get_reports_home()}/{prefix}/config_{filename_write}.txt', 'w') as o:
         o.write(f'''
        # This a connection definition required by the proposed configuration file
-       # Save this connection entry for `csv` in config_default.yaml file present in `cloudtdms` folder    
+       # Save this connection entry for `{type}` in config_default.yaml file present in `cloudtdms` folder    
 
         {yaml_data} 
             
         # This is a proposed cloudtdms data masking configuration file for your data set.
-        # Save this file with '.py' extension inside 'config` folder.
+        # Save this file with '.py' extension inside `config` folder.
          
                 \nSTREAM=''' + STREAM)
 
