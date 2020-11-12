@@ -3,7 +3,7 @@
  / ___| | ___  _   _  __| |_   _|  _ \|  \/  / ___| 
 | |   | |/ _ \| | | |/ _` | | | | | | | |\/| \___ \ 
 | |___| | (_) | |_| | (_| | | | | |_| | |  | |___) |
- \____|_|\___/ \__,_|\__,_| |_| |____/|_|  |_|____/    version 0.1
+ \____|_|\___/ \__,_|\__,_| |_| |____/|_|  |_|____/    version 1.0.0
 </pre>
 
 ![license](https://img.shields.io/badge/license-Apache2-blue) ![Github docs](https://img.shields.io/badge/docs-passing-green) ![python](https://img.shields.io/badge/python-3.6-blue)
