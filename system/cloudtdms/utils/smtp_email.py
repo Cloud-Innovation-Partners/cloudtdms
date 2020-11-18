@@ -16,8 +16,9 @@ from system.dags import get_config_default_path
 
 
 class SMTPEmail():
-    def __init__(self):
+    def __init__(self, file_name):
         self.body = None
+        self.file_name = file_name
         self.message = MIMEMultipart()
         self.reports_path = None
         self.report_files = None
@@ -32,7 +33,7 @@ class SMTPEmail():
 
     @property
     def subject(self):
-        return SMTPEmail.get_email_config_default().get('subject')
+        return f"{SMTPEmail.get_email_config_default().get('subject')}4{self.file_name}"
 
     @property
     def to(self):

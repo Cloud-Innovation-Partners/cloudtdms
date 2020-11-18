@@ -117,7 +117,7 @@ def generate_sensitive_data_profile():
 
 def email_reports():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))
-    email = SMTPEmail()
+    email = SMTPEmail(file_name=file_name)
     email.add_attachments(directory_path=f"{get_reports_home()}/{file_name}", file_format='.html')
     email.send_email()
 
