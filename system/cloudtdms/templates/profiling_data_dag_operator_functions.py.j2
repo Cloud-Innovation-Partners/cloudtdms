@@ -1,5 +1,41 @@
 {% block operator_functions %}
 
+def generate_configuration():
+    file_name, extension = os.path.splitext(dag.params.get('data_file'))
+
+    if dag.owner == 'CloudTDMS':
+        source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
+        path = f"{get_reports_home()}/{file_name}"
+    else:
+        source_file = f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}"
+        path = f"{get_reports_home()}/{dag.owner}/{file_name}"
+    df = None
+    if str(extension).lower() == '.csv':
+        delimiter = sniff_delimiter(source_file)
+        df = pd.read_csv(source_file, delimiter=delimiter)
+    elif str(extension).lower() == '.json':
+        df = pd.read_json(source_file, lines=True)
+    else:
+        delimiter = sniff_delimiter(source_file)
+        df = pd.read_csv(source_file, delimiter=delimiter)
+
+    columns = df.columns
+    STREAM = {}
+    STREAM['number'] = 100
+    STREAM['title'] = file_name
+    STREAM['source'] = {
+        str(extension)[1:] : {
+            {'connection': }
+        }
+    }
+
+
+def sniff_delimiter(file_path):
+    with open(file_path, 'r') as csvfile:
+        dialect = csv.Sniffer().sniff(csvfile.read(10240), delimiters=',|;\t ')
+        return dialect.delimiter
+
+
 def generate_eda_profile():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))
 
@@ -11,11 +47,13 @@ def generate_eda_profile():
         path = f"{get_reports_home()}/{dag.owner}/{file_name}"
 
     if str(extension).lower() == '.csv':
-        df = pd.read_csv(source_file)
+        delimiter = sniff_delimiter(source_file)
+        df = pd.read_csv(source_file, delimiter=delimiter)
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True)
     else:
-        df = pd.read_csv(source_file)
+        delimiter = sniff_delimiter(source_file)
+        df = pd.read_csv(source_file, delimiter=delimiter)
 
     profile = ProfileReport(
         df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
@@ -38,11 +76,13 @@ def generate_sensitive_data_profile():
         path = f"{get_reports_home()}/{dag.owner}/{file_name}"
     df = None
     if str(extension).lower() == '.csv':
-        df = pd.read_csv(source_file)
+        delimiter = sniff_delimiter(source_file)
+        df = pd.read_csv(source_file, delimiter=delimiter)
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True)
     else:
-        df = pd.read_csv(source_file)
+        delimiter = sniff_delimiter(source_file)
+        df = pd.read_csv(source_file, delimiter=delimiter)
 
     column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
     columns =  list(column_mapping.keys())

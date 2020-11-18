@@ -3,6 +3,7 @@
 {% block import_python_libraries %}
 import sys
 import os
+import csv
 import pandas as pd
 from datetime import datetime, timedelta
 from pandas_profiling import ProfileReport
@@ -36,6 +37,7 @@ start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 eda_stream = PythonOperator(task_id="ExploratoryDataProfiling", python_callable=generate_eda_profile, dag=dag)
 sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
+configuration = PythonOperator(task_id="GenerateConfiguration", python_callable=generate_configuration, dag=dag)
 
 {% endblock airflow_operators%}
 
