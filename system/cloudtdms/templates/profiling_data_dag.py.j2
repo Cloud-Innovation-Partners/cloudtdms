@@ -4,6 +4,7 @@
 import sys
 import os
 import csv
+import json
 import pandas as pd
 from datetime import datetime, timedelta
 from pandas_profiling import ProfileReport
@@ -45,8 +46,8 @@ configuration = PythonOperator(task_id="GenerateConfiguration", python_callable=
 
 if SMTPEmail.availability():
     send_email = PythonOperator(task_id="EmailReports", python_callable=email_reports, dag=dag)
-    start >> [eda_stream, sensitive_data_profile]>> send_email >> end
+    start >> [eda_stream, sensitive_data_profile, configuration]>> send_email >> end
 else:
-    start >> [eda_stream, sensitive_data_profile]>> end
+    start >> [eda_stream, sensitive_data_profile, configuration]>> end
 
 {% endblock %}

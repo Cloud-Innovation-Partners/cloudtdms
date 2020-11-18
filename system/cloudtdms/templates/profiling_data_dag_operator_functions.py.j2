@@ -19,15 +19,33 @@ def generate_configuration():
         delimiter = sniff_delimiter(source_file)
         df = pd.read_csv(source_file, delimiter=delimiter)
 
-    columns = df.columns
     STREAM = {}
     STREAM['number'] = 100
     STREAM['title'] = file_name
+
+    connection = {'connection': file_name, 'delimiter': delimiter} if extension == '.csv' else {'connection': file_name, 'type': 'lines'}
+
     STREAM['source'] = {
-        str(extension)[1:] : {
-            {'connection': }
-        }
+        str(extension)[1:] : [
+            connection
+        ]
     }
+    STREAM['frequency'] = 'once'
+
+    synthetic = [{'field_name': f, 'type': 'basics.auto_increment'} for f in df.columns]
+
+    STREAM['synthetic'] = synthetic
+
+    STREAM = json.dumps(STREAM, indent=4)
+
+    prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
+
+    with open(f'{get_reports_home()}/{prefix}/config_synthetic_{file_name}.txt', 'w') as o:
+        o.write(f'''
+        # This is a proposed cloudtdms synthetic configuration file for your data set.
+        # Save this file with '.py' extension inside `config` folder.
+
+                \nSTREAM=''' + STREAM)
 
 
 def sniff_delimiter(file_path):

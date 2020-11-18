@@ -167,7 +167,7 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     prefix = summary['prefix']
     column_mapping = summary['column_mapping']
     STREAM = generate_script(filename, pii, column_mapping)
-    STREAM = json.dumps(STREAM, indent=3)
+    STREAM = json.dumps(STREAM, indent=4)
     type=''
 
     temp_file_name, _ = os.path.splitext(filename)  # filename is example.csv
