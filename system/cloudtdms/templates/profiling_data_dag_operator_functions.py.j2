@@ -32,7 +32,7 @@ def generate_configuration():
     }
     STREAM['frequency'] = 'once'
 
-    synthetic = [{'field_name': f, 'type': 'basics.auto_increment'} for f in df.columns]
+    synthetic = [{'field_name': f, 'type': ''} for f in df.columns]
 
     STREAM['synthetic'] = synthetic
 
@@ -50,7 +50,7 @@ def generate_configuration():
 
 def sniff_delimiter(file_path):
     with open(file_path, 'r') as csvfile:
-        dialect = csv.Sniffer().sniff(csvfile.read(10240), delimiters=',|;\t ')
+        dialect = csv.Sniffer().sniff(csvfile.read(10240), delimiters=',|;')
         return dialect.delimiter
 
 
