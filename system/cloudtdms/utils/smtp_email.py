@@ -25,11 +25,13 @@ class SMTPEmail():
 
     @property
     def username(self):
-        return base64.b64decode(SMTPEmail.get_email_config_default().get('username')).decode('utf-8')
+        username = SMTPEmail.get_email_config_default().get('username')
+        return base64.b64decode(username).decode('utf-8') if username != '' else None
 
     @property
     def password(self):
-        return base64.b64decode(SMTPEmail.get_email_config_default().get('password')).decode('utf-8')
+        passcode = SMTPEmail.get_email_config_default().get('password')
+        return base64.b64decode(passcode).decode('utf-8') if passcode != '' else None
 
     @property
     def subject(self):
@@ -94,7 +96,7 @@ class SMTPEmail():
     def availability():
         try:
             email = SMTPEmail.get_email_config_default()
-            if email.get('to') == "" or email.get('username') == "" or email.get('password') == "":
+            if email.get('to') == "":
                 return False
         except KeyError:
             return False
@@ -140,11 +142,17 @@ class SMTPEmail():
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL(SMTPEmail.get_email_config_default().get('smtp_host'),
                                   SMTPEmail.get_email_config_default().get('smtp_port'), context=context) as server:
-                server.login(self.username, self.password)
-                server.sendmail(self.username, self.to, text)
+                if self.username is None and self.password is None:
+                    server.sendmail(self.username, self.to, text)
+                else:
+                    server.login(self.username, self.password)
+                    server.sendmail(self.username, self.to, text)
         else:
             with smtplib.SMTP(SMTPEmail.get_email_config_default().get('smtp_host'),
                                   SMTPEmail.get_email_config_default().get('smtp_port')) as server:
-                server.login(self.username, self.password)
-                server.sendmail(self.username, self.to, text)
+                if self.username is None and self.password is None:
+                    server.sendmail(self.username, self.to, text)
+                else:
+                    server.login(self.username, self.password)
+                    server.sendmail(self.username, self.to, text)
 
