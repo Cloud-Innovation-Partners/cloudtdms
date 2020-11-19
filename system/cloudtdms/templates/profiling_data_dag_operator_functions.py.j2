@@ -12,12 +12,12 @@ def generate_configuration():
     df = None
     if str(extension).lower() == '.csv':
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter)
+        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True)
     else:
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter)
+        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
 
     STREAM = {}
     STREAM['number'] = 100
@@ -66,12 +66,12 @@ def generate_eda_profile():
 
     if str(extension).lower() == '.csv':
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter)
+        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True)
     else:
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter)
+        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
 
     profile = ProfileReport(
         df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
@@ -95,9 +95,9 @@ def generate_sensitive_data_profile():
     df = None
     if str(extension).lower() == '.csv':
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter)
+        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
     elif str(extension).lower() == '.json':
-        df = pd.read_json(source_file, lines=True)
+        df = pd.read_json(source_file, lines=True, engine='python', error_bad_lines=False)
     else:
         delimiter = sniff_delimiter(source_file)
         df = pd.read_csv(source_file, delimiter=delimiter)
