@@ -200,7 +200,7 @@ STREAM = {
                 {"connection": "json_local", "type": "lines"},
             ],
             "mysql": [
-                {"connection": "postgres_test", "table": "primary"},
+                {"connection": "mysql_test", "table": "primary"},
             ]
         }   
      }
