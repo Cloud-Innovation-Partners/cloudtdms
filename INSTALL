@@ -56,7 +56,7 @@ Group={{ GROUP }}
 Type=simple
 ExecStart= {{ EXE }}
 Restart={{ RESTART }}
-RestartSec=5s
+RestartSec=300s
 PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
