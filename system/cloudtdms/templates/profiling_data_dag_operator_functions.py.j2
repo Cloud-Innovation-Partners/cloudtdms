@@ -12,20 +12,28 @@ def generate_configuration():
     df = None
     if str(extension).lower() == '.csv':
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
+        try:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10)
+        except Error:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10]
+
     elif str(extension).lower() == '.json':
-        df = pd.read_json(source_file, lines=True)
+        df = pd.read_json(source_file, lines=True, nrows=10)
     else:
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
+        try:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10)
+        except Error:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10]
+
 
     STREAM = {}
-    STREAM['number'] = 100
+    STREAM['number'] = 1000
     STREAM['title'] = file_name
 
     connection = {'connection': file_name, 'delimiter': delimiter} if extension == '.csv' else {'connection': file_name, 'type': 'lines'}
 
-    STREAM['source'] = {
+    STREAM['destination'] = {
         str(extension)[1:] : [
             connection
         ]
@@ -36,16 +44,31 @@ def generate_configuration():
 
     STREAM['synthetic'] = synthetic
 
+    STREAM['output_schema'] = [f"synthetic.{f.get('field_name')}" for f in synthetic]
+
+    yaml_data=f"""
+                 {str(extension)[1:]}:
+                    {file_name}:
+                        source: {f'"{get_profiling_data_home()}/{file_name}"'}
+                        target: {f'"{get_output_data_home()}"'}
+              """
+
     STREAM = json.dumps(STREAM, indent=4)
 
     prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
 
     with open(f'{get_reports_home()}/{prefix}/config_synthetic_{file_name}.txt', 'w') as o:
         o.write(f'''
+        # This a connection definition required by the proposed configuration file
+        # Save this connection entry for `{str(extension)[1:]}` in config_default.yaml file present in `cloudtdms` folder
+
+        {yaml_data}
+
         # This is a proposed cloudtdms synthetic configuration file for your data set.
         # Save this file with '.py' extension inside `config` folder.
 
-                \nSTREAM=''' + STREAM)
+                \nSTREAM=''' + STREAM + '\n# To rename entries in `output_schema` change the type of `output_schema` from `list` to `dict`'
+        )
 
 
 def sniff_delimiter(file_path):
@@ -66,15 +89,21 @@ def generate_eda_profile():
 
     if str(extension).lower() == '.csv':
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
+        try:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10000)
+        except Error:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10000]
+
     elif str(extension).lower() == '.json':
-        df = pd.read_json(source_file, lines=True)
+        df = pd.read_json(source_file, lines=True, nrows=10000)
     else:
         delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
-
+        try:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10000)
+        except Error:
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10000]
     profile = ProfileReport(
-        df.loc[0:10000], title=f"CloudTDMS Exploratory Data Analysis", explorative=True
+        df, title=f"CloudTDMS Exploratory Data Analysis", explorative=True
     )
 
     try:
@@ -83,37 +112,37 @@ def generate_eda_profile():
         pass
     profile.to_file(f"{path}/profiling_{file_name}.html")
 
-def generate_sensitive_data_profile():
-    file_name, extension = os.path.splitext(dag.params.get('data_file'))
+#def generate_sensitive_data_profile():
+#    file_name, extension = os.path.splitext(dag.params.get('data_file'))
 
-    if dag.owner == 'CloudTDMS':
-        source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
-        path = f"{get_reports_home()}/{file_name}"
-    else:
-        source_file = f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}"
-        path = f"{get_reports_home()}/{dag.owner}/{file_name}"
-    df = None
-    if str(extension).lower() == '.csv':
-        delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
-    elif str(extension).lower() == '.json':
-        df = pd.read_json(source_file, lines=True, engine='python', error_bad_lines=False)
-    else:
-        delimiter = sniff_delimiter(source_file)
-        df = pd.read_csv(source_file, delimiter=delimiter)
+#    if dag.owner == 'CloudTDMS':
+#        source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
+#        path = f"{get_reports_home()}/{file_name}"
+#    else:
+#        source_file = f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}"
+#        path = f"{get_reports_home()}/{dag.owner}/{file_name}"
+#    df = None
+#    if str(extension).lower() == '.csv':
+#        delimiter = sniff_delimiter(source_file)
+#        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
+#    elif str(extension).lower() == '.json':
+#        df = pd.read_json(source_file, lines=True, engine='python', error_bad_lines=False)
+#    else:
+#        delimiter = sniff_delimiter(source_file)
+#        df = pd.read_csv(source_file, delimiter=delimiter)
 
-    column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
-    columns =  list(column_mapping.keys())
-    df.columns = columns
-    profile = PIIReport(
-        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
-        column_mapping = column_mapping, prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
-    )
-    try:
-        os.makedirs(path)
-    except FileExistsError:
-        pass
-    profile.to_file(f"{path}/pii_{file_name}.html")
+#    column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
+#    columns =  list(column_mapping.keys())
+#    df.columns = columns
+#    profile = PIIReport(
+#        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
+#        column_mapping = column_mapping, prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
+#    )
+#    try:
+#        os.makedirs(path)
+#    except FileExistsError:
+#        pass
+#    profile.to_file(f"{path}/pii_{file_name}.html")
 
 def email_reports():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))

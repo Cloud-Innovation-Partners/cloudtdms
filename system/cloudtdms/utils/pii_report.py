@@ -158,6 +158,7 @@ def generate_script(filename, pii, column_mapping):
             "encryption_key": random.randint(10, 99)
         }
 
+    STREAM['output_schema'] = [f"{type}.{temp_file_name}.{f}" for f in column_mapping.values()]
     return STREAM
 
 

@@ -7,6 +7,7 @@ import csv
 import json
 import pandas as pd
 from datetime import datetime, timedelta
+from csv import Error
 from pandas_profiling import ProfileReport
 
 {% endblock import_python_libraries %}
@@ -14,7 +15,7 @@ from pandas_profiling import ProfileReport
 
 {% block import_tdms_modules %}
 
-from system.dags import get_profiling_data_home, get_cloudtdms_home, get_config_default_path, get_reports_home
+from system.dags import get_profiling_data_home, get_cloudtdms_home, get_config_default_path, get_reports_home, get_output_data_home
 from system.cloudtdms.discovery import discover
 from system.cloudtdms.utils.pii_report import PIIReport
 from system.cloudtdms.utils.smtp_email import SMTPEmail
@@ -37,7 +38,7 @@ from system.cloudtdms.utils.smtp_email import SMTPEmail
 start = DummyOperator(task_id="start", dag=dag)
 end = DummyOperator(task_id="end", dag=dag)
 eda_stream = PythonOperator(task_id="ExploratoryDataProfiling", python_callable=generate_eda_profile, dag=dag)
-sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
+#sensitive_data_profile = PythonOperator(task_id="SensitiveDataDiscovery", python_callable=generate_sensitive_data_profile, dag=dag)
 configuration = PythonOperator(task_id="GenerateConfiguration", python_callable=generate_configuration, dag=dag)
 
 {% endblock airflow_operators%}
@@ -46,8 +47,8 @@ configuration = PythonOperator(task_id="GenerateConfiguration", python_callable=
 
 if SMTPEmail.availability():
     send_email = PythonOperator(task_id="EmailReports", python_callable=email_reports, dag=dag)
-    start >> [eda_stream, sensitive_data_profile, configuration]>> send_email >> end
+    start >> [eda_stream, configuration]>> send_email >> end
 else:
-    start >> [eda_stream, sensitive_data_profile, configuration]>> end
+    start >> [eda_stream, configuration]>> end
 
 {% endblock %}

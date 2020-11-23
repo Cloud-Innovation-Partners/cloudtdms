@@ -98,6 +98,30 @@ from system.cloudtdms.providers import get_active_meta_data
 from system.cloudtdms.utils.validation import Validation
 
 
+def filter_profiling(profiling_file_path, dag_file_path, dag_delete=False, owner=None):
+    profiling_stat = os.stat(profiling_file_path)
+    profiling_mtime = profiling_stat.st_mtime
+    profiling_timestamp = datetime.datetime.fromtimestamp(profiling_mtime).strftime('%Y-%m-%d-%H:%M:%S')
+    try:
+        dag_stat = os.stat(dag_file_path)
+        dag_mtime = dag_stat.st_mtime
+        dag_timestamp = datetime.datetime.fromtimestamp(dag_mtime).strftime('%Y-%m-%d-%H:%M:%S')
+    except FileNotFoundError:
+        LoggingMixin().log.info(f" Creating DAG {os.path.basename(dag_file_path)} for the first time ")
+        return True
+    # print(f"PROFILING_{os.path.basename(profiling_file_path).split('.')[0]}:{profiling_timestamp}")
+    # print(f"DAG_{os.path.basename(dag_file_path).split('.')[0]}:{dag_timestamp}")
+    result = profiling_timestamp > dag_timestamp
+    if result:
+        LoggingMixin().log.info(f"{os.path.basename(profiling_file_path)} is modified. Creating new profiling report...")
+        if dag_delete and os.path.exists(dag_file_path):
+            dag_id = f"profile_{os.path.basename(profiling_file_path).split('.')[0]}"
+            os.remove(dag_file_path)
+            delete_dag(dag_id)
+            print(f"DELETING DAG_ID: {dag_id}")
+    return result
+
+
 def create_profiling_dag(file_name, owner):
     file_name, extension = os.path.splitext(file_name)
     TEMPLATE_FILE = "profiling_data_dag.py.j2"
@@ -111,11 +135,14 @@ def create_profiling_dag(file_name, owner):
         }
     )
     dag_file = f"{get_airflow_home()}/dags/profile_{file_name}.py"
-    with open(dag_file, 'w') as g:
-        g.write(dag_output)
+    profile_file= f"{get_profiling_data_home()}/{file_name}{extension}"
+    # print(f"DAG FILE PATH: {dag_file}")
+    # print(f"PROFILE FILE PATH: {profile_file}")
 
-    LoggingMixin().log.info(f"Creating DAG: profile_{file_name}.py")
-
+    if filter_profiling(profiling_file_path=profile_file, dag_file_path= dag_file, dag_delete= True, owner=owner):
+        with open(dag_file, 'w') as g:
+            g.write(dag_output)
+        LoggingMixin().log.info(f"Creating DAG: profile_{file_name}.py")
 
 def filter_updated_dag(config_file_path, dag_file_path, dag_delete=False, owner=None):
 
@@ -227,7 +254,11 @@ for (module, name, app) in modules:
 
             stream['original_order_of_columns'] = [f['field_name'] for f in schema]
 
-            schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
+            try:
+                schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
+            except IndexError:
+                LoggingMixin().log.warn(f"`type` field not specified for {name}.py")
+                continue
 
             attributes = {}
             for scheme in schema:
