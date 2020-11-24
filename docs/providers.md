@@ -486,7 +486,7 @@ Each provider has a collection of generator functions available that can be used
     
     *syntax*:
     ```json
-    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{id}-{teams}"}
+    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{synthetic.id}-{synthetic.teams}"}
     ```
    
    *example* :
@@ -494,7 +494,7 @@ Each provider has a collection of generator functions available that can be used
    {"field_name" :  "row", "type" :  "basics.auto_increment", "start" :  5000}
    {"field_name" :  "id", "type" :  "basics.random_number", "start" :  2000, "end" :  3000}
    {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport"}
-   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "{id}-{teams}#{row}"}
+   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "{synthetic.id}-{synthetic.teams}#{synthetic.row}"}
    ```
    The Above `schema` will generate data something like this
    
