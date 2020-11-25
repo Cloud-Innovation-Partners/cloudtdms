@@ -262,25 +262,18 @@ for (module, name, app) in modules:
 
             attributes = {}
             for scheme in schema:
-                data, column = scheme['type'].split('.')
-                if data in meta_data['data_files']:
-                    if column in meta_data['meta-headers'][data]:
-                        if data not in attributes:
-                            attributes[data] = [column]
+                provider, generator = scheme['type'].split('.')
+
+                if provider in meta_data['code_files']:
+                    if generator in meta_data['meta-functions'][provider]:
+                        if provider not in attributes:
+                            attributes[provider] = [generator]
                         else:
-                            attributes[data].append(column)
+                            attributes[provider].append(generator)
                     else:
-                        raise AirflowException(f"TypeError: no data available for type {column} ")
-                elif data in meta_data['code_files']:
-                    if column in meta_data['meta-functions'][data]:
-                        if data not in attributes:
-                            attributes[data] = [column]
-                        else:
-                            attributes[data].append(column)
-                    else:
-                        raise AirflowException(f"TypeError: no data available for type {column} ")
+                        raise AirflowException(f"TypeError: no data available for type {generator} ")
                 else:
-                    raise AirflowException(f"IOError: no data file found {data}.csv ")
+                    raise AirflowException(f"IOError: no provider  found for {provider} ")
 
             stream['schema'] = schema
 

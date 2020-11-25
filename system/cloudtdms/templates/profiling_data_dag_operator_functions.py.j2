@@ -2,7 +2,6 @@
 
 def generate_configuration():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))
-
     if dag.owner == 'CloudTDMS':
         source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
         path = f"{get_reports_home()}/{file_name}"
@@ -16,7 +15,6 @@ def generate_configuration():
             df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10)
         except Error:
             df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10]
-
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True, nrows=10)
     else:
@@ -25,55 +23,58 @@ def generate_configuration():
             df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10)
         except Error:
             df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10]
-
-
+    # Drop Unamed columns
+    df.drop(df.columns[df.columns.str.contains('unnamed',case = False)],axis = 1, inplace = True)
     STREAM = {}
+    missing = []
+    categorical = {}
+    patterns = {}
+    for column in df.columns:
+        if all(pd.isna(df[column])):
+            missing.append(column)
+        else:
+            value_counts = df[column].value_counts()
+            top_10=value_counts.index[:10]
+            categorical[column]=top_10
+
     STREAM['number'] = 1000
     STREAM['title'] = file_name
-
     connection = {'connection': file_name, 'delimiter': delimiter} if extension == '.csv' else {'connection': file_name, 'type': 'lines'}
 
-    STREAM['destination'] = {
-        str(extension)[1:] : [
-            connection
-        ]
-    }
     STREAM['frequency'] = 'once'
-
-    synthetic = [{'field_name': f, 'type': ''} for f in df.columns]
+    synthetic = []
+    for f in df.columns:
+        if f in categorical.keys():
+            synthetic.append({'field_name': f, 'type': 'advanced.custom_list', 'set_val': ",".join(map(str, categorical[f]))})
+        else:
+            if f not in missing:
+                synthetic.append({'field_name': f, 'type': ''})
 
     STREAM['synthetic'] = synthetic
-
-    STREAM['output_schema'] = [f"synthetic.{f.get('field_name')}" for f in synthetic]
-
+    STREAM['nullying'] = missing
+    STREAM['output_schema'] = {f"synthetic.{f.get('field_name')}":f"{f.get('field_name')}" for f in synthetic}
+    STREAM['output_schema'].update({f"synthetic.{f}":f"{f}" for f in missing})
     yaml_data=f"""
                  {str(extension)[1:]}:
                     {file_name}:
                         source: {f'"{get_profiling_data_home()}/{file_name}"'}
                         target: {f'"{get_output_data_home()}"'}
               """
-
     STREAM = json.dumps(STREAM, indent=4)
-
     prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
 
+    if not os.path.exists(f'{get_reports_home()}/{prefix}'):
+        os.makedirs(f'{get_reports_home()}/{prefix}')
     with open(f'{get_reports_home()}/{prefix}/config_synthetic_{file_name}.txt', 'w') as o:
         o.write(f'''
-        # This a connection definition required by the proposed configuration file
-        # Save this connection entry for `{str(extension)[1:]}` in config_default.yaml file present in `cloudtdms` folder
-
-        {yaml_data}
-
         # This is a proposed cloudtdms synthetic configuration file for your data set.
         # Save this file with '.py' extension inside `config` folder.
-
-                \nSTREAM=''' + STREAM + '\n# To rename entries in `output_schema` change the type of `output_schema` from `list` to `dict`'
+                \nSTREAM=''' + STREAM
         )
-
 
 def sniff_delimiter(file_path):
     with open(file_path, 'r') as csvfile:
-        dialect = csv.Sniffer().sniff(csvfile.read(10240), delimiters=',|;')
+        dialect = csv.Sniffer().sniff(csvfile.readline(), delimiters=',|;')
         return dialect.delimiter
 
 

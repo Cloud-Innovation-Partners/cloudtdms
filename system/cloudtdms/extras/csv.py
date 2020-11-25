@@ -41,10 +41,10 @@ class CTDMS2CSV:
         if str(extension).lower() != '.csv':
             raise Exception(f"InvalidFileFormat: File {self.source_file} has no .csv extension")
         if os.path.exists(self.source_file):
-            df = pd.read_csv(f"{self.source_file}",
+            df = pd.read_csv(f"{self.source_file}", engine='python', error_bad_lines=False,
                              nrows=SOURCE_DOWNLOAD_LIMIT, sep=self.delimiter)
         else:
-            df = pd.read_csv(f"{get_user_data_home()}/{os.path.splitext(self.source_file)[0]}.csv",
+            df = pd.read_csv(f"{get_user_data_home()}/{os.path.splitext(self.source_file)[0]}.csv", engine='python', error_bad_lines=False,
                              nrows=SOURCE_DOWNLOAD_LIMIT, sep=self.delimiter)
 
         df.columns = [f"csv.{self.connection}.{str(f).replace(' ','_')}" for f in df.columns]

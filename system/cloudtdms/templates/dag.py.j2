@@ -26,7 +26,12 @@ dag_id="{{ data.dag_id|string }}",
         default_args={
             'owner': "{{ data.owner | string }}",
             'depends_on_past': False,
-            'start_date': datetime(2020, 7, 8),
+            'start_date': datetime(
+                            datetime.now(tz = pytz.UTC).year, datetime.now(tz = pytz.UTC).month,
+                            datetime.now(tz = pytz.UTC).day,
+                            datetime.now(tz = pytz.UTC).hour, datetime.now(tz = pytz.UTC).minute,
+                            datetime.now(tz = pytz.UTC).second
+                            ) + timedelta(minutes=-1),
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },

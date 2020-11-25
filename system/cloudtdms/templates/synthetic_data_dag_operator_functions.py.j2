@@ -193,25 +193,17 @@ def data_generator(**kwargs):
         schema.sort(reverse=True, key=lambda x: x['type'].split('.')[1])
 
         for scheme in schema:
-            data, column = scheme['type'].split('.')
-            if data in meta_data['data_files']:
-                if column in meta_data['meta-headers'][data]:
-                    if data not in attributes:
-                        attributes[data] = [column]
+            provider, generator = scheme['type'].split('.')
+            if provider in meta_data['code_files']:
+                if generator in meta_data['meta-functions'][provider]:
+                    if provider not in attributes:
+                        attributes[provider] = [generator]
                     else:
-                        attributes[data].append(column)
+                        attributes[provider].append(generator)
                 else:
-                    raise AirflowException(f"TypeError: no data available for type {column} ")
-            elif data in meta_data['code_files']:
-                if column in meta_data['meta-functions'][data]:
-                    if data not in attributes:
-                        attributes[data] = [column]
-                    else:
-                        attributes[data].append(column)
-                else:
-                    raise AirflowException(f"TypeError: no data available for type {column} ")
+                    raise AirflowException(f"TypeError: no provider available for type {generator} ")
             else:
-                raise AirflowException(f"IOError: no data file found {data}.csv ")
+                raise AirflowException(f"IOError: no provider file found {provider}.csv ")
 
     locale=dag.params.get('stream').get('locale')
 
@@ -220,20 +212,11 @@ def data_generator(**kwargs):
     columns = []
     labels = [columns.extend(f) for f in attributes.values()]
     data_frame = pd.DataFrame(pd.np.zeros((nrows, ncols))*pd.np.nan, columns=[v + str(columns[:i].count(v)) if columns.count(v) > 1 and columns[:i].count(v) != 0 else v for i, v in enumerate(columns)])
+    data_frame = data_frame.reindex(sorted(data_frame.columns, key=lambda x: x.startswith('concatenate')), axis=1)
+    attributes = collections.OrderedDict(sorted(attributes.items(), key=lambda x: str(x).__contains__('advanced')))
 
     for attrib in attributes:
-        if attrib in meta_data['data_files']:
-            try:
-                df = pd.read_csv(list(pathlib.Path(get_providers_home()).rglob(f"{attrib}.csv")).pop(0), usecols=[column for (field_name, column) in attributes[attrib]])
-            except (FileNotFoundError, IndexError):
-                df = pd.read_csv(f"{os.path.dirname(get_airflow_home())}/user-data/{attrib}.csv", usecols=[column for (field_name, column) in attributes[attrib]])
-
-            df_temp = pd.DataFrame(index=range(nrows), columns=[column for (field_name, column) in attributes[attrib]])
-            for i in range(nrows):
-                df_temp.iloc[i] = df.iloc[random.randrange(len(df))]
-
-            data_frame[[column for (field_name, column) in attributes[attrib]]] = df_temp[[column for (field_name, column) in attributes[attrib]]]
-        elif attrib in meta_data['code_files']:
+        if attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
             args_array={f"{f['field_name']}-$-{f['type'].split('.')[1]}": {k: v for k, v in f.items() if k not in ('field_name', 'type')} for f in schema if f.get('type').startswith(attrib)}
             try:

@@ -59,7 +59,7 @@ def date(data_frame, number, args=None):
         :type dict
         :return: list
     """
-    date_list = []
+
     start_day = start_month = start_year = 0
     end_day = end_month = end_year = 0
 
@@ -82,7 +82,7 @@ def date(data_frame, number, args=None):
 
         strftime_list = list(map(lambda x: x[0] if len(x) > 1 else x, split(format)))
         strftime = get_seperator(format).join(list(map(lambda x: '%' + x, strftime_list)))
-
+        date_list = []
         for f, s, e in zip(split(format), split(start), split(end)):
             if f == 'mm':
                 start_month = int(s)
@@ -105,7 +105,7 @@ def date(data_frame, number, args=None):
                     end = datetime.date(year=end_year, month=end_month, day=end_day)
                     date = str(fake.date_between(start_date=start, end_date=end).strftime(strftime))
                     date_list.append(date)
-        data_frame[data_frame_col_name] = date_list
+        data_frame[data_frame_col_name] = date_list[:number]
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
