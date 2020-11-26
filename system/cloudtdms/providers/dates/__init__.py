@@ -158,6 +158,29 @@ def timestamp(data_frame, number, args=None):
      """
     dcols = [f for f in data_frame.columns if f.startswith("timestamp")]
     for column_name, data_frame_col_name in zip(args, dcols):
-        faker = Faker()
-        data_frame[data_frame_col_name] = [str(faker.date_time_between()) for _ in range(number)]
-        data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
+        # dd/mm/YYYY HH:MM is VODAPHONE FORMAT- SET IT TO DEFAULT
+        if args is not None:
+            format = args.get(column_name).get('format', 'dd/mm/YYYY HH:MM')
+        else:
+            format = 'dd/mm/YYYY HH:MM'
+
+        try:
+            format=format.strip()
+            date, time = format.split(' ')
+            date = date.strip()
+            time=time.upper().strip()
+
+            strfdate_list = list(map(lambda x: x[0] if len(x) > 1 else x, split(date)))
+            strfdate = get_seperator(date).join(list(map(lambda x: '%' + x, strfdate_list)))
+
+            strftime_list = list(map(lambda x: x[0] if len(x) > 1 else x, split(time)))
+            strftime = get_seperator(time).join(list(map(lambda x: '%' + x, strftime_list)))
+
+            combinedstrf = f"{strfdate} {strftime}"
+
+            faker = Faker()
+            data_frame[data_frame_col_name] = [str(faker.date_time_between().strftime(combinedstrf)) for _ in range(number)]
+            data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+        except ValueError:
+            LoggingMixin().log.warning("InvalidFormat: timestamp format mismatch")
