@@ -456,11 +456,26 @@ Each provider has a collection of generator functions available that can be used
     {"field_name" :  "time", "type" :  "dates.time"}
     ```
    
- 5. **timestamp :** Generates a list of timestamps. Such as `2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
+ 5. **timestamp :** Generates a list of timestamps based on format value specified. Such as `17/08/2017 02:11`,`2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
+                    The default value for format is `dd/mm/YYYY HH:MM`
+                   
+    + *format* : takes a format string as a value
+        
+    example format strings:
+    - `mm/dd/yyyy HH:MM:SS`
+    - `mm/dd/yyyy HH:MM`
+    - `mm/dd/YYYY HH:MM:SS`
+    - `mm/dd/YYYY HH:MM`
+    - `YYYY/mm/dd HH:MM:SS`
+    - `YYYY/mm/dd HH:MM`
+    - `mm-dd-YYYY HH:MM:SS`
+    - `mm-dd-YYYY HH:MM`
+    - `mm.dd.YYYY HH:MM:SS`
+    - `mm.dd.YYYY HH:MM`
    
     *syntax*:
     ```json
-    {"field_name" :  "timestamp", "type" :  "dates.timestamp"}
+    {"field_name" :  "timestamp", "type" :  "dates.timestamp", "format":"mm/dd/YYYY HH:MM"}
     ```
 
 
