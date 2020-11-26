@@ -38,8 +38,15 @@ def generate_configuration():
             categorical[column]=top_10
 
     STREAM['number'] = 1000
-    STREAM['title'] = file_name
-    connection = {'connection': file_name, 'delimiter': delimiter} if extension == '.csv' else {'connection': file_name, 'type': 'lines'}
+    STREAM['title'] = ''.join([f for f in file_name if f not in "!@#$%^&*()[]{};:,./<>?\|`~-=+ "])
+    cname = ''.join([f for f in file_name if f not in "!@#$%^&*()[]{};:,./<>?\|`~-=+ "])
+    connection = {'connection': cname, 'delimiter': delimiter} if extension == '.csv' else {'connection': cname, 'type': 'lines'}
+
+    STREAM['destination'] = {
+        str(extension)[1:] : [
+            connection
+        ]
+    }
 
     STREAM['frequency'] = 'once'
     synthetic = []
@@ -49,15 +56,17 @@ def generate_configuration():
         else:
             if f not in missing:
                 synthetic.append({'field_name': f, 'type': ''})
+            else:
+                synthetic.append({'field_name': f, 'type': 'basics.blank'})
 
     STREAM['synthetic'] = synthetic
-    STREAM['nullying'] = missing
+
     STREAM['output_schema'] = {f"synthetic.{f.get('field_name')}":f"{f.get('field_name')}" for f in synthetic}
-    STREAM['output_schema'].update({f"synthetic.{f}":f"{f}" for f in missing})
+
     yaml_data=f"""
                  {str(extension)[1:]}:
-                    {file_name}:
-                        source: {f'"{get_profiling_data_home()}/{file_name}"'}
+                    {cname}:
+                        source: {f'"{get_profiling_data_home()}/{file_name}{extension}"'}
                         target: {f'"{get_output_data_home()}"'}
               """
     STREAM = json.dumps(STREAM, indent=4)
@@ -67,6 +76,11 @@ def generate_configuration():
         os.makedirs(f'{get_reports_home()}/{prefix}')
     with open(f'{get_reports_home()}/{prefix}/config_synthetic_{file_name}.txt', 'w') as o:
         o.write(f'''
+        # This a connection definition required by the proposed configuration file
+        # Save this connection entry in config_default.yaml file present in `cloudtdms` folder
+
+        {yaml_data}
+
         # This is a proposed cloudtdms synthetic configuration file for your data set.
         # Save this file with '.py' extension inside `config` folder.
                 \nSTREAM=''' + STREAM

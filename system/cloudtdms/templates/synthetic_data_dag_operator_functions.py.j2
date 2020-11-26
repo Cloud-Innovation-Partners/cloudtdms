@@ -14,7 +14,7 @@ def clean_up(**kwargs):
             cname = item.get('connection')
             if cname in config.get('csv', {}) or cname in config.get('json', {}):
                 target = config.get('csv', {}).get(cname, {}).get('target', None) or config.get('json', {}).get(cname, {}).get('target', None)
-                if target is  None or target == '':
+                if target is  None or target == '' or target == f"{get_output_data_home()}":
                     LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
                     flag = False
                     break
