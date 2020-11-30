@@ -16,6 +16,7 @@
 
 {{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }}_kwargs['header'] = f"{dag.params.get('stream').get('header')}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="CSV_{{ item.connection }}", python_callable=csv_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'json' %}

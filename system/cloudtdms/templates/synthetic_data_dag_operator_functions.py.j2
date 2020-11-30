@@ -266,7 +266,12 @@ def data_generator(**kwargs):
                 data_frame[column] = data_frame[column].astype(str).str[:255]
 
         if stream['format'] == 'csv':
-            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+            header=dag.params.get('stream').get('header')
+            if header:
+                data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+            else:
+                data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False, header=False)
+
         elif stream['format'] == 'json':
             data_frame = data_frame.loc[:,~data_frame.columns.duplicated()]
             data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
@@ -275,7 +280,12 @@ def data_generator(**kwargs):
         os.makedirs(f"{get_output_data_home()}/{dag.owner}/{stream['title']}")
 
         if stream['format'] == 'csv':
-            data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+            header=dag.params.get('stream').get('header')
+            if header:
+                data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False)
+            else:
+                data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False, header=False)
+
         elif stream['format'] == 'json':
             data_frame.to_json(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.json", orient='records', lines=True)
 

@@ -10,13 +10,14 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 class CTDMS2CSV:
-    def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=","):
+    def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=",", header=True):
         self.connection = connection
         self.source_file = source_file
         self.target_file = target_file if target_file is not None else get_output_data_home()
         self.execution_date = execution_date
         self.prefix = prefix
         self.delimiter = delimiter
+        self.header=header
 
     def upload(self, limit=DESTINATION_UPLOAD_LIMIT):
         file_name = f"{os.path.basename(self.prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
@@ -26,10 +27,19 @@ class CTDMS2CSV:
 
             try:
                 LoggingMixin().log.info(f"target_file : {os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}")
-                df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False, sep=str(self.delimiter))
+                if self.header:
+                    df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False, sep=str(self.delimiter))
+                else:
+                    df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
+                              sep=str(self.delimiter), header=False)
             except FileNotFoundError:
                 os.makedirs(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}")
-                df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False, sep=str(self.delimiter))
+                if self.header:
+                    df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
+                              sep=str(self.delimiter))
+                else:
+                    df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
+                              sep=str(self.delimiter), header=False)
         else:
             LoggingMixin().log.error(f"No Synthetic Data Found @ {synthetic_data_path}!")
             raise FileNotFoundError
@@ -69,6 +79,7 @@ def csv_upload(**kwargs):
     prefix = kwargs.get('prefix')  # title of the synthetic data config file
     delimiter = kwargs.get('delimiter', ',') if kwargs.get('delimiter') != "" else ','
     connection = kwargs.get('connection')
+    header=kwargs.get('header')
     # Get CSV target file From config_default.yaml
     csv_config = CTDMS2CSV.get_csv_config_default()
 
@@ -79,7 +90,8 @@ def csv_upload(**kwargs):
         target_file=target_file,
         prefix=prefix,
         delimiter=delimiter,
-        execution_date=execution_date
+        execution_date=execution_date,
+        header=header
     )
     csv.upload()
 

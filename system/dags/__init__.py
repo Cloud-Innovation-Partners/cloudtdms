@@ -241,6 +241,13 @@ for (module, name, app) in modules:
         # set format to csv
         stream['format'] = 'csv'
 
+        #get header status - default value should be True
+        header = stream['header'] if 'header' in stream else True
+        print("HEADER1", header)
+
+        header= True if str(header).strip().lower() == 'true' else False
+        stream['header'] = header
+        print("HEADER2", header)
         # check 'source' attribute is present
         source = stream['source'] if 'source' in stream else None
 
@@ -287,7 +294,8 @@ for (module, name, app) in modules:
                     'stream': stream,
                     'attributes': attributes if len(attributes) != 0 else None,
                     'source': source if source is not None else {},
-                    'destination': stream['destination'] if 'destination' in stream.keys() else {}
+                    'destination': stream['destination'] if 'destination' in stream.keys() else {},
+                    'header':header
                 }
             )
             dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
@@ -307,7 +315,8 @@ for (module, name, app) in modules:
                         'stream': stream,
                         'attributes': {},
                         'source': source if source is not None else [],
-                        'destination': stream['destination'] if 'destination' in stream.keys() else {}
+                        'destination': stream['destination'] if 'destination' in stream.keys() else {},
+                        'header':header
                     }
                 )
                 dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
