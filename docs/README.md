@@ -75,6 +75,7 @@ Here we shall quickly go through the example configuration below to get the idea
 STREAM = {
     "number": 1000,
     "title": 'synthetic_data',
+    "header":True,
     "frequency": "once",
     "synthetic": [
         {"field_name": "fname", "type": "personal.first_name"},
@@ -102,6 +103,7 @@ STREAM = {
 + `number` defines the number of records to be generated, In this case, we ask `cloudtdms` to generate 1000 records
 + `title` defines the name of the generated file, In this case, the generated data file will be inside `data/CloudTDMS/synthetic_data` folder of 
           `cloudtdms` and it will be named as `synthetic_data_YYYY_MM_DDTHH_mm_ss.csv`.
++ `header` defines whether the column names are to be displayed in the `.csv` file or not. When the `header` is set to `True`, the column names are displayed in              the `.csv` file. Otherwise it will not be displayed. The default value is `True`. `header` is optional and is available only for `.csv`.
 + `frequency` defines how often data should be generated, It takes a cron value such as `once`, `hourly`, `daily`, `monthly` etc.
 + `synthetic` defines the temporary logical schema of the synthetic data to be generated, each entry corresponds to a specific data generator defined in `CloudTDMS`. Here 
            the list contains six entries, means output synthetic data will have six columns with names `fname`, `lname`, `sex`, `email`
