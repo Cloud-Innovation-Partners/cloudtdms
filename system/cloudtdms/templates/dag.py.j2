@@ -5,6 +5,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.models import Variable
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.configuration import get_airflow_home
 from airflow.exceptions import AirflowException

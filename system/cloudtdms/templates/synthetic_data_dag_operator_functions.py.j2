@@ -215,6 +215,27 @@ def data_generator(**kwargs):
     data_frame = data_frame.reindex(sorted(data_frame.columns, key=lambda x: x.startswith('concatenate')), axis=1)
     attributes = collections.OrderedDict(sorted(attributes.items(), key=lambda x: str(x).__contains__('advanced')))
 
+    # creating variable for each dag
+    cache = Variable.get(dag.dag_id, None)
+
+    if cache is None:
+        print("None")
+        auto_increments = [ f for f in schema if f.get('type') == 'basics.auto_increment']
+        cache = {'auto_increments':{}}
+        for incs in auto_increments:
+            cache['auto_increments'][incs['field_name']] = {'start': int(incs.get('start')) + int(nrows)}
+        Variable.set(dag.dag_id, json.dumps(cache))
+    else:
+        print("NotNone")
+        cache = json.loads(cache)
+        for index,value in enumerate(schema):
+            if value.get('field_name') in dict(cache['auto_increments']):
+                value['start'] = int(cache['auto_increments'][value.get('field_name')]['start'])
+                schema[index] = value
+                cache['auto_increments'][value.get('field_name')]['start'] += nrows
+
+        Variable.set(dag.dag_id,json.dumps(cache))
+
     for attrib in attributes:
         if attrib in meta_data['code_files']:
             mod = importlib.import_module(f"system.cloudtdms.providers.{attrib}")
