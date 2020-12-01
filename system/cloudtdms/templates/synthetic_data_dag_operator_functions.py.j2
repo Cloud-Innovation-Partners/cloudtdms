@@ -286,6 +286,9 @@ def data_generator(**kwargs):
             if int(vector_length(data_frame[column].astype(str)).max(axis=0)) > 255:
                 data_frame[column] = data_frame[column].astype(str).str[:255]
 
+        # Drop Unnamed columns
+        data_frame.drop(data_frame.columns[data_frame.columns.str.contains('unnamed',case = False)],axis = 1, inplace = True)
+
         if stream['format'] == 'csv':
             header=dag.params.get('stream').get('header')
             if header:

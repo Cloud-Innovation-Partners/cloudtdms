@@ -13,7 +13,7 @@ class CTDMS2CSV:
     def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=",", header=True):
         self.connection = connection
         self.source_file = source_file
-        self.target_file = target_file if target_file is not None else get_output_data_home()
+        self.target_file = target_file if (target_file is not None) and (len(target_file)!=0) else get_output_data_home()
         self.execution_date = execution_date
         self.prefix = prefix
         self.delimiter = delimiter
@@ -24,6 +24,9 @@ class CTDMS2CSV:
         synthetic_data_path = f"{get_output_data_home()}/{self.prefix}/{file_name}"
         if os.path.exists(synthetic_data_path):
             df = pd.read_csv(f"{synthetic_data_path}", nrows=int(DESTINATION_UPLOAD_LIMIT))
+
+            # Drop Unnamed columns
+            df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
 
             try:
                 LoggingMixin().log.info(f"target_file : {os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}")
@@ -118,4 +121,3 @@ def csv_download(**kwargs):
     else:
         LoggingMixin().log.error(f'CSV file not available for {connection} in config_default.yaml')
         raise AttributeError(f'CSV file not available for {connection} in config_default.yaml')
-
