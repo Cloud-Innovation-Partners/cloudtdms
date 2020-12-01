@@ -460,6 +460,8 @@ Each provider has a collection of generator functions available that can be used
                     The default value for format is `dd/mm/YYYY HH:MM`
                    
     + *format* : takes a format string as a value
+    + *start* : used to specify the starting value for timestamp.
+    + *end* :used to specify the starting value for timestamp.
         
     example format strings:
     - `mm/dd/yyyy HH:MM:SS`
@@ -475,7 +477,7 @@ Each provider has a collection of generator functions available that can be used
    
     *syntax*:
     ```json
-    {"field_name" :  "timestamp", "type" :  "dates.timestamp", "format":"mm/dd/YYYY HH:MM"}
+    {"field_name" :  "timestamp", "type" :  "dates.timestamp", "format":"mm/dd/YYYY HH:MM","start":"12/07/2020","end":"12/08/2023"}
     ```
 
 
