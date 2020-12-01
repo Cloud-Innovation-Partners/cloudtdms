@@ -39,7 +39,8 @@ def generate_configuration():
 
     STREAM['number'] = 1000
     STREAM['title'] = ''.join([f for f in file_name if f not in "!@#$%^&*()[]{};:,./<>?\|`~-=+ "])
-    cname = ''.join([f for f in file_name if f not in "!@#$%^&*()[]{};:,./<>?\|`~-=+ "])
+    #cname = ''.join([f for f in file_name if f not in "!@#$%^&*()[]{};:,./<>?\|`~-=+ "])
+    cname='local'
     connection = {'connection': cname, 'delimiter': delimiter} if extension == '.csv' else {'connection': cname, 'type': 'lines'}
 
     STREAM['destination'] = {
