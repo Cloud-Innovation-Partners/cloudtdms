@@ -4,6 +4,9 @@ from airflow import LoggingMixin
 from faker import Faker
 import datetime
 import random
+import pandas as pd
+from datetime import datetime as dt
+
 
 def dates(data_frame, number, args):
     field_names = {}
@@ -20,7 +23,6 @@ def dates(data_frame, number, args):
     for col in columns:
         mod = globals()[col]
         mod(data_frame, number, field_names.get(col))
-
 
 
 def get_seperator(exp):
@@ -136,6 +138,7 @@ def month(data_frame, number, args=None):
         data_frame[data_frame_col_name] = [faker.date_between().strftime('%B') for _ in range(number)]
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
+
 def time(data_frame, number, args=None):
     """
      Generator function for words
@@ -143,11 +146,12 @@ def time(data_frame, number, args=None):
      :type int
      :return: list
      """
-    dcols = [f for f in data_frame.columns if f.startswith("time")  and not 'timestamp' in f]
+    dcols = [f for f in data_frame.columns if f.startswith("time") and not 'timestamp' in f]
     for column_name, data_frame_col_name in zip(args, dcols):
         faker = Faker()
-        data_frame[data_frame_col_name]= [faker.time() for _ in range(number)]
+        data_frame[data_frame_col_name] = [faker.time() for _ in range(number)]
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
+
 
 def timestamp(data_frame, number, args=None):
     """
@@ -159,17 +163,31 @@ def timestamp(data_frame, number, args=None):
     dcols = [f for f in data_frame.columns if f.startswith("timestamp")]
     for column_name, data_frame_col_name in zip(args, dcols):
 
-        # dd/mm/YYYY HH:MM is VODAPHONE FORMAT- SET IT TO DEFAULT
+        # dd/mm/YYYY HH:MM is VODAFHONE FORMAT- SET IT TO DEFAULT
         if args is not None:
             format = args.get(column_name).get('format', 'dd/mm/YYYY HH:MM')
+            start = args.get(column_name).get('start', '10/10/2019')
+            end = args.get(column_name).get('end', '10/10/2020')
+            try:
+                format_sep = format.strip().split(' ')[0]
+            except ValueError:
+                LoggingMixin().log.warning("InvalidFormat: timestamp format mismatch")
+            if get_seperator(format_sep) != get_seperator(start) or get_seperator(format_sep) != get_seperator(end) \
+                    or get_seperator(start) != get_seperator(end):
+                format = 'dd/mm/YYYY HH:MM'
+                start = '10/10/2019'
+                end = '10/10/2020'
+                LoggingMixin().log.warning(f"InvalidFormat: timestamp format mismatch")
         else:
             format = 'dd/mm/YYYY HH:MM'
+            start = '10/10/2019'
+            end = '10/10/2020'
 
         try:
-            format=format.strip()
+            format = format.strip()
             date, time = format.split(' ')
             date = date.strip()
-            time=time.upper().strip()
+            time = time.upper().strip()
 
             strfdate_list = list(map(lambda x: x[0] if len(x) > 1 else x, split(date)))
             strfdate = get_seperator(date).join(list(map(lambda x: '%' + x, strfdate_list)))
@@ -179,8 +197,13 @@ def timestamp(data_frame, number, args=None):
 
             combinedstrf = f"{strfdate} {strftime}"
 
-            faker = Faker()
-            data_frame[data_frame_col_name] = [str(faker.date_time_between().strftime(combinedstrf)) for _ in range(number)]
+            timestamp = pd.date_range(start=start, end=end, periods=number).tolist()
+            timestamp_strf = [dt.strftime(t, combinedstrf) for t in timestamp]
+            random.shuffle(timestamp_strf)
+
+            # faker = Faker()
+            # data_frame[data_frame_col_name] = [str(faker.date_time_between().strftime(combinedstrf)) for _ in range(number)]
+            data_frame[data_frame_col_name] = timestamp_strf
             data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
         except ValueError:
             LoggingMixin().log.warning("InvalidFormat: timestamp format mismatch")
