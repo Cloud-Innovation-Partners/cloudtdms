@@ -12,6 +12,7 @@ from airflow.models.dag import DagModel
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.configuration import get_airflow_home
 from airflow.exceptions import AirflowException
+from airflow.models import Variable
 
 
 def get_cloudtdms_home():
@@ -89,6 +90,9 @@ def get_templates_home():
 def delete_dag(dag_id):
     p = subprocess.Popen([f"airflow delete_dag -y {dag_id}"], executable="/bin/bash",
                          universal_newlines=True, shell=True)
+    # Remove variable
+    Variable.delete(dag_id)
+    
     (o, e) = p.communicate()
 
 
