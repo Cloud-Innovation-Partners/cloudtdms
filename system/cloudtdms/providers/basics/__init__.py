@@ -298,14 +298,10 @@ def auto_increment(data_frame, number, args=None):
             prefix = ''
             suffix = ''
 
-        range_list = list(range(start, start + number, inc))
-        range_list_len = len(range_list)
-        if range_list_len < number:
-            diff = number - range_list_len
-            last_elem = range_list[-1]
-            extra_elems = [last_elem] * diff
-            extra_elems = extra_elems[:number]
-            range_list.extend(extra_elems)
+        range_list = []
+        for _ in range(number):
+            range_list.append(start)
+            start += inc
 
         range_list = [prefix + str(i) + suffix if len(prefix) > 0 or len(suffix) > 0 else i for i in range_list]
         data_frame[data_frame_col_name] = range_list
