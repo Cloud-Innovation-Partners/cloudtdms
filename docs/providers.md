@@ -424,6 +424,8 @@ Each provider has a collection of generator functions available that can be used
     + *format* : takes a format string as a value
     + *start* : used to specify the starting value for date.
     + *end* :used to specify the starting value for date.
+    
+     >**Note :** The separator in `format` and `start`, `end` must be same.
         
     example format strings:
     - `mm/dd/yyyy`
@@ -463,6 +465,8 @@ Each provider has a collection of generator functions available that can be used
     + *format* : takes a format string as a value
     + *start* : used to specify the starting value for timestamp.
     + *end* :used to specify the starting value for timestamp.
+    
+    >**Note :** The separator in `format` and `start`, `end` must be same.
         
     example format strings:
     - `mm/dd/yyyy HH:MM:SS`
