@@ -119,14 +119,15 @@ Each provider has a collection of generator functions available that can be used
     ```
     
 11. **number_range :** This generates a sequence of numbers within a specified range, the range is set using attributes
-    `start` and `end`.
+    `start`, `end` and  an `increment` .
     
     + *`start`* : used to specify the starting value for the sequence, no number generated will be less then this value
     + *`end`* : used to specify the end value for the sequence, no number generated will be greater then this value
+    + *`increment`* : used to specify the increment value `default` is 1
     
     *syntax*:
     ```json
-    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200}
+    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200, "increment":1}
     ```
 
 - ### Personal
