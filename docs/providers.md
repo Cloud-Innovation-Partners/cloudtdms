@@ -480,9 +480,9 @@ Each provider has a collection of generator functions available that can be used
     - `mm.dd.YYYY HH:MM:SS`       
     - `mm.dd.YYYY HH:MM`
     - `dd/mm/YYYY HH:MM:SS`
-    - `dd/mm/YYYY HH:MM
-    - `dd/mm/yy HH:MM:SS
-    - `dd/mm/yy HH:MM
+    - `dd/mm/YYYY HH:MM`
+    - `dd/mm/yy HH:MM:SS`
+    - `dd/mm/yy HH:MM`
    
     *syntax*:
     ```json
