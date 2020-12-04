@@ -468,17 +468,21 @@ Each provider has a collection of generator functions available that can be used
     
     >**Note :** The separator in `format` and `start`, `end` must be same.
         
-    example format strings:
-    - `mm/dd/yyyy HH:MM:SS`
-    - `mm/dd/yyyy HH:MM`
-    - `mm/dd/YYYY HH:MM:SS`
-    - `mm/dd/YYYY HH:MM`
-    - `YYYY/mm/dd HH:MM:SS`
-    - `YYYY/mm/dd HH:MM`
-    - `mm-dd-YYYY HH:MM:SS`
-    - `mm-dd-YYYY HH:MM`
-    - `mm.dd.YYYY HH:MM:SS`
+    example format strings:         
+    - `mm/dd/yy HH:MM:SS`         
+    - `mm/dd/yy HH:MM`            
+    - `mm/dd/YYYY HH:MM:SS`       
+    - `mm/dd/YYYY HH:MM`          
+    - `YYYY/mm/dd HH:MM:SS`      
+    - `YYYY/mm/dd HH:MM`         
+    - `mm-dd-YYYY HH:MM:SS`            
+    - `mm-dd-YYYY HH:MM`         
+    - `mm.dd.YYYY HH:MM:SS`       
     - `mm.dd.YYYY HH:MM`
+    - `dd/mm/YYYY HH:MM:SS`
+    - `dd/mm/YYYY HH:MM
+    - `dd/mm/yy HH:MM:SS
+    - `dd/mm/yy HH:MM
    
     *syntax*:
     ```json
