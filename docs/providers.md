@@ -428,7 +428,7 @@ Each provider has a collection of generator functions available that can be used
      >**Note :** The separator in `format` and `start`, `end` must be same.
         
     example format strings:
-    - `mm/dd/yyyy`
+    - `mm/dd/yy`
     - `mm/dd/YYYY`
     - `YYYY/mm/dd`
     - `mm-dd-YYYY`
