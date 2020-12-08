@@ -166,8 +166,8 @@ def timestamp(data_frame, number, args=None):
         # dd/mm/YYYY HH:MM is VODAFHONE FORMAT- SET IT TO DEFAULT
         if args is not None:
             format = args.get(column_name).get('format', 'dd/mm/YYYY HH:MM')
-            start = args.get(column_name).get('start', '10/10/2019')
-            end = args.get(column_name).get('end', '10/10/2020')
+            start = args.get(column_name).get('start', '01/01/1970')
+            end = args.get(column_name).get('end', datetime.datetime.strftime(datetime.datetime.now(), '%d/%m/%Y'))
             try:
                 format_sep = format.strip().split(' ')[0]
             except ValueError:
@@ -175,13 +175,13 @@ def timestamp(data_frame, number, args=None):
             if get_seperator(format_sep) != get_seperator(start) or get_seperator(format_sep) != get_seperator(end) \
                     or get_seperator(start) != get_seperator(end):
                 format = 'dd/mm/YYYY HH:MM'
-                start = '10/10/2019'
-                end = '10/10/2020'
+                start = '01/01/1970'
+                end = datetime.datetime.strftime(datetime.datetime.now(), '%d/%m/%Y')
                 LoggingMixin().log.warning(f"InvalidFormat: timestamp format mismatch")
         else:
             format = 'dd/mm/YYYY HH:MM'
-            start = '10/10/2019'
-            end = '10/10/2020'
+            start = '01/01/1970'
+            end = datetime.datetime.strftime(datetime.datetime.now(), '%d/%m/%Y')
 
         try:
             format = format.strip()
@@ -196,13 +196,13 @@ def timestamp(data_frame, number, args=None):
             strftime = get_seperator(time).join(list(map(lambda x: '%' + x, strftime_list)))
 
             combinedstrf = f"{strfdate} {strftime}"
+            append_time = ' 00:00' if strftime == '%H:%M' else ' 00:00:00'
+            x = [Faker().date_time_between_dates(datetime_start=datetime.datetime.strptime(start + append_time, combinedstrf), datetime_end=datetime.datetime.strptime(end + append_time, combinedstrf)) for _ in range(number)]
 
-            timestamp = pd.date_range(start=start, end=end, periods=number).tolist()
-            timestamp_strf = [dt.strftime(t, combinedstrf) for t in timestamp]
+            # timestamp = pd.date_range(start=start, end=end, periods=number).tolist()
+            timestamp_strf = [dt.strftime(t, combinedstrf) for t in x]
             random.shuffle(timestamp_strf)
 
-            # faker = Faker()
-            # data_frame[data_frame_col_name] = [str(faker.date_time_between().strftime(combinedstrf)) for _ in range(number)]
             data_frame[data_frame_col_name] = timestamp_strf
             data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
         except ValueError:
