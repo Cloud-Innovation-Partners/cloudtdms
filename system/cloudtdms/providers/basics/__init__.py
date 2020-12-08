@@ -334,6 +334,30 @@ def random_number(data_frame, number, args=None):
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
 
 
+def _generate_range(start, end, inc, flag=None):
+    i = start
+    yield i
+    while True:
+        i += inc
+        yield i
+        if flag and end == i:  # when start > end
+            break
+        if i >= end and flag is None:  # when start < end
+            break
+
+
+
+def _get_range(start, end, inc):
+    if start > end:
+        inc_temp = inc if inc < 0 else -inc
+        number_range = _generate_range(start, end, inc_temp, flag=True)
+        return number_range
+    else:
+        if inc<0:
+            raise Exception(f"For start = {start} and end = {end}, inc = {inc} cannot be negative")
+        return _generate_range(start, end, inc)
+
+
 def number_range(data_frame, number, args=None):
     """
        Generator function for number range
@@ -345,21 +369,22 @@ def number_range(data_frame, number, args=None):
     """
     dcols = [f for f in data_frame.columns if f.startswith("number_range")]
     for column_name, data_frame_col_name in zip(args, dcols):
-
         if args is not None:
             start = int(args.get(column_name).get('start', 0))
             end = int(args.get(column_name).get('end', 20))
+            inc = int(args.get(column_name).get('increment', 1))
         else:
             start = 0
             end = 20
+            inc = 1
+        range_list_gen=_get_range(start,end,inc)
+        for index, row in data_frame.iterrows():
+            try:
+                element = next(range_list_gen)
+                data_frame.at[index, data_frame_col_name] = element
 
-        range_list = list(range(start, end))
-        range_list_len = len(range_list)
-        if range_list_len < number:
-            diff = math.ceil(float(number) / float(range_list_len))
-            range_list += range_list * int(diff)
-            range_list = range_list[:number]
-        else:
-            range_list = range_list[:number]
-        data_frame[data_frame_col_name] = range_list
+            except StopIteration:
+                data_frame.at[index, data_frame_col_name] = element
+        # data_frame[data_frame_col_name] = range_list
+        data_frame[data_frame_col_name]= data_frame[data_frame_col_name].astype('int')
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
