@@ -32,21 +32,23 @@ start >> stream
 
 {{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractCSV_{{ item.connection }}", python_callable=csv_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_CSV_{{ item.connection }}", python_callable=csv_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'mysql' %}
 
 # Initialize task for MySQL db Extract {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractMySQL_{{ item.connection }}_{{ item.table }}", python_callable=mysql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }}_kwargs['order'] = "{{ item.order }}"
+{{ key }}_{{ item.connection }}_kwargs['where'] = "{{ item.where }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_MySQL_{{ item.connection }}_{{ item.table }}", python_callable=mysql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'mssql' %}
 
 # Initialize task for MsSQL db Extract {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractMsSQL_{{ item.connection }}_{{ item.table }}", python_callable=mssql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_MsSQL_{{ item.connection }}_{{ item.table }}", python_callable=mssql_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
 {% elif key == 'postgres' %}
@@ -54,7 +56,7 @@ start >> stream
 # Initialize task for Postgres db Extract {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractPostgres_{{ item.connection }}_{{ item.table }}", python_callable=postgres_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_Postgres_{{ item.connection }}_{{ item.table }}", python_callable=postgres_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
 
@@ -63,7 +65,7 @@ start >> stream
 # Initialize task for Sftp  Extract {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['file_path'] = "{{ item.file }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractSftp_{{ item.connection }}", python_callable=sftp_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_Sftp_{{ item.connection }}", python_callable=sftp_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
 {% elif key == 'servicenow' %}
@@ -72,7 +74,7 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_ServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'salesforce' %}
 
@@ -80,18 +82,18 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractSalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_SalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 's3' %}
 # Initialize task for Amazon S3 {{ item.connection }} and bucket {{ item.bucket }}
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="AmazonS3_{{ item.connection }}_{{ item.bucket }}", python_callable=s3_download, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_AmazonS3_{{ item.connection }}_{{ item.bucket }}", python_callable=s3_download, dag=dag)
 
 {% elif key == 'json' %}
 # Initialize task for JSON data file {{ item.connection }}
 
 {{ key }}_{{ item.connection }}_kwargs['type'] = "{{ item.type }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ExtractJSON_{{ item.connection }}", python_callable=json_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_JSON_{{ item.connection }}", python_callable=json_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% endif %}
 

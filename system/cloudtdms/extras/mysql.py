@@ -141,7 +141,10 @@ def mysql_download(**kwargs):
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
+    order = kwargs['order']
+    where = kwargs['where']
 
+    order = 'RAND' if str(order).strip().lower() == 'rand' else 'ASC' if str(order).strip().lower() == 'asc' else 'DESC' if str(order).strip().lower() == 'desc' else 'RAND'
     connection_in_yaml = get_mysql_config_default()
 
     database = connection_in_yaml.get(connection_name).get('database')
@@ -171,20 +174,29 @@ def mysql_download(**kwargs):
                 result = cursor.fetchone()
                 primary_index = result.get('COLUMN_NAME') if result is not None else None
 
-                if primary_index is not None:
-                    sql = f"SELECT * FROM `{table_name}` ORDER BY `{primary_index}` DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
-                    cursor.execute(sql)
-                    df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mysql.{connection_name}.{table_name}.{f}" for f in df.columns]
+                if primary_index is not None and (order == 'ASC' or order == 'DESC'):
+                    try:
+                        sql = f"SELECT * FROM `{table_name}` ORDER BY `{primary_index}` {order} LIMIT {SOURCE_DOWNLOAD_LIMIT}" if where == '' else f"SELECT * FROM `{table_name}` WHERE {where} ORDER BY `{primary_index}` {order} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                        cursor.execute(sql)
+                        df = pd.DataFrame(cursor.fetchall())
+                        df.columns = [f"mysql.{connection_name}.{table_name}.{f}" for f in df.columns]
+                    except pymysql.err.OperationalError:
+                        LoggingMixin().log.error(f"Error In SQL Query: {sql}", exc_info=True)
+                        raise
 
 
                 else:
                     LoggingMixin().log.warn(
                         f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
-                    sql = f"SELECT * FROM `{table_name}` LIMIT {SOURCE_DOWNLOAD_LIMIT}"
-                    cursor.execute(sql)
-                    df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mysql.{connection_name}.{table_name}.{f}" for f in df.columns]
+                    try:
+                        sql = f"SELECT * FROM `{table_name}` ORDER BY RAND() LIMIT {SOURCE_DOWNLOAD_LIMIT}" if where == '' else f"SELECT * FROM `{table_name}` WHERE {where} ORDER BY RAND() LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+
+                        cursor.execute(sql)
+                        df = pd.DataFrame(cursor.fetchall())
+                        df.columns = [f"mysql.{connection_name}.{table_name}.{f}" for f in df.columns]
+                    except pymysql.err.OperationalError:
+                        LoggingMixin().log.error(f"Error In SQL Query: {sql}", exc_info=True)
+                        raise
 
                 try:
                     df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
