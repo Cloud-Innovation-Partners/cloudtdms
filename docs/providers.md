@@ -119,14 +119,15 @@ Each provider has a collection of generator functions available that can be used
     ```
     
 11. **number_range :** This generates a sequence of numbers within a specified range, the range is set using attributes
-    `start` and `end`.
+    `start`, `end` and  an `increment` .
     
     + *`start`* : used to specify the starting value for the sequence, no number generated will be less then this value
     + *`end`* : used to specify the end value for the sequence, no number generated will be greater then this value
+    + *`increment`* : used to specify the increment value `default` is 1
     
     *syntax*:
     ```json
-    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200}
+    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200, "increment":1}
     ```
 
 - ### Personal
@@ -423,9 +424,11 @@ Each provider has a collection of generator functions available that can be used
     + *format* : takes a format string as a value
     + *start* : used to specify the starting value for date.
     + *end* :used to specify the starting value for date.
+    
+     >**Note :** The separator in `format` and `start`, `end` must be same.
         
     example format strings:
-    - `mm/dd/yyyy`
+    - `mm/dd/yy`
     - `mm/dd/YYYY`
     - `YYYY/mm/dd`
     - `mm-dd-YYYY`
@@ -456,11 +459,34 @@ Each provider has a collection of generator functions available that can be used
     {"field_name" :  "time", "type" :  "dates.time"}
     ```
    
- 5. **timestamp :** Generates a list of timestamps. Such as `2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
+ 5. **timestamp :** Generates a list of timestamps based on format value specified. Such as `17/08/2017 02:11`,`2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
+                    The default value for format is `dd/mm/YYYY HH:MM`
+                   
+    + *format* : takes a format string as a value
+    + *start* : used to specify the starting value for timestamp.
+    + *end* :used to specify the starting value for timestamp.
+    
+    >**Note :** The separator in `format` and `start`, `end` must be same.
+        
+    example format strings:         
+    - `mm/dd/yy HH:MM:SS`         
+    - `mm/dd/yy HH:MM`            
+    - `mm/dd/YYYY HH:MM:SS`       
+    - `mm/dd/YYYY HH:MM`          
+    - `YYYY/mm/dd HH:MM:SS`      
+    - `YYYY/mm/dd HH:MM`         
+    - `mm-dd-YYYY HH:MM:SS`            
+    - `mm-dd-YYYY HH:MM`         
+    - `mm.dd.YYYY HH:MM:SS`       
+    - `mm.dd.YYYY HH:MM`
+    - `dd/mm/YYYY HH:MM:SS`
+    - `dd/mm/YYYY HH:MM`
+    - `dd/mm/yy HH:MM:SS`
+    - `dd/mm/yy HH:MM`
    
     *syntax*:
     ```json
-    {"field_name" :  "timestamp", "type" :  "dates.timestamp"}
+    {"field_name" :  "timestamp", "type" :  "dates.timestamp", "format":"mm/dd/YYYY HH:MM","start":"12/07/2020","end":"12/08/2023"}
     ```
 
 
@@ -486,7 +512,7 @@ Each provider has a collection of generator functions available that can be used
     
     *syntax*:
     ```json
-    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{id}-{teams}"}
+    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{synthetic.id}-{synthetic.teams}"}
     ```
    
    *example* :
@@ -494,7 +520,7 @@ Each provider has a collection of generator functions available that can be used
    {"field_name" :  "row", "type" :  "basics.auto_increment", "start" :  5000}
    {"field_name" :  "id", "type" :  "basics.random_number", "start" :  2000, "end" :  3000}
    {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport"}
-   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "{id}-{teams}#{row}"}
+   {"field_name" :  "mixed", "type" :  "advanced.concatenate", "fields" :  "{synthetic.id}-{synthetic.teams}#{synthetic.row}"}
    ```
    The Above `schema` will generate data something like this
    

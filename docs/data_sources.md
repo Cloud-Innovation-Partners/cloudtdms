@@ -138,8 +138,8 @@ scripts. Below is an example snippet of configuration file using above database 
 STREAM = {
     "source": {
         "mysql": [
-            {"connection": "mysql_test_connection", "table": "users"},
-            {"connection": "mysql_dev_connection", "table": "account"},
+            {"connection": "mysql_test_connection", "table": "users", "order": "desc"},
+            {"connection": "mysql_dev_connection", "table": "account", "order": "rand", "where": "city='New York'"},
         ],
         "postgres": [
             {"connection": "postgres_test", "table": "users"}
@@ -154,6 +154,14 @@ STREAM = {
 ``` 
 Each connection entry for database must have `table` attribute value set. This attribute specifies the table name inside the 
 database to be used as source or destination. If you are using database as `destination` entity, the table need not to be created, but database must be created prior using it. Tables are created by `CloudTDMS` dynamically.
+
+Besides `table` you can specify the values to `order` and `where` attributes that are used to **`ORDER BY`** and apply **`WHERE`** condition on the resulting
+SQL query. The `order` attribute can take one of the following values.
+
+- `asc` : This is used to fetch initial records from the table.
+- `desc` : This is used to fetch lastest records from the table.
+- `rand` : (`default`) Fetch random records from table.
+
 
 > **Note:** credentials for a database inside `config_default.yaml` file must have requisite permissions to create tables and alter schemas.
 
