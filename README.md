@@ -76,8 +76,8 @@ Here we shall quickly go through the example configuration below to get the idea
 STREAM = {
     "number": 1000,
     "title": 'synthetic_data',
-    "header":True,
-    "quoting":True,
+    "header":"true",
+    "quoting":"true",
     "frequency": "once",
     "synthetic": [
         {"field_name": "fname", "type": "personal.first_name"},
