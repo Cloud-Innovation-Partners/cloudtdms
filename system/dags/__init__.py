@@ -247,11 +247,14 @@ for (module, name, app) in modules:
 
         #get header status - default value should be True
         header = stream['header'] if 'header' in stream else True
-        print("HEADER1", header)
-
         header= True if str(header).strip().lower() == 'true' else False
         stream['header'] = header
-        print("HEADER2", header)
+
+        # get quoting status - default value should be False
+        quoting = stream['quoting'] if 'quoting' in stream else False
+        quoting = True if str(quoting).strip().lower() == 'true' else False
+        stream['quoting'] = quoting
+
         # check 'source' attribute is present
         source = stream['source'] if 'source' in stream else None
 

@@ -10,14 +10,16 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 class CTDMS2CSV:
-    def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=",", header=True):
+    def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=",",
+                 header=True, quoting=False):
         self.connection = connection
         self.source_file = source_file
         self.target_file = target_file if (target_file is not None) and (len(target_file)!=0) else get_output_data_home()
         self.execution_date = execution_date
         self.prefix = prefix
         self.delimiter = delimiter
-        self.header=header
+        self.header = header
+        self.quoting = quoting
 
     def upload(self, limit=DESTINATION_UPLOAD_LIMIT):
         file_name = f"{os.path.basename(self.prefix)}_{str(self.execution_date)[:19].replace('-','_').replace(':','_')}.csv"
@@ -29,24 +31,26 @@ class CTDMS2CSV:
             df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
 
             try:
-                LoggingMixin().log.info(f"target_file : {os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}")
+                LoggingMixin().log.info(
+                    f"target_file : {os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}")
+                quoting_value = 1 if self.quoting else 0
                 if self.header:
-                    df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False, sep=str(self.delimiter))
+                    df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
+                              sep=str(self.delimiter), quoting=quoting_value)
                 else:
                     df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
-                              sep=str(self.delimiter), header=False)
+                              sep=str(self.delimiter), header=False, quoting=quoting_value)
             except FileNotFoundError:
                 os.makedirs(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}")
                 if self.header:
                     df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
-                              sep=str(self.delimiter))
+                              sep=str(self.delimiter), quoting=quoting_value)
                 else:
                     df.to_csv(f"{os.path.splitext(self.target_file)[0]}/{self.prefix}/{file_name}", index=False,
-                              sep=str(self.delimiter), header=False)
+                              sep=str(self.delimiter), header=False, quoting=quoting_value)
         else:
             LoggingMixin().log.error(f"No Synthetic Data Found @ {synthetic_data_path}!")
             raise FileNotFoundError
-
 
     def download(self, limit=SOURCE_DOWNLOAD_LIMIT):
         file_name = f"csv_{self.connection}_{os.path.dirname(self.prefix)}_{os.path.basename(self.prefix)}_{str(self.execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
@@ -82,7 +86,13 @@ def csv_upload(**kwargs):
     prefix = kwargs.get('prefix')  # title of the synthetic data config file
     delimiter = kwargs.get('delimiter', ',') if kwargs.get('delimiter') != "" else ','
     connection = kwargs.get('connection')
-    header=kwargs.get('header')
+
+    header = kwargs.get('header')
+    header = True if str(header).lower() == 'true' else False
+
+    quoting = kwargs.get('quoting')
+    quoting = True if str(quoting).lower() == 'true' else False
+
     # Get CSV target file From config_default.yaml
     csv_config = CTDMS2CSV.get_csv_config_default()
 
@@ -94,7 +104,8 @@ def csv_upload(**kwargs):
         prefix=prefix,
         delimiter=delimiter,
         execution_date=execution_date,
-        header=header
+        header=header,
+        quoting=quoting
     )
     csv.upload()
 

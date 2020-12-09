@@ -17,35 +17,36 @@
 {{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['header'] = f"{dag.params.get('stream').get('header')}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="CSV_{{ item.connection }}", python_callable=csv_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }}_kwargs['quoting'] = f"{dag.params.get('stream').get('quoting')}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_CSV_{{ item.connection }}", python_callable=csv_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'json' %}
 # Initialize task for JSON file creation
 
 {{ key }}_{{ item.connection }}_kwargs['type'] = "{{ item.type }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="JSON_{{ item.connection }}", python_callable=json_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_JSON_{{ item.connection }}", python_callable=json_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'mysql' %}
 
 # Initialize task for MySQL db Upload for {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="MySQL_{{ item.connection }}", python_callable=mysql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_MySQL_{{ item.connection }}", python_callable=mysql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'mssql' %}
 
 # Initialize task for MsSQL db Upload for {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="MsSQL_{{ item.connection }}", python_callable=mssql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_MsSQL_{{ item.connection }}", python_callable=mssql_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'postgres' %}
 
 # Initialize task for Postgres db Upload for {{ item.connection }} and table {{ item.table }}
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="Postgres_{{ item.connection }}", python_callable=postgres_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_Postgres_{{ item.connection }}", python_callable=postgres_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'sftp' %}
 
@@ -53,7 +54,7 @@
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['file_path'] = "{{ item.file }}"
 {{ key }}_{{ item.connection }}_kwargs['overwrite'] = "{{ item.overwrite }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="Sftp_{{ item.connection }}", python_callable=sftp_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_Sftp_{{ item.connection }}", python_callable=sftp_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
 {% elif key == 'servicenow' %}
@@ -62,7 +63,7 @@
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="ServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_ServiceNow_{{ item.connection }}_{{ item.table }}", python_callable=servicenow_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'salesforce' %}
 
@@ -70,12 +71,12 @@
 {{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="SalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_SalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
 {% elif key == 's3' %}
 # Initialize task for Amazon S3 Upload for {{ item.connection }} and bucket {{ item.bucket }}
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="AmazonS3_{{ item.connection }}", python_callable=s3_upload, dag=dag)
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_AmazonS3_{{ item.connection }}", python_callable=s3_upload, dag=dag)
 
 {% endif %}
 

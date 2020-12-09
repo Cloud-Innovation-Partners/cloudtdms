@@ -151,9 +151,11 @@ def words(data_frame, number, args=None):
             atmost = int(args.get(column_name).get('atmost', -999))
 
             if atleast < 0:
-                LoggingMixin().log.warning(f"InvalidValue: Value for `atleast` must be greater than zero for `words` provider")
+                LoggingMixin().log.warning(
+                    f"InvalidValue: Value for `atleast` must be greater than zero for `words` provider")
             if atmost < 0:
-                LoggingMixin().log.warning(f"InvalidValue: Value for `atmost` must be greater than zero for `words` provider")
+                LoggingMixin().log.warning(
+                    f"InvalidValue: Value for `atmost` must be greater than zero for `words` provider")
 
             if atleast == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
@@ -195,9 +197,11 @@ def sentence(data_frame, number, args=None):
             atmost = int(args.get(column_name).get('atmost', -999))
 
             if atleast < 0:
-                LoggingMixin().log.warning(f"InvalidValue: Value for `atleast` must be greater than zero for `sentence` provider")
+                LoggingMixin().log.warning(
+                    f"InvalidValue: Value for `atleast` must be greater than zero for `sentence` provider")
             if atmost < 0:
-                LoggingMixin().log.warning(f"InvalidValue: Value for `atmost` must be greater than zero  for `sentence` provider")
+                LoggingMixin().log.warning(
+                    f"InvalidValue: Value for `atmost` must be greater than zero  for `sentence` provider")
 
             if atleast == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `atleast`")
@@ -257,7 +261,8 @@ def password(data_frame, number, args=None):
             length = int(args.get(column_name).get('length', -999))
 
             if length < 0:
-                LoggingMixin().log.warning(f"InvalidValue: Value for `length` must be greater than zero  for `password` provider")
+                LoggingMixin().log.warning(
+                    f"InvalidValue: Value for `length` must be greater than zero  for `password` provider")
 
             if length == -999:
                 LoggingMixin().log.warning(f"InvalidAttribute: Invalid name for `password`")
@@ -340,11 +345,12 @@ def _generate_range(start, end, inc, flag=None):
     while True:
         i += inc
         yield i
+
         if flag and end == i:  # when start > end
             break
+
         if i >= end and flag is None:  # when start < end
             break
-
 
 
 def _get_range(start, end, inc):
@@ -353,7 +359,7 @@ def _get_range(start, end, inc):
         number_range = _generate_range(start, end, inc_temp, flag=True)
         return number_range
     else:
-        if inc<0:
+        if inc < 0:
             raise Exception(f"For start = {start} and end = {end}, inc = {inc} cannot be negative")
         return _generate_range(start, end, inc)
 
@@ -369,6 +375,7 @@ def number_range(data_frame, number, args=None):
     """
     dcols = [f for f in data_frame.columns if f.startswith("number_range")]
     for column_name, data_frame_col_name in zip(args, dcols):
+
         if args is not None:
             start = int(args.get(column_name).get('start', 0))
             end = int(args.get(column_name).get('end', 20))
@@ -377,14 +384,18 @@ def number_range(data_frame, number, args=None):
             start = 0
             end = 20
             inc = 1
-        range_list_gen=_get_range(start,end,inc)
+
+        range_list_gen = _get_range(start, end, inc)
+
+        # KB mentioned this. i.e set column datatype to string instead of integer
+        data_frame[data_frame_col_name] = data_frame[data_frame_col_name].astype('str')
         for index, row in data_frame.iterrows():
             try:
                 element = next(range_list_gen)
                 data_frame.at[index, data_frame_col_name] = element
-
             except StopIteration:
                 data_frame.at[index, data_frame_col_name] = element
+
         # data_frame[data_frame_col_name] = range_list
-        data_frame[data_frame_col_name]= data_frame[data_frame_col_name].astype('int')
+        # data_frame[data_frame_col_name]= data_frame[data_frame_col_name].astype('int')
         data_frame.rename(columns={data_frame_col_name: column_name}, inplace=True)
