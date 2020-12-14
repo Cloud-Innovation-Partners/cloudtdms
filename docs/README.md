@@ -77,6 +77,7 @@ STREAM = {
     "title": 'synthetic_data',
     "header":"true",
     "quoting":"true",
+    "completeness":"60%",
     "frequency": "once",
     "synthetic": [
         {"field_name": "fname", "type": "personal.first_name"},
@@ -106,6 +107,7 @@ STREAM = {
           `cloudtdms` and it will be named as `synthetic_data_YYYY_MM_DDTHH_mm_ss.csv`.
 + `header` defines whether the column names are to be displayed in the `.csv` file or not. When the `header` is set to `True`, the column names are displayed in              the `.csv` file. Otherwise it will not be displayed. The default value is `True`. `header` is optional and is available only for `.csv`.
 + `quoting` defines whether the data in `csv` file is enclosed within double-quotes or not. When the `quoting` is set to `True`, the data is displayed within double-quotes. Otherwise not. The default value is `False`. `quoting` is optional and is available only for `.csv`.
++ `completeness` defines how much of the data should be present in each column of a file and how much should be empty. For example `completeness = "60%"` means `60%` of the data are present in each column and `40%` of data in each column are filled with none. The default value for `completeness` is `100%`. 
 + `frequency` defines how often data should be generated, It takes a cron value such as `once`, `hourly`, `daily`, `monthly` etc.
 + `synthetic` defines the temporary logical schema of the synthetic data to be generated, each entry corresponds to a specific data generator defined in `CloudTDMS`. Here 
            the list contains six entries, means output synthetic data will have six columns with names `fname`, `lname`, `sex`, `email`
