@@ -255,6 +255,21 @@ for (module, name, app) in modules:
         quoting = True if str(quoting).strip().lower() == 'true' else False
         stream['quoting'] = quoting
 
+        #get completeness
+        completeness_percent= stream['completeness'] if 'completeness' in stream else '100%'
+        completeness_percent= str(completeness_percent).replace('%','')
+        try:
+            completeness_percent= int(completeness_percent)
+            if completeness_percent >100:
+                completeness_percent = 100
+                LoggingMixin().log.warning(
+                    f"completeness value {completeness_percent} greater than 100%. Setting to default ")
+        except ValueError:
+            LoggingMixin().log.warning(f"completeness value {completeness_percent} is incorrect. Setting to default ")
+            completeness_percent=100
+
+        stream['completeness']=completeness_percent
+
         # check 'source' attribute is present
         source = stream['source'] if 'source' in stream else None
 

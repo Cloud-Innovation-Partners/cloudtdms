@@ -64,6 +64,27 @@ def generate_iterator(data_frame, methods,args_array):
             result = fcn(data_frame,number, arg)
         # data_frame[name] = pd.Series(result)
 
+def set_non_completeness(df, completeness_percent):
+    at_list={}
+    number=len(df)
+    completeness_number = int(completeness_percent)
+    completeness_percent=int(completeness_percent)
+    completeness_number= int((completeness_percent/100)*number)
+    # if completeness_percent =100 -> completeness_number =  (100/100)*number = number
+    # means all data should be filled, no empty entry
+    if completeness_number == number:
+        return df
+    non_completeness_number= number-completeness_number
+    #print(f"total {number} completeness_number {completeness_number} non_completeness_number {non_completeness_number}")
+    for i in df.columns:
+        at=random.sample(range(0,number), non_completeness_number)
+        at_list[i]=at
+
+    for col, indexes in at_list.items():
+        for index in indexes:
+             df[col][index] = ' '
+
+    return df
 
 def data_generator(**kwargs):
     stream = dag.params.get('stream')
@@ -292,7 +313,9 @@ def data_generator(**kwargs):
         if stream['format'] == 'csv':
             header=dag.params.get('stream').get('header')
             quoting=dag.params.get('stream').get('quoting')
+            completeness_percent=dag.params.get('stream').get('completeness')
             quoting_value= 1 if quoting else 0
+            data_frame = set_non_completeness(data_frame,completeness_percent )
             if header:
                 data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False, quoting = quoting_value)
             else:
