@@ -112,7 +112,7 @@
                         <ul class="list-group">
                         {% for k, c in value_counts[key].items()%}
                           <li class="list-group-item d-flex justify-content-between align-items-center py-1" ng-repeat="i in filters">
-                            {{ k }}
+                            <span class="text-break">{{ k }}</span>
                             <span class="badge badge-primary badge-pill">{{ c }}</span>
                           </li>
                         {% endfor %}
@@ -122,6 +122,36 @@
                 </div>
             </div>
         {% endfor %}
+        </div>
+
+        </br>
+        <div class="row header">
+        <h1 class="page-header">Personal Identifiable Information</h1>
+        </div>
+
+        <div class="tab-pane col-sm-12 active">
+            <table class="table table-condensed list-warnings">
+                <tbody>
+                    {% set rejected_attrs = ['match', 'basis', 'sensitivity'] %}
+                    {% set empty_flag = namespace(items=0) %}
+                    {% for pii_key, pii_value in pii.items() %}
+                        {% if pii_value|length == 0 %}
+                            {% set empty_flag.items = empty_flag.items + 1 %}
+                        {% endif %}
+                        {% for item in pii_value %}
+                                {% set variable_name = item.keys() | reject('in', rejected_attrs) | first %}
+                                <tr>
+                                    <td><code>{{ variable_name }}</code> is classified as <code>{{ item['match']}}</code> with score of <code>{{ item[variable_name] }}%</code> on  <code> pii_scale </code></td>
+                                </tr>
+                        {% endfor %}
+                    {% endfor %}
+                    {% if empty_flag.items >= 3 %}
+                        <tr>
+                            <td><code>Not Found</code></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
 
 

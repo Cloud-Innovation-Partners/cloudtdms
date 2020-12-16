@@ -8,6 +8,7 @@ import numpy as np
 import jinja2
 import warnings
 from system.dags import get_templates_home
+from system.cloudtdms.discovery import discover
 
 
 class ProfileReport(object):
@@ -74,14 +75,14 @@ class ProfileReport(object):
         variable_stats = {}
         total_number_of_records, _ = df.shape
         for column in df.columns:
-            variable_stats[column] = {k: f"{round(v,2)}" if type(v) != str else v for k, v in
-                                      df[column].describe().items() if k not in ('top', 'freq', '25%', '50%', '75%')}
+            variable_stats[column] = {k: f"{round(v,2):,}" if type(v) != str else v for k, v in
+                                      df[column].describe().replace(to_replace=np.nan, value=0).items() if k not in ('top', 'freq', '25%', '50%', '75%')}
 
             variable_stats[column].update({
-                'missing_(n)': df[column].isnull().sum(),
+                'missing_(n)': f"{df[column].isnull().sum():,}",
                 'missing_(%)': f"{round((df[column].isnull().sum() / total_number_of_records)*100,1)}%",
-                'max_length': np.vectorize(len)(df[column].values.astype(str)).max(axis=0),
-                'min_length': np.vectorize(len)(df[column].values.astype(str)).min(axis=0),
+                'max_length': 0 if df[column].describe().loc['count'] == 0 else np.vectorize(len)(df[column].values.astype(str)).max(axis=0),
+                'min_length': 0 if df[column].describe().loc['count'] == 0 else np.vectorize(len)(df[column].values.astype(str)).min(axis=0),
                 'd_type': df[column].convert_dtypes().dtype
             })
 
@@ -113,6 +114,7 @@ class ProfileReport(object):
         df_head.reset_index(drop=True, inplace=True)
         df_tail = df.tail(10)
         df_tail.reset_index(drop=True, inplace=True)
+        df_pii = discover(df)
 
         return {
             'info': df_info,
@@ -120,7 +122,8 @@ class ProfileReport(object):
             'variables': df_variables_stats,
             'variable_value_counts': df_variable_top_value_counts,
             'head': df_head,
-            'tail': df_tail
+            'tail': df_tail,
+            'pii': df_pii
         }
 
     @property
@@ -159,6 +162,7 @@ class ProfileReport(object):
             value_counts=report['variable_value_counts'],
             head=report['head'],
             tail=report['tail'],
+            pii=report['pii']
         )
 
         return html
