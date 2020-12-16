@@ -133,10 +133,12 @@
             <table class="table table-condensed list-warnings">
                 <tbody>
                     {% set rejected_attrs = ['match', 'basis', 'sensitivity'] %}
-                    {% set empty_flag = namespace(items=0) %}
+                    {% set empty_flag = namespace(items=[]) %}
                     {% for pii_key, pii_value in pii.items() %}
                         {% if pii_value|length == 0 %}
-                            {% set empty_flag.items = empty_flag.items + 1 %}
+                            <!-- {{ empty_flag.items.append(True) }} -->
+                        {% else %}
+                            <!-- {{ empty_flag.items.append(False) }} -->
                         {% endif %}
                         {% for item in pii_value %}
                                 {% set variable_name = item.keys() | reject('in', rejected_attrs) | first %}
@@ -145,9 +147,18 @@
                                 </tr>
                         {% endfor %}
                     {% endfor %}
-                    {% if empty_flag.items >= 3 %}
+                    {% set state = namespace(item='') %}
+                    {% for entry in empty_flag.items %}
+                        {% if state.item == '' %}
+                            {% set state.item = entry %}
+                        {% else %}
+                            {% set state.item = state.item and entry %}
+                        {% endif %}
+
+                    {% endfor %}
+                    {% if state.item == True %}
                         <tr>
-                            <td><code>Not Found</code></td>
+                            <td><code>No Entry Found!</code></td>
                         </tr>
                     {% endif %}
                 </tbody>
