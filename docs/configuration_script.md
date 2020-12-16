@@ -59,6 +59,11 @@ data, mandatory attributes are the required.
 - *frequency*
 - *output_schema*
 
+**List of Optional Attributes:**
+- *header*
+- *quoting*
+- *completeness*
+
 **List of Synthetic Data Attributes:**
 - *source*
 - *destination*
@@ -71,6 +76,7 @@ data, mandatory attributes are the required.
 - *mask_out*
 - *shuffle*
 - *nullying*
+
 
 In above listing `source` and `destination` attributes have been categorised as both Synthetic Data Attribute as-well as Data Masking attribute. 
 As already mentioned above we can use configuration files for synthetic data generation or data masking or both. In real world implementation
@@ -128,6 +134,45 @@ STREAM = {
     "frequency" : "once"
  }
 ```
++ **`header`** : This attribute is a optional attribute and is used to specify whether the column names are to be displayed in the .csv file or not. When the         header is set to True, the column names are displayed in the .csv file. Otherwise it will not be displayed. The default value is True.
+    It can take boolean values like:
+             
+     - `'true'`  (String Value)
+     - `'True'`  (String value)
+     - `True`    (Boolean value)
+     - `'false'` (String Value)
+     - `'False'` (String value)
+     - `False`   (Boolean value)
+                       
+```python
+STREAM = {
+    "header" : "true"
+ }
+```
++ **`quoting`** : This attribute is a optional attribute and is used to specify  whether the data in csv file is enclosed within double-quotes or not. When the quoting is set to True, the data is displayed within double-quotes. Otherwise not. The default value is False.
+    It can take boolean values like:
+             
+     - `'true'`  (String Value)
+     - `'True'`  (String value)
+     - `True`    (Boolean value)
+     - `'false'` (String Value)
+     - `'False'` (String value)
+     - `False`   (Boolean value)
+                       
+```python
+STREAM = {
+    "quoting" : "false"
+ }
+```
++ **`completeness`** : This attribute is a optional attribute and is used to specify how much of the data should be present in each column of a file and how much should be empty. For example completeness = "60%" means 60% of the data are present in each column and 40% of data in each column are filled with none. The default value for completeness is 100%.
+                       
+```python
+STREAM = {
+    "completeness" : "100%"
+ }
+```
+
+
 + **`source`** : This attribute is used to specify the data source. `CloudTDMS` provides you option to fetch data from different
       sources. Supported data sources involves static files, databases and SAAS solutions. Following are the supported
       data sources in current version of `CloudTDMS`.
@@ -251,6 +296,9 @@ STREAM = {
             "title": 'synthetic_data',
             "format": "csv",
             "frequency": "once",
+            "header":"true",
+            "quoting":"false",
+            "completeness":"100%",
             "synthetic": [
                 {"field_name" :  "id", "type" :  "basics.auto_increment", "prefix" :  "INC", "suffix" :  "NZD", "start":  2000, "increment" :  1},
                 {"field_name": "fname", "type": "personal.first_name"},
