@@ -4,12 +4,7 @@
 import socket
 import re
 
-ip_sensitive_column_headers = ['ipaddress', 'ip address', 'ip_address', 'ipadd', 'ip add', 'ip_add',
-                               'Internet Protocol address',
-                               'Internet_Protocol_address', 'host identity', 'host_identity', 'IP number', 'IP_number',
-                               'network identity', 'network_identity', 'network identification',
-                               'network_identification',
-                               ]
+ip_sensitive_column_headers = ['ipaddress', 'ip', 'ipadd', 'InternetProtocoladdress', 'internet', 'host', 'network']
 
 mac_sensitive_column_headers = ['mac', 'mac address', 'mac_address', 'mac_add']
 msisdn_sensitive_column_headers = ['imeis', 'msidn', 'iccids', 'tmsis', 'msidsn', 'msidsns', 'esns', 'msin', 'misdn',
@@ -20,13 +15,17 @@ imsi_sensitive_column_headers = ['imsi', 'IMSI', 'International Mobile Subscribe
                                  'international_mobile_subscriber_identity']
 guid_sensitive_column_headers = ['guid', 'GUID', 'Globally_Unique_Identifier', 'Globally Unique Identifier',
                                  'GloballyUniqueIdentifier', 'globally_unique_identifier', 'globally unique identifier']
-hardware_serial_sensitive_column_headers = ['Serial Number', 'Serial_Number', 'serial_number', 'serial number',
-                                            'hardware_serial_number', 'hardware serial number',
-                                            'Hardware_Serial_Number', 'Hardware Serial Number']
+hardware_serial_sensitive_column_headers = ['serial', 'hardware', 'number']
+
+
+def lexeme_search(token: str, searchable: list):
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>?]', token)
+    mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
+    return any(mask)
 
 
 def ip_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in ip_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, ip_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
@@ -54,7 +53,7 @@ def ip_search_on_data_basis(data_frame):
 
 
 def mac_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in mac_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, mac_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
@@ -83,7 +82,7 @@ def mac_search_on_data_basis(data_frame):
 
 
 def msisdn_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in msisdn_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, msisdn_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
@@ -92,7 +91,7 @@ def msisdn_search_on_data_basis(data_frame):
 
 
 def imsi_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in imsi_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, imsi_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
@@ -101,7 +100,7 @@ def imsi_search_on_data_basis(data_frame):
 
 
 def guid_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in guid_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, guid_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
@@ -129,7 +128,7 @@ def guid_search_on_data_basis(data_frame):
 
 
 def hardware_serial_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in hardware_serial_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, hardware_serial_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
