@@ -128,37 +128,6 @@ def generate_eda_profile():
         pass
     profile.to_file(f"{path}/profiling_{file_name}.html")
 
-#def generate_sensitive_data_profile():
-#    file_name, extension = os.path.splitext(dag.params.get('data_file'))
-
-#    if dag.owner == 'CloudTDMS':
-#        source_file = f"{get_profiling_data_home()}/{dag.params.get('data_file')}"
-#        path = f"{get_reports_home()}/{file_name}"
-#    else:
-#        source_file = f"{get_profiling_data_home()}/{dag.owner}/{dag.params.get('data_file')}"
-#        path = f"{get_reports_home()}/{dag.owner}/{file_name}"
-#    df = None
-#    if str(extension).lower() == '.csv':
-#        delimiter = sniff_delimiter(source_file)
-#        df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False)
-#    elif str(extension).lower() == '.json':
-#        df = pd.read_json(source_file, lines=True, engine='python', error_bad_lines=False)
-#    else:
-#        delimiter = sniff_delimiter(source_file)
-#        df = pd.read_csv(source_file, delimiter=delimiter)
-
-#    column_mapping = {str(f).lower().replace(' ', '_'):f for f in df.columns}
-#    columns =  list(column_mapping.keys())
-#    df.columns = columns
-#    profile = PIIReport(
-#        df.loc[0:10000], filename=dag.params.get('data_file'), title=f"CloudTDMS Sensitive Data Report", explorative=True,
-#        column_mapping = column_mapping, prefix = f"{dag.owner}/{file_name}" if dag.owner != 'CloudTDMS' else f"{file_name}"
-#    )
-#    try:
-#        os.makedirs(path)
-#    except FileExistsError:
-#        pass
-#    profile.to_file(f"{path}/pii_{file_name}.html")
 
 def email_reports():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))
