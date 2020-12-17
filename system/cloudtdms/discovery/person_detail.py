@@ -6,19 +6,17 @@
 import pandas as pd
 import re
 
-age_sensitive_column_headers = ['age', 'maturity', 'seniority', 'years', 'duration', 'age_group', 'oldness']
-gender_sensitive_column_headers = ['gender', 'sex', 'kind', 'sexuality', 'male', 'female', 'identity', 'neuter']
-email_sensitive_column_headers = ['email', 'mail', 'e-mail', 'message', 'electronic_mail', 'post', 'correspondence',
-                                  'send', 'mailing', 'memo', 'mailbox', 'write']
-dob_sensitive_column_headers = ['dob', 'date_of_birth', 'birth_date', 'birth date', 'date of birth', 'D.O.B', 'DOB']
-credit_card_sensitive_column_headers = ['credit_card_num', 'credit_card_number', 'credit_card', 'credit card']
-ssn_sensitive_column_headers = ['ssn', 'social_security_number', 'social security number', 'National ID number',
-                                'National_ID_number', ' national id number', 'national_id_number']
-blood_group_sensitive_column_headers = ['bg', 'blood group', 'blood_group', 'blood Group', 'Blood_Group']
+age_sensitive_column_headers = ['age']
+gender_sensitive_column_headers = ['gender', 'sex', 'sexuality', 'male', 'female']
+email_sensitive_column_headers = ['email', 'mail', 'e-mail']
+dob_sensitive_column_headers = ['dob', 'birth', 'birthday']
+credit_card_sensitive_column_headers = ['credit', 'creditcard']
+ssn_sensitive_column_headers = ['ssn', 'socialsecuritynumber', ' nationalidnumber']
+blood_group_sensitive_column_headers = ['blood']
 
 
 def lexeme_search(token: str, searchable: list):
-    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>?]', token)
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
     mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
     return any(mask)
 

@@ -14,7 +14,7 @@ sensitive_column_headers = ['first_name', 'last_name', 'fname', 'f_name', 'lname
 
 
 def lexeme_search(token: str, searchable: list):
-    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>?]', token)
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
     mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
     return any(mask)
 

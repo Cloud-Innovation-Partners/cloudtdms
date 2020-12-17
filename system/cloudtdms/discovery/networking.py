@@ -4,22 +4,17 @@
 import socket
 import re
 
-ip_sensitive_column_headers = ['ipaddress', 'ip', 'ipadd', 'InternetProtocoladdress', 'internet', 'host', 'network']
+ip_sensitive_column_headers = ['ipaddress', 'ip', 'ipadd', 'InternetProtocoladdress']
 
-mac_sensitive_column_headers = ['mac', 'mac address', 'mac_address', 'mac_add']
-msisdn_sensitive_column_headers = ['imeis', 'msidn', 'iccids', 'tmsis', 'msidsn', 'msidsns', 'esns', 'msin', 'misdn',
-                                   'MSISDN']
-imsi_sensitive_column_headers = ['imsi', 'IMSI', 'International Mobile Subscriber Identity',
-                                 'International_Mobile_Subscriber_Identity',
-                                 'international mobile subscriber identity',
-                                 'international_mobile_subscriber_identity']
-guid_sensitive_column_headers = ['guid', 'GUID', 'Globally_Unique_Identifier', 'Globally Unique Identifier',
-                                 'GloballyUniqueIdentifier', 'globally_unique_identifier', 'globally unique identifier']
-hardware_serial_sensitive_column_headers = ['serial', 'hardware', 'number']
+mac_sensitive_column_headers = ['mac']
+msisdn_sensitive_column_headers = ['imeis', 'msisdn']
+imsi_sensitive_column_headers = ['imsi']
+guid_sensitive_column_headers = ['guid']
+hardware_serial_sensitive_column_headers = ['serial', 'hardware']
 
 
 def lexeme_search(token: str, searchable: list):
-    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>?]', token)
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
     mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
     return any(mask)
 

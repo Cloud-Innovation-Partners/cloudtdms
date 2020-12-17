@@ -6,21 +6,17 @@ import numpy as np
 from system.dags import get_providers_home
 import re
 
-latitude_sensitive_column_headers = ['latitude', 'lat', 'altitude']
-longitude_sensitive_column_headers = ['longitude', 'long']
-country_sensitive_column_headers = ['country', 'homeland', 'native land', 'native_land', 'grass roots', 'grass_roots',
-                                    'land']
-city_sensitive_column_headers = ['city', 'capital', 'center', 'metropolis', 'downtown', 'place', 'port', 'polis',
-                                 'urbs']
-municipality_sensitive_column_headers = ['municipality', 'community', 'district', 'town', 'township', 'village'
-    , 'borough', 'precinct']
-postal_codes_sensitive_column_headers = ['zip', 'pincode', 'pin_code', 'pin code', 'postalcode', 'postal_code',
-                                         'postal code', 'post']
+latitude_sensitive_column_headers = ['latitude', 'altitude']
+longitude_sensitive_column_headers = ['longitude']
+country_sensitive_column_headers = ['country', 'homeland', 'state', 'nation', 'kingdom']
+city_sensitive_column_headers = ['city', 'town' 'capital', 'metropolis', 'downtown', 'village', 'megalopolis']
+municipality_sensitive_column_headers = ['municipality', 'community', 'district', 'borough', 'township', 'precinct']
+postal_codes_sensitive_column_headers = ['zip_code', 'zip', 'postal', 'post', 'postal_code', 'post_code']
 state_sensitive_column_headers = ['state']
 
 
 def lexeme_search(token: str, searchable: list):
-    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>?]', token)
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
     mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
     return any(mask)
 
