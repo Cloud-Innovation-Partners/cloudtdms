@@ -63,8 +63,10 @@ def generate_script(filename, pii, column_mapping):
     for key in pii:
         result = pii[key]
         results.extend(result)
-    temp_file_name, _ = os.path.splitext(filename) #filename is example.csv
-    title_filename = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$','_')
+    temp_file_name, _ = os.path.splitext(filename)  # filename is example.csv
+    title_filename = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';',
+                                                                                                       '_').replace('$',
+                                                                                                                    '_')
 
     if filename.endswith('.csv'):
         type = 'csv'
@@ -76,13 +78,14 @@ def generate_script(filename, pii, column_mapping):
 
     if filename.endswith('.json'):
         type = 'json'
-        source_value= {
-                      type:[
-                          {f'connection': f'{temp_file_name}', 'type':'lines'}
-                      ]
-                }
+        source_value = {
+            type: [
+                {f'connection': f'{temp_file_name}', 'type': 'lines'}
+            ]
+        }
 
-    STREAM = {'number': 1000, "title": title_filename, "source": source_value, "frequency": "once"}
+    STREAM = {'number': 1000, "title": title_filename, "header": "True", "quoting": "False", "completeness": "100%", "source": source_value,
+              "frequency": "once"}
 
     enc_type = {'high': 'mask_out', 'mid': 'ceasar', 'low': 'substitute'}
 
@@ -169,23 +172,23 @@ def get_dataset_proposed_masking_script(summary: dict, metadata: dict):
     column_mapping = summary['column_mapping']
     STREAM = generate_script(filename, pii, column_mapping)
     STREAM = json.dumps(STREAM, indent=4)
-    type=''
+    type = ''
 
     temp_file_name, _ = os.path.splitext(filename)  # filename is example.csv
-    filename_write = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';', '_').replace('$', '_')
+    filename_write = str(temp_file_name).replace('-', '_').replace(' ', '_').replace(':', '_').replace(';',
+                                                                                                       '_').replace('$',
+                                                                                                                    '_')
 
     if filename.endswith('.csv'):
         type = 'csv'
     elif filename.endswith('.json'):
         type = 'json'
 
-    yaml_data=f"""
+    yaml_data = f"""
                  {type}:
                     {temp_file_name}:
                         source: {f'"{get_profiling_data_home()}/{filename}"'}
               """
-
-
 
     with open(f'{get_reports_home()}/{prefix}/config_{filename_write}.txt', 'w') as o:
         o.write(f'''

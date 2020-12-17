@@ -50,6 +50,9 @@ def generate_configuration():
     }
 
     STREAM['frequency'] = 'once'
+    STREAM['header']='True'
+    STREAM['quoting']= 'False'
+    STREAM['completeness']= '100%'
     synthetic = []
     for f in df.columns:
         if f in categorical.keys():
