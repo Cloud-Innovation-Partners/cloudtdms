@@ -84,7 +84,37 @@ def set_non_completeness(df, completeness_percent):
         for index in indexes:
              df[col][index] = ' '
 
+
     return df
+
+def set_non_completeness_at_providers_level(column, completeness_percent):
+    at_list = []
+    number = len(column)
+
+    completeness_percent = str(completeness_percent).replace('%', '')
+    try:
+        completeness_percent = int(completeness_percent)
+        if completeness_percent > 100:
+            completeness_percent = 100
+            LoggingMixin().log.warning(
+                f"completeness value {completeness_percent} greater than 100%. Setting to default ")
+    except ValueError:
+        LoggingMixin().log.warning(f"completeness value {completeness_percent} is incorrect. Setting to default ")
+        completeness_percent = 100
+
+    completeness_number = int((completeness_percent / 100) * number)
+    # if completeness_percent =100 -> completeness_number =  (100/100)*number = number
+    # means all data should be filled, no empty entry
+    if completeness_number == number:
+        return column
+    non_completeness_number = number - completeness_number
+    # print(f"total {number} completeness_number {completeness_number} non_completeness_number {non_completeness_number}")
+
+    at_list = random.sample(range(0, number), non_completeness_number)
+    for index in at_list:
+        column[index] = ' '
+
+    return column
 
 def data_generator(**kwargs):
     stream = dag.params.get('stream')
@@ -311,11 +341,57 @@ def data_generator(**kwargs):
         data_frame.drop(data_frame.columns[data_frame.columns.str.contains('unnamed',case = False)],axis = 1, inplace = True)
 
         if stream['format'] == 'csv':
+            cols_completeness={}
+            updated_cols_completeness={}
+            is_completeness_at_provider_level=[]
+            output_schema= dag.params.get('stream').get('output_schema')
             header=dag.params.get('stream').get('header')
             quoting=dag.params.get('stream').get('quoting')
             completeness_percent=dag.params.get('stream').get('completeness')
             quoting_value= 1 if quoting else 0
-            data_frame = set_non_completeness(data_frame,completeness_percent )
+
+            #check if any providers has 'completeness' attribute
+            if stream.get('synthetic') is not None:
+                for entry in stream.get('synthetic',['']):
+                    if 'completeness' in entry:
+                        is_completeness_at_provider_level.append(True)
+                        cols_completeness[entry.get('field_name')] = entry.get('completeness')
+                    else:
+                        is_completeness_at_provider_level.append(False)
+                        global_completeness= stream.get('completeness', '100%')
+                        cols_completeness[entry.get('field_name')] = global_completeness
+
+            #check if any providers has 'completeness' attribute
+            is_completeness_at_provider_level = any(is_completeness_at_provider_level)
+
+            is_completeness_at_global_level = (False if is_completeness_at_provider_level else True) if 'completeness' in dag.params.get('stream') else False
+
+            is_completeness_at_global_level = True if str(is_completeness_at_global_level).lower() =='true'  else False
+
+            if is_completeness_at_global_level:
+                data_frame = set_non_completeness(data_frame,completeness_percent )
+            else:
+                #rename according to output_schema
+                #for entry in dag.params.get('stream').get('synthetic'):
+                #    field_name =entry.get('field_name')
+                #    filed_name=field_name.split('.')[1] if isinstance(output_schema, set) else output_schema[field_name] #synthetic.fname_10
+                #    completeness = entry.get('completeness', '100%')
+                #    cols_completeness[filed_name] = completeness
+
+                for key in cols_completeness.keys():
+                    if key in output_schema:
+                        save_value = cols_completeness[key]
+                        field_name = key.split('.')[1] if isinstance(output_schema, set) else output_schema[key] #synthetic.fname_10
+                        #del cols_completeness[key]
+                        updated_cols_completeness[field_name] = save_value
+
+                # set non completeness
+                for column in data_frame.columns:
+                    intial_column =  list(data_frame[column])
+                    completeness_percent = updated_cols_completeness[column]
+                    updated_column = set_non_completeness_at_providers_level(intial_column, completeness_percent)
+                    data_frame[column] = updated_column
+
             if header:
                 data_frame.to_csv(f"{get_output_data_home()}/{dag.owner}/{stream['title']}/{file_name}.csv", index=False, quoting = quoting_value)
             else:

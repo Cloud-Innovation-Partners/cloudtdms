@@ -53,7 +53,7 @@ RowNumber,CustomerId,Surname,CreditScore,Geography,Gender,Age,Tenure,Balance,Num
     STREAM = {
         "number": 1000,
         "title": 'Stream6',
-        "frequency": "once"
+        "frequency": "once",
        
         "encryption": {
          "type": "caesar",
