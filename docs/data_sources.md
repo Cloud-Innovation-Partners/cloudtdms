@@ -142,7 +142,7 @@ STREAM = {
             {"connection": "mysql_dev_connection", "table": "account", "order": "rand", "where": "city='New York'"},
         ],
         "postgres": [
-            {"connection": "postgres_test", "table": "users"}
+            {"connection": "postgres_test", "table": "users","order": "rand", "where": "city='New York'"}
         ]            
     },
     "destination": {
