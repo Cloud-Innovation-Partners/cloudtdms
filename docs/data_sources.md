@@ -97,36 +97,44 @@ keys such as `mysql:`, `postgres:`, `mssql:` present in `config_default.yaml` fi
 A typical instance of `config_default.yaml` file containing connection entries for databases looks something like this.
 Each database connection must have `host`, `database`, `username` , `password` and `port` defined.
 
->**Note :** values for `username` and `password` for database connections must be Base64 encoded. 
+>**Note :** Values for `username` and `password` for database connections must be Base64 encoded.
+
+>**Note :** To encode `username` and `password` to `Base64` you can use already existing `base64` utility in linux environment. Use following commands to get your encrypted string.
+
+    echo YOUR_USERNAME | base64
+    
+or
+    
+    echo YOUR_PASSWORD | base64
 
 ```yaml
 mysql:
   mysql_test_connection:
     host: "127.0.0.1"
     database: "test"
-    username: ""          
-    password: ""
+    username: ""         # MySQL username Base64 Encrypted   
+    password: ""         # MySQL password Base64 Encrypted
     port: "3306"
   mysql_dev_connection:
     host: "127.0.0.1"
     database: "dev"
-    username: ""          
-    password: ""
+    username: ""         # MySQL username Base64 Encrypted
+    password: ""         # MySQL password Base64 Encrypted
     port: "3306"
 
 postgres:
   postgres_test:
     host: "127.0.0.1"
     database: ""
-    username: ""
-    password: ""
+    username: ""        # Postgres username Base64 Encrypted
+    password: ""        # Postgres password Base64 Encrypted
     port: "5432"
 mssql:
   mssql_test:
     host: "127.0.0.1"
     database: ""
-    username: ""
-    password: ""
+    username: ""        # MSSQL username Base64 Encrypted
+    password: ""        # MSSQL password Base64 Encrypted
     port: "1433"
 ```
 The above snippet of `config_default.yaml` shows 4 database connection registered one each for Postgres and MSSQL and 2
@@ -163,7 +171,7 @@ SQL query. The `order` attribute can take one of the following values.
 - `rand` : (`default`) Fetch random records from table.
 
 
-> **Note:** credentials for a database inside `config_default.yaml` file must have requisite permissions to create tables and alter schemas.
+> **Note:** Credentials for a database inside `config_default.yaml` file must have requisite permissions to create tables and alter schemas.
 
 ### ServiceNow
 `CloudTDMS` supports data retrieval and ingestion from a servicenow instance. You can use servicenow instance both as source 
@@ -176,18 +184,18 @@ Each servicenow connection must have `host`, `username` and `password` defined. 
 name, If your servicenow instance has url `https://dev1234.service-now.com` you need to provide the instance name as
 a value to `host` not the full url.
 
->**Note :** values for `username` and `password` for servicenow connections must be Base64 encoded. 
+>**Note :** Values for `username` and `password` for servicenow connections must be Base64 encoded. 
 
 ```yaml
 servicenow:
   production:
     host: "dev1234"
-    username: ""
-    password: ""
+    username: ""        # ServiceNow username Base64 Encrypted
+    password: ""        # ServiceNow password Base64 Encrypted
   development:
     host: "dev5678"
-    username: ""
-    password: ""
+    username: ""        # ServiceNow username Base64 Encrypted
+    password: ""        # ServiceNow password Base64 Encrypted
 ```
 
 The above snippet of `config_default.yaml` shows 2 servicenow connection registered named as `production` and `development`. 
@@ -229,20 +237,20 @@ Each salesforce connection must have `host`, `username`, `password` and `securit
 name, If your salesforce instance has url `https://mn12.salesforce.com` you need to provide the instance name `mn12` as
 a value to `host` not the full url.
 
->**Note :** values for `username`, `password` and `security_token` for salesforce connections must be Base64 encoded. 
+>**Note :** Values for `username`, `password` and `security_token` for salesforce connections must be Base64 encoded. 
 
 ```yaml
 salesforce:
   production:
     host: "mn12"
-    username: ""
-    password: ""
-    security_token: ""
+    username: ""        # Salesforce username Base64 Encrypted
+    password: ""        # Salesforce password Base64 Encrypted
+    security_token: ""  # Salesforce security_token Base64 Encrypted
   development:
     host: "um12"
-    username: ""
-    password: ""
-    security_token: ""
+    username: ""        # Salesforce username Base64 Encrypted
+    password: ""        # Salesforce password Base64 Encrypted
+    security_token: ""  # Salesforce security_token Base64 Encrypted
 ```
 
 The above snippet of `config_default.yaml` shows 2 salesforce connection registered named as `production` and `development`. 
@@ -271,7 +279,7 @@ Each connection entry for salesforce must have `table` attribute value set. This
 Salesforce instance to be used as source or destination. In above configuration script `Account` Object of one instance 
 is used as a source and of another instance is used as destination
 
-> **Note:** credentials for a salesforce inside `config_default.yaml` file must have requisite permissions for reading and writing data via REST Bulk API.
+> **Note:** Credentials for a salesforce inside `config_default.yaml` file must have requisite permissions for reading and writing data via REST Bulk API.
 
 ### Network Storages
 
@@ -284,26 +292,26 @@ key `sftp:` present in `config_default.yaml` file.
 A typical instance of `config_default.yaml` file containing connection entries for `sftp` looks something like this.
 Each `sftp` connection must have `host`, `username`, `password`, `port`, `ssh_public_key` and `passphrase`  defined.
 
->**Note :** values for `username`, `password`, `ssh_public_key` and `passphrase` for sftp connections must be Base64 encoded. 
+>**Note :** Values for `username`, `password`, `ssh_public_key` and `passphrase` for sftp connections must be Base64 encoded. 
 
 
 ```yaml
 sftp:
   production:       
     host: "10.0.1.5"          
-    username: ""     
-    password: ""      
+    username: ""        # SFTP username Base64 Encrypted     
+    password: ""        # SFTP password Base64 Encrypted
     port: "22"         
     ssh_public_key: ""  # path to ssh public key
-    passphrase: ""
+    passphrase: ""      # SFTP passphrase Base64 Encrypted
 
    development:       
     host: "10.0.1.4"          
-    username: ""     
-    password: ""      
+    username: ""        # SFTP username Base64 Encrypted     
+    password: ""        # SFTP password Base64 Encrypted      
     port: "22"         
     ssh_public_key: ""  # path to ssh public key
-    passphrase: ""
+    passphrase: ""      # SFTP passphrase Base64 Encrypted
 
 ```
 The above snippet of `config_default.yaml` shows 2 `sftp` connections registered named as `production` and `development`.
@@ -333,5 +341,5 @@ sftp to be used as source or destination. The sftp destination can also have an 
 If the `overwrite` attribute is set to `True` it will overwrite the existing file on the sftp server otherwise not.
 By default it is set to `False`.
 
-> **Note:** credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
+> **Note:** Credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
