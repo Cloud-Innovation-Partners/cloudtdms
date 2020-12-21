@@ -7,8 +7,8 @@ email:
   smtp_host: ""                    # SMTP Host Address
   smtp_port: 587                   # SMTP PORT, 465 (SSL), 587(Legacy) or 25 (some providers block port 25)
   smtp_ssl: False                  # IF Smtp_port is 465 then set smtp_ssl to True
-  username: ""                     # Base64 encryted username of SMTP
-  password: ""                     # Base64 encrypted password of SMTP
+  username: ""                     # SMTP username Base64 Encrypted
+  password: ""                     # SMTP password Base64 Encrypted
   subject: "Data Profiling"
 
 # Data Masking settings
@@ -63,7 +63,7 @@ mssql:
   mssql_test:           # Connection Name
     host: ""            # MSSQL host name
     database: ""        # MSSQL database name
-    username: ""        # MSSQL user name Base64 Encrypted
+    username: ""        # MSSQL username Base64 Encrypted
     password: ""        # MSSQL password Base64 Encrypted
     port: "1433"        # MSSQL port default is 1433
 
@@ -73,8 +73,8 @@ mssql:
 sftp:
   sftp_test:              # Connection Name
     host: ""              # SFTP host name
-    username: ""          # SFTP login name Base64 Encrypted
-    password: ""          # SFTP login password Base64 Encrypted
+    username: ""          # SFTP username Base64 Encrypted
+    password: ""          # SFTP password Base64 Encrypted
     port: 22              # SFTP port
     ssh_public_key: ""    # path to ssh public key
     passphrase: ""        # passphrase required for accessing ssh keys (optional)
@@ -85,13 +85,14 @@ sftp:
 servicenow:
   test:                         # Connection Name
     host: ""                    # ServiceNow instance
-    username: ""                # Base64 encrypted username
-    password: ""                # Base64 encrypted password
+    username: ""                # ServiceNow username Base64 Encrypted
+    password: ""                # ServiceNow password Base64 Encrypted 
 
 # SalesForce
 salesforce:
   test:                         # Connection Name
     host: ""                    # SalesForce instance name (Don't  use full url)
-    username: ""                # Base64 encrypted username
-    password: ""                # Base64 encrypted password
-    security_token: ""          # Base64 encrypted security token
+    username: ""                # SalesForce username Base64 Encrypted 
+    password: ""                # SalesForce password Base64 Encrypted
+    security_token: ""          # SalesForce security_token Base64 Encrypted
+    
