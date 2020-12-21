@@ -76,7 +76,9 @@
 
 {% elif key == 'amazons3' %}
 # Initialize task for Amazon S3 Upload for {{ item.connection }} and bucket {{ item.bucket }}
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_AmazonS3_{{ item.connection }}", python_callable=amazons3_upload, dag=dag)
+{{ key }}_{{ item.connection }}_kwargs['bucket'] = "{{ item.bucket }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_AmazonS3_{{ item.connection }}", python_callable=amazons3_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% endif %}
 
