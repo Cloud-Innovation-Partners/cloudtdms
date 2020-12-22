@@ -3,7 +3,7 @@ import os
 import base64
 import yaml
 import boto3
-import botocore
+from urllib.parse import urlparse
 import pandas as pd
 from airflow.utils.log.logging_mixin import LoggingMixin
 from system.dags import get_config_default_path, get_output_data_home, get_user_data_home
@@ -12,11 +12,11 @@ from botocore.exceptions import ClientError
 
 
 class CTDMS2AmazonS3:
-    def __init__(self, access_key, secret_key, bucket, region, prefix, execution_date, format=None, connection=None):
+    def __init__(self, access_key, secret_key, region, prefix, execution_date, uri, format=None, connection=None):
         self.amazon_s3_access_key_id = access_key
         self.amazon_s3_secret_key_id = secret_key
-        self.name = str(bucket).upper()
-        self.bucket = bucket
+        self._parsed = urlparse(uri, allow_fragments=False)
+        self.name = str(self.bucket).upper()
         self.region = region
         self.file_prefix = prefix
         self.data = None
@@ -24,6 +24,29 @@ class CTDMS2AmazonS3:
         self.format = format
         self.connection_name = connection
         self.file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv" if format is None else f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.{format}"
+
+    @property
+    def bucket(self):
+        return self._parsed.netloc
+
+    @property
+    def path(self):
+        p = self._parsed.path.lstrip('/')
+        if p.endswith('.csv') or p.endswith('.json'):
+            return os.path.dirname(p)
+        else:
+            return p
+
+    @property
+    def key(self):
+        if self._parsed.query:
+            return self._parsed.path.lstrip('/') + '?' + self._parsed.query
+        else:
+            return self._parsed.path.lstrip('/')
+
+    @property
+    def url(self):
+        return self._parsed.geturl()
 
     def upload(self):
         """
@@ -50,7 +73,7 @@ class CTDMS2AmazonS3:
 
                 else:
                     LoggingMixin().log.warning("Authentication Error : invalid s3 credentials")
-                s3_hook.load_file(filename=synthetic_data_path, key=f"{self.file_prefix}/{self.file_name}", bucket_name=bucket, replace=True)
+                s3_hook.load_file(filename=synthetic_data_path, key=f"{self.file_prefix}/{self.file_name}" if self.path == '' else f"{self.path}/{self.file_prefix}/{self.file_name}", bucket_name=bucket, replace=True)
 
             except (Exception, ClientError) as e:
                 if isinstance(e, ClientError) and e.response['Error']['Code'] == 'BucketAlreadyOwnedByYou':
@@ -87,16 +110,16 @@ class CTDMS2AmazonS3:
         # TODO Add Dynamic Key and Bucket
 
         body = s3_hook.read_key(
-            key="",
-            bucket_name='')
+            key=self.key,
+            bucket_name=self.bucket)
 
         file_name = f"amazons3_{self.connection_name}_{os.path.dirname(self.file_prefix)}_{os.path.basename(self.file_prefix)}_{str(self.execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
-
+        r_file_name, _ = os.path.splitext(os.path.basename(self._parsed.path))
         with open(f'{get_user_data_home()}/.__temp__/{file_name}', 'w+') as f:
             f.write(body)
             f.seek(0)
             df = pd.read_csv(f)
-            df.columns = [f"amazons3.{self.connection_name}.{self.bucket}.{file_name}.{f}" for f in df.columns]
+            df.columns = [f"amazons3.{self.connection_name}.{self.bucket}.{r_file_name}.{f}" for f in df.columns]
 
         try:
             df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
@@ -170,43 +193,7 @@ class S3HookWrapper(S3Hook):
 
 def amazons3_upload(**kwargs):
     execution_date = kwargs.get('execution_date', None)  # dag execution date
-    bucket = kwargs.get('bucket')  # AmazonS3 bucket
-    prefix = kwargs.get('prefix')  # title of the synthetic data config file
-    connection = kwargs.get('connection')
-    format = kwargs.get('format')
-    # Load AmazonS3 Details From config_default.yaml
-    amazons3_config = CTDMS2AmazonS3.get_amazon_s3_config_default()
-
-    access_key, secret_id, region= None, None, None
-    try:
-        access_key = amazons3_config.get(connection).get('access_key', None)
-        secret_key = amazons3_config.get(connection).get('secret_key', None)
-        region = amazons3_config.get(connection).get('region', None)
-    except AttributeError:
-        LoggingMixin().log.error(f'AmazonS3 credentials not available for {connection} in config_default.yaml',
-                                 exc_info=True)
-        raise
-
-    if access_key is not None and secret_key is not None and region is not None:
-        amazon_s3 = CTDMS2AmazonS3(
-            access_key=access_key,
-            secret_key=secret_key,
-            bucket=bucket,
-            region=region,
-            prefix=prefix,
-            execution_date=execution_date,
-            format=format,
-            connection=connection
-        )
-        amazon_s3.upload()
-    else:
-        LoggingMixin().log.error(f'Amazon S3 credentials not available for {connection} in config_default.yaml')
-
-
-def amazons3_download(**kwargs):
-    execution_date = kwargs.get('execution_date', None)  # dag execution date
-    bucket = kwargs.get('bucket')  # AmazonS3 bucket
-    object = kwargs.get('object')  # AmazonS3 object URI
+    uri = kwargs.get('uri')  # AmazonS3 bucket
     prefix = kwargs.get('prefix')  # title of the synthetic data config file
     connection = kwargs.get('connection')
     format = kwargs.get('format')
@@ -227,7 +214,43 @@ def amazons3_download(**kwargs):
         amazon_s3 = CTDMS2AmazonS3(
             access_key=access_key,
             secret_key=secret_key,
-            bucket=bucket,
+            uri=uri,
+            region=region,
+            prefix=prefix,
+            execution_date=execution_date,
+            format=format,
+            connection=connection
+        )
+        amazon_s3.upload()
+    else:
+        LoggingMixin().log.error(f'Amazon S3 credentials not available for {connection} in config_default.yaml')
+
+
+def amazons3_download(**kwargs):
+    execution_date = kwargs.get('execution_date', None)  # dag execution date
+    uri = kwargs.get('uri', None)  # AmazonS3 object URI
+    prefix = kwargs.get('prefix')  # title of the synthetic data config file
+    connection = kwargs.get('connection')
+    format = kwargs.get('format')
+    # Load AmazonS3 Details From config_default.yaml
+    amazons3_config = CTDMS2AmazonS3.get_amazon_s3_config_default()
+
+    access_key, secret_id, region = None, None, None
+    try:
+        access_key = amazons3_config.get(connection).get('access_key', None)
+        secret_key = amazons3_config.get(connection).get('secret_key', None)
+        region = amazons3_config.get(connection).get('region', None)
+        uri = uri if uri != '' or uri is not None else None
+    except AttributeError:
+        LoggingMixin().log.error(f'AmazonS3 credentials not available for {connection} in config_default.yaml',
+                                 exc_info=True)
+        raise
+
+    if access_key is not None and secret_key is not None and region is not None:
+        amazon_s3 = CTDMS2AmazonS3(
+            access_key=access_key,
+            secret_key=secret_key,
+            uri=uri,
             region=region,
             prefix=prefix,
             execution_date=execution_date,
