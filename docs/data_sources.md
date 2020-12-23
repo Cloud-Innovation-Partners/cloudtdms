@@ -3,6 +3,18 @@ This sections provides information about the supported data sources and destinat
 `sources` represent the entities that are used to feed data into the process and destinations 
 represent the entities that are used to store the resultant data. 
 
+## Pre-Requisite
+
+Creating connections within `config_default.yaml` requires credentials to be `Base64` encoded.
+
+To encode `username` and `password` to `Base64` you can use already existing `base64` utility in linux environment. Use following commands to get your encrypted string.
+
+    echo YOUR_USERNAME | base64
+    
+or
+    
+    echo YOUR_PASSWORD | base64
+
 ## Supported Sources And Destinations
 
 ### Static Files
@@ -99,13 +111,6 @@ Each database connection must have `host`, `database`, `username` , `password` a
 
 >**Note :** Values for `username` and `password` for database connections must be Base64 encoded.
 
->**Note :** To encode `username` and `password` to `Base64` you can use already existing `base64` utility in linux environment. Use following commands to get your encrypted string.
-
-    echo YOUR_USERNAME | base64
-    
-or
-    
-    echo YOUR_PASSWORD | base64
 
 ```yaml
 mysql:
