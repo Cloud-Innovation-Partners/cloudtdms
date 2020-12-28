@@ -2,12 +2,17 @@
 #  CloudTDMS - Test Data Management Service
 import re
 
-phone_sensitive_column_headers = ['phone_number', 'phone number', 'contact', 'contact_number', 'contact number',
-                                  'number']
+phone_sensitive_column_headers = ['phone', 'contact', 'telephone', 'cell', 'mobile']
+
+
+def lexeme_search(token: str, searchable: list):
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
+    mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
+    return any(mask)
 
 
 def phone_number_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in phone_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, phone_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
