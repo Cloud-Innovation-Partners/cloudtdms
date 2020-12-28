@@ -95,4 +95,10 @@ salesforce:
     username: ""                # SalesForce username Base64 Encrypted 
     password: ""                # SalesForce password Base64 Encrypted
     security_token: ""          # SalesForce security_token Base64 Encrypted
-    
+
+# Amazon Web Services
+amazons3:
+  s3_test:
+    access_key: ""              # Base64 encrypted access_key_id
+    secret_key: ""              # Base64 encrypted secret_key_id
+    region: ""                  # S3 Bucket Region Name

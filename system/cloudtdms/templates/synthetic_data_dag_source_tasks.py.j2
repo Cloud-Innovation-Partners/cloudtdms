@@ -1,7 +1,8 @@
 {% block source_tasks %}
 
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp', 'redshift'] %}
+
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp', 'redshift', 'amazons3'] %}
 
 {% if data.source| length == 0 %}
 
@@ -88,6 +89,7 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_SalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
+
 {% elif key == 'redshift' %}
 
 # Initialize task for Redshift Instance Extract {{ item.connection }} and table {{ item.table }}
@@ -99,9 +101,12 @@ start >> stream
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_Redshift_{{ item.connection }}_{{ item.table }}", python_callable=redshift_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 
-{% elif key == 's3' %}
+{% elif key == 'amazons3' %}
 # Initialize task for Amazon S3 {{ item.connection }} and bucket {{ item.bucket }}
-{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_AmazonS3_{{ item.connection }}_{{ item.bucket }}", python_callable=s3_download, dag=dag)
+{{ key }}_{{ item.connection }}_kwargs['bucket'] = "{{ item.bucket }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['uri'] = "{{ item.uri }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_AmazonS3_{{ item.connection }}_{{ item.bucket }}", python_callable=amazons3_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
 {% elif key == 'json' %}
 # Initialize task for JSON data file {{ item.connection }}
