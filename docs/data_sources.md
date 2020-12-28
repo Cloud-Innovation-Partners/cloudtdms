@@ -324,7 +324,7 @@ The `production` connection refers to server with ip `10.0.1.5` and the `develop
  ip `10.0.1.4`.
 
 You can use the connections registered inside the `config_default.yaml` file in your configuration
-scripts. Below is an example snippet of configuration file using above servicenow connections as source and destinations
+scripts. Below is an example snippet of configuration file using above sftp connections as source and destinations
 
 *Example:*
 ```python
@@ -348,3 +348,67 @@ By default it is set to `False`.
 
 > **Note:** Credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
+
+### REDSHIFT
+`CloudTDMS` supports data retrieval and upload data to/from `Redshift`. You can use `Redshift` both as source 
+as well as destination. Before using `Redshift` as a source or destination, in configuration
+you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
+key `redshift:` present in `config_default.yaml` file.
+
+A typical instance of `config_default.yaml` file containing connection entries for `Redshift` looks something like this.
+Each `Redshift` connection must have `host`,`database`, `username`, `password`, and  `port` defined.
+
+>**Note :** `host` must be the `Endpoint` of the Redshift. 
+
+
+>**Note :** Values for `username`, `password` for  redshift must be Base64 encoded. 
+
+
+```yaml
+redshift:
+  production:                         # Connection Name
+    host: "redshift-cluster-1.aaaaaaa7dddd.us-west-9.redshift.amazonaws.com"                    # Redshift endpoint  (Don't  use full url)
+    database: ""
+    username: ""                # Redshift username Base64 Encrypted
+    password: ""                # Redshift password Base64 Encrypted
+    port: "5432"
+
+
+  development:                         # Connection Name
+    host: "redshift-cluster-2.aaaaaaa7dddd.us-west-9.redshift.amazonaws.com"                    # Redshift endpoint  (Don't  use full url)
+    database: ""
+    username: ""                # Redshift username Base64 Encrypted
+    password: ""                # Redshift password Base64 Encrypted
+    port: "5432"
+
+```
+The above snippet of `config_default.yaml` shows 2 `Redshift` connections registered named as `production` and `development`.
+The `production` connection refers to cluster `redshift-cluster-1` on redshift server and the `development` connection refers to `redshift-cluster-2` on the redshift server.
+
+You can use the connections registered inside the `config_default.yaml` file in your configuration
+scripts. Below is an example snippet of configuration file using above redshift connections as source and destinations
+
+*Example:*
+```python
+STREAM = {
+    "source": {
+        "redshift": [
+            {"connection": "development", "table": "redshift_table_test", "order":"desc"}
+        ],         
+    },
+    "destination": {
+         "redshift": [
+             {"connection": "production", "table":"redshift_table_test", "order":"rand"},
+         ]           
+    }   
+}
+```
+Each connection entry for redshift must have `table` attribute value set. This attribute specifies the table name inside the 
+database to be used as source or destination. If you are using redshift as `destination` entity, the table need not to be created, but database must be created prior using it. Tables are created by `CloudTDMS` dynamically.
+
+Besides `table` you can specify the values to `order` and `where` attributes that are used to **`ORDER BY`** and apply **`WHERE`** condition on the resulting
+SQL query. The `order` attribute can take one of the following values.
+
+- `asc` : This is used to fetch initial records from the table.
+- `desc` : This is used to fetch lastest records from the table.
+- `rand` : (`default`) Fetch random records from table.

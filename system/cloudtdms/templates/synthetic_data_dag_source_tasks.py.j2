@@ -1,7 +1,7 @@
 {% block source_tasks %}
 
 
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp', 'redshift'] %}
 
 {% if data.source| length == 0 %}
 
@@ -87,6 +87,17 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_SalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'redshift' %}
+
+# Initialize task for Redshift Instance Extract {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
+{{ key }}_{{ item.connection }}_kwargs['order'] = "{{ item.order }}"
+{{ key }}_{{ item.connection }}_kwargs['where'] = "{{ item.where }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_Redshift_{{ item.connection }}_{{ item.table }}", python_callable=redshift_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
 
 {% elif key == 's3' %}
 # Initialize task for Amazon S3 {{ item.connection }} and bucket {{ item.bucket }}
