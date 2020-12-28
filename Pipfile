@@ -19,6 +19,7 @@ paramiko = "==2.7.2"
 pymssql = "==2.1.5"
 simple-salesforce = "==1.10.1"
 apache-airflow = "==1.10.13"
+boto3 = "==1.16.39"
 
 [requires]
 python_version = "3.8"

@@ -151,6 +151,11 @@ def postgres_download(**kwargs):
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
+    order = kwargs['order']
+    where = kwargs['where']
+
+    order = 'RANDOM' if str(order).strip().lower() == 'rand' else 'ASC' if str(
+        order).strip().lower() == 'asc' else 'DESC' if str(order).strip().lower() == 'desc' else 'RANDOM'
 
     connection_in_yaml = get_postgres_config_default()
 
@@ -188,8 +193,9 @@ def postgres_download(**kwargs):
                 result = cursor.fetchone()  # result contains tuple- ('id', )
                 primary_index = result['column_name'] if result is not None else None
 
-                if primary_index is not None:
-                    sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                if primary_index is not None and (order == 'ASC' or order == 'DESC'):
+                    sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} {order} LIMIT {SOURCE_DOWNLOAD_LIMIT}" if where == '' else f"SELECT * FROM {table_name} WHERE {where} ORDER BY {primary_index} {order} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    # sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"postgres.{connection_name}.{table_name}.{f}" for f in df.columns]
@@ -197,7 +203,9 @@ def postgres_download(**kwargs):
                 else:
                     LoggingMixin().log.warn(
                         f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
-                    sql = f"SELECT * FROM {table_name} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    # sql = f"SELECT * FROM {table_name} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    sql = f"SELECT * FROM {table_name} ORDER BY RANDOM() LIMIT {SOURCE_DOWNLOAD_LIMIT}" if where == '' else f"SELECT * FROM {table_name} WHERE {where} ORDER BY RANDOM() LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"postgres.{connection_name}.{table_name}.{f}" for f in df.columns]

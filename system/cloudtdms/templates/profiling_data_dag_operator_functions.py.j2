@@ -1,5 +1,34 @@
 {% block operator_functions %}
 
+def get_date(s_date):
+    date_patterns = {
+        "%d-%m-%Y": "dd-mm-YYYY",
+        "%Y-%m-%d": "YYYY-mm-dd",
+        "%d/%m/%Y": "dd/mm/YYYY",
+        "%m/%d/%Y": "mm/dd/YYYY",
+        "%m/%d/%Y %H:%M:%S": "mm/dd/yy HH:MM:SS",
+        "%m/%d/%y %H:%M": "mm/dd/yy HH:MM",
+        "%m/%d/%Y %H:%M:%S": "mm/dd/YYYY HH:MM:SS",
+        "%m/%d/%y %H:%M": "mm/dd/YYYY HH:MM",
+        "%Y/%m/%d %H:%M:%S": "YYYY/mm/dd HH:MM:SS",
+        "%Y/%m/%d %H:%M": "YYYY/mm/dd HH:MM",
+        "%m-%d-%Y %H:%M:%S": "mm-dd-YYYY HH:MM:SS",
+        "%m-%d-%Y %H:%M": "mm-dd-YYYY HH:MM",
+        "%m.%d.%Y %H:%M:%S": "mm.dd.YYYY HH:MM:SS",
+        "%m.%d.%Y %H:%M": "mm.dd.YYYY HH:MM",
+        "%d/%m/%Y %H:%M:%S": "dd/mm/YYYY HH:MM:SS",
+        "%d/%m/%Y %H:%M": "dd/mm/YYYY HH:MM",
+        "%d/%m/%y %H:%M:%S": "dd/mm/yy HH:MM:SS",
+        "%d/%m/%y %H:%M": "dd/mm/yy HH:MM"
+    }
+    for pattern in date_patterns:
+        try:
+            datetime.strptime(s_date, pattern).date()
+            return date_patterns.get(pattern)
+        except:
+            pass
+    return "dd-mm-YYYY"
+
 def generate_configuration():
     file_name, extension = os.path.splitext(dag.params.get('data_file'))
     if dag.owner == 'CloudTDMS':
@@ -12,27 +41,62 @@ def generate_configuration():
     if str(extension).lower() == '.csv':
         delimiter = sniff_delimiter(source_file)
         try:
-            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10)
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=1000)
         except Error:
-            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10]
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:1000]
     elif str(extension).lower() == '.json':
-        df = pd.read_json(source_file, lines=True, nrows=10)
+        df = pd.read_json(source_file, lines=True, nrows=1000)
     else:
         delimiter = sniff_delimiter(source_file)
         try:
-            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10)
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=1000)
         except Error:
-            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:10]
+            df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:1000]
     # Drop Unamed columns
     df.drop(df.columns[df.columns.str.contains('unnamed',case = False)],axis = 1, inplace = True)
     STREAM = {}
     missing = []
     categorical = {}
+    timestamp = {}
+    integers = {}
     patterns = {}
     for column in df.columns:
         if all(pd.isna(df[column])):
             missing.append(column)
         else:
+            if column not in timestamp:
+                try:
+                    x = df.copy()
+                    x = x.astype('str')
+
+                    td = pd.to_datetime(x[column])
+                    timestamp[column] = {
+                        "format": get_date(list(df[column].dropna().head(1))[0]),
+                        "start": datetime.strftime(min(td), '%m/%d/%Y'),
+                        "end": datetime.strftime(max(td), '%m/%d/%Y'),
+                        "__top_10_common_values": f"""{[f for f in df[column].value_counts().head(10).index]}""",
+                    }
+                    continue
+                except ValueError:
+                    pass
+
+            if column not in integers:
+                try:
+                    y = df.copy()
+                    y = y.astype('str')
+
+                    td = pd.to_numeric(y[column])
+                    if td.dtype == 'int':
+                        integers[column] = {
+                            'end': max(td),
+                            'start': min(td),
+                            "__top_10_common_values": f"""{str([f for f in df[column].value_counts().head(10).index])}"""
+                        }
+
+                    continue
+                except ValueError:
+                    pass
+
             value_counts = df[column].value_counts()
             top_10=value_counts.index[:10]
             categorical[column]=top_10
@@ -50,13 +114,21 @@ def generate_configuration():
     }
 
     STREAM['frequency'] = 'once'
+    STREAM['header']='True'
+    STREAM['quoting']= 'False'
+    STREAM['completeness']= '100%'
     synthetic = []
     for f in df.columns:
         if f in categorical.keys():
             synthetic.append({'field_name': f, 'type': 'advanced.custom_list', 'set_val': ",".join(map(str, categorical[f]))})
         else:
             if f not in missing:
-                synthetic.append({'field_name': f, 'type': ''})
+                if f in timestamp:
+                    synthetic.append({'field_name': f, 'type': "dates.timestamp", "format": timestamp.get(f).get('format'),"start": timestamp.get(f).get('start'),"end":timestamp.get(f).get('end'), "__top_10_common_values": timestamp.get(f).get('__top_10_common_values')})
+                elif f in integers:
+                    synthetic.append({'field_name' : f, 'type' :  "basics.number_range", "start" :  integers.get(f).get('start'), "end" :  integers.get(f).get('end'), "increment":1, "__top_10_common_values": integers.get(f).get('__top_10_common_values')})
+                else:
+                    synthetic.append({'field_name': f, 'type': ''})
             else:
                 synthetic.append({'field_name': f, 'type': 'basics.blank'})
 

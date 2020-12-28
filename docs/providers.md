@@ -21,46 +21,54 @@ Each provider has a collection of generator functions available that can be used
 
 - ### Basics
 1. **boolean :** Generates a `boolean` value `true,false`, you can provide custom values instead of `default` value using
-    `set_val` attribute.
+    `set_val` attribute. You can also specify how much of the data should be present in this column by `completeness` attribute. 
     
     + *set_val* : takes a pair of words delimited by `,` as a value, word left of the `,` will be used as a value for true and word right
-    of the `,` will be used as a false value 
+    of the `,` will be used as a false value
+    + *completeness* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" : "status", "type" : "basics.boolean", "set_val": "1,0"}
+    {"field_name" : "status", "type" : "basics.boolean", "set_val": "1,0", "completeness":"60%"}
     ```
     This will generate value `1` for true and `0` for false.
 
-2. **frequency :** Generates a frequency values from the set `[Never, Seldom, Once, Often, Daily, Weekly, Monthly, Yearly]`
+2. **frequency :** Generates a frequency values from the set `[Never, Seldom, Once, Often, Daily, Weekly, Monthly, Yearly]`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+      + *completeness* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "freq", "type" :  "basics.frequency"}
+    {"field_name" :  "freq", "type" :  "basics.frequency","completeness":"70%"}
     ```
 3. **color :** Generates a random color value based on the format specified. By `default` the format is `hex-color`, and it
-    will generate hex color codes such as : `#1423ab`. Formats available are `name`, `short-hex`, `hex-color`.
-    
+    will generate hex color codes such as : `#1423ab`. Formats available are `name`, `short-hex`, `hex-color`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+       
     + *format* : used to specify the format of generated color value, Takes a value out of the following three values:
         + *`name`* : will generate color names such as, `Red, Blue, Green ...` etc.
         + *`short-hex`* : will generate hex color codes in short form such as `#14b, #876 ...` etc.
         + *`hex-color`* : will generate hex color codes such as `#1423ab`, This is default format
+    
+    + *completeness* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
         
     *syntax*:
     ```json
-    {"field_name" : "colour", "type" : "basics.color", "format" :  "hex-code"}
+    {"field_name" : "colour", "type" : "basics.color", "format" :  "hex-code","completeness":"45%"}
     ```
 4. **words :** This generates a list of random english words. such as 
     `food character prepare outside leg`
     `house food cat rice owl`
      The number of words that need to be generated can be specified by setting the values to the attributes `atleast` and
-     `atmost`.
+     `atmost`.  
+     You can also specify how much of the data should be present in this column by `completeness` attribute. 
+     
      + *`atleast`* : used to specify at least how many words must be generated, `deafult` value is `1`
      + *`atmost`* : used to specify at most how many words can be in generated list, `default` value is `3`
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "captcha", "type" :  "basics.words", "atleast" :  "5", "atmost" :  "15"}
+    {"field_name" :  "captcha", "type" :  "basics.words", "atleast" :  "5", "atmost" :  "15","completeness":"65%"}
     ```
     
 5. **sentence :** This generates a collection of sentences, such as
@@ -68,13 +76,16 @@ Each provider has a collection of generator functions available that can be used
     
     The number of sentences that need to be generated can be specified by setting the values to the attributes `atleast` and
     `atmost`.
+    You can also specify how much of the data should be present in this column by `completeness` attribute. 
     
     + *`atleast`* : used to specify at least how many sentences must be generated, `default` value is `1` 
     + *`atmost`* : used to specify at most how many sentences can be in generated in a collection, `default` value is `10`
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
     
      *syntax*:
     ```json
-    {"field_name" :  "text", "type" :  "basics.sentence", "atleast" :  "5", "atmost" :  "10"}
+    {"field_name" :  "text", "type" :  "basics.sentence", "atleast" :  "5", "atmost" :  "10","completeness":"50%"}
     ```
     
 6. **blank :** This is used to generate `null` value always.
@@ -83,18 +94,23 @@ Each provider has a collection of generator functions available that can be used
     ```json
     {"field_name" :  "empty", "type" :  "basics.blank"}
     ```
-7. **guid :** Generates global unique identity number, a 36 charcter hex such as `ddee19bc-84fd-4627-897c-dec7c8010977`
+7. **guid :** Generates global unique identity number, a 36 charcter hex such as `ddee19bc-84fd-4627-897c-dec7c8010977`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
 
     *syntax*:
     ```json
-    {"field_name" :  "uuid", "type" :  "basics.guid"}
+    {"field_name" :  "uuid", "type" :  "basics.guid","completeness":"40%"}
     ```    
 8. **password :** Generates a random string of characters, the length of the string can be tweaked using the `length` attribute.
-    The `default` length of the string is `8` characters
+    The `default` length of the string is `8` characters. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+      + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "passcode", "type" :  "basics.password", "length" :  12}
+    {"field_name" :  "passcode", "type" :  "basics.password", "length" :  12,"completeness":"30%"}
     ``` 
 9. **auto_increment :** This generates a sequence of numbers with a common difference equal to the value of `increment` attribute.
     The `default` value of `increment` is `1`. Other attributes provided are:
@@ -103,101 +119,119 @@ Each provider has a collection of generator functions available that can be used
     + *`suffix`* : used to append a `suffix` value after the number such as `2000PR`
     + *`start`* : used to specify the starting integer value for the sequence, the `default` start value is `1`
     + *`increment`* : used to specify the increment value `default` is 1
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "id", "type" :  "basics.auto_increment", "prefix" :  "INC", "suffix" :  "NZD", "start":  2000, "increment" :  5}
+    {"field_name" :  "id", "type" :  "basics.auto_increment", "prefix" :  "INC", "suffix" :  "NZD", "start":  2000, "increment" :  5,"completeness":"70%"}
     ```
-10. **random_number :** This generates a sequence of random numbers between the `start` and `end` value.
+10. **random_number :** This generates a sequence of random numbers between the `start` and `end` value.  You can also specify how much of the data should be present in this column by `completeness` attribute. 
     
     + *`start`* : used to specify the starting value for the sequence, no number generated will be less then this value
     + *`end`* : used to specify the end value for the sequence, no number generated will be greater then this value
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "random_id", "type" :  "basics.random_number", "start" :  20, "end" :  200}
+    {"field_name" :  "random_id", "type" :  "basics.random_number", "start" :  20, "end" :  200,"completeness":"60%"}
     ```
     
 11. **number_range :** This generates a sequence of numbers within a specified range, the range is set using attributes
-    `start`, `end` and  an `increment` .
+    `start`, `end` and  an `increment`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
     
     + *`start`* : used to specify the starting value for the sequence, no number generated will be less then this value
     + *`end`* : used to specify the end value for the sequence, no number generated will be greater then this value
     + *`increment`* : used to specify the increment value `default` is 1
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200, "increment":1}
+    {"field_name" :  "range", "type" :  "basics.number_range", "start" :  20, "end" :  200, "increment":1, "comleteness":"80%"}
     ```
 
 - ### Personal
 
-1. **first_name :** Generates random First Names.
+1. **first_name :** Generates random First Names. You can also specify how much of the data should be present in this column by `completeness` attribute.
     
     + *category* : takes two values `male` and `female`, when category is set names specific to particular gender are generated.
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name":  "fname", "type" :  "personal.first_name", "category" :  "male"}
+    {"field_name":  "fname", "type" :  "personal.first_name", "category" :  "male", "completeness":"60%"}
     ```
    
-2. **last_name :** Generates random Last Names.
+2. **last_name :** Generates random Last Names. You can also specify how much of the data should be present in this column by `completeness` attribute.
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name":  "lname", "type" :  "personal.last_name"}
+    {"field_name":  "lname", "type" :  "personal.last_name", "completeness":"90%"}
     ```
    
-3. **full_name :** Generates a Full Name having format `{first_name} {last_name}` such as `John Sarcozy` etc.
+3. **full_name :** Generates a Full Name having format `{first_name} {last_name}` such as `John Sarcozy` etc. You can also specify how much of the data should be present in this column by `completeness` attribute.
     
     + *category* : takes two values `male` and `female`, when category is set full names specific to particular gender are generated.
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
      *syntax*:
     ```json
-    {"field_name":  "name", "type" :  "personal.full_name", "category" :  "female"}
+    {"field_name":  "name", "type" :  "personal.full_name", "category" :  "female", "completeness":"70%"}
     ```
 4. **gender :** Generates a random value from a set `['Male', 'Female']`, you can provide custom values instead of `default` value using
-    `set_val` attribute.
+    `set_val` attribute. You can also specify how much of the data should be present in this column by `completeness` attribute.
     
     + *set_val* : takes a pair of words delimited by `,` as a value, word left of the `,` will be used as a value for `Male` and word right
     of the `,` will be used as a `Female` value. With this you can map a value to default `Male` and `Female` words.
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name":  "gender", "type" :  "personal.gender", "set_val" :  "M,F"}
+    {"field_name":  "gender", "type" :  "personal.gender", "set_val" :  "M,F", "completeness":"60%"}
     ```
    
-5. **username :** Generates a random username such as `dvicary3, dpomeroya...` etc.
+5. **username :** Generates a random username such as `dvicary3, dpomeroya...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute.
+
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "username", "type" :  "personal.username"}
+    {"field_name" :  "username", "type" :  "personal.username", "completeness":"50%"}
     ```
 
-6. **email_address  :** Generates an email address. such as `jslivia01@gmail.com, kwills89@yahoo.com ...` etc
+6. **email_address  :** Generates an email address. such as `jslivia01@gmail.com, kwills89@yahoo.com ...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute.
+
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "email", "type" :  "personal.email_address"}
+    {"field_name" :  "email", "type" :  "personal.email_address", "completeness":"50%"}
     ```
    
-7. **language :** Generates a random language name. such as `German, Spanish...` etc
+7. **language :** Generates a random language name. such as `German, Spanish...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute.
+
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name":  "lang", "type" :  "personal.language"}
+    {"field_name":  "lang", "type" :  "personal.language", "completeness":"40%"}
    ```
-8. **university :** Generates a random university name such as `University of Texas, Luxemborough Univeristy...` etc
+8. **university :** Generates a random university name such as `University of Texas, Luxemborough Univeristy...` etc.  You can also specify how much of the data should be present in this column by `completeness` attribute.
+
+      + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name":  "university_name", "type" :  "personal.university"}
+    {"field_name":  "university_name", "type" :  "personal.university", "completeness":"40%"}
    ```
-9. **title :** Generates a title value. such as `Mr, Ms, Dr ...` etc
+9. **title :** Generates a title value. such as `Mr, Ms, Dr ...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+
+       + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name":  "title", "type" :  "personal.title"}
+    {"field_name":  "title", "type" :  "personal.title", "completeness":"70%"}
     ```
    
   
@@ -215,35 +249,46 @@ Each provider has a collection of generator functions available that can be used
 
     
 - ### Location
-1. **country :** Generates a random `country` name such as `United Kingdom, Spain, Algeria...` etc
+1. **country :** Generates a random `country` name such as `United Kingdom, Spain, Algeria...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name":  "country", "type" :  "location.country"}
+    {"field_name":  "country", "type" :  "location.country", "completeness":"50%"}
     ```
    
-2. **city :** Generates a random `city` name such as `New York, Berlin, London...` etc.
+2. **city :** Generates a random `city` name such as `New York, Berlin, London...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
 
     *syntax*:
     ```json
-    {"field_name":  "city", "type" :  "location.city"}
+    {"field_name":  "city", "type" :  "location.city", "completeness":"40%"}
     ```
    
-3. **latitude :** Generates a random `latitude` value such as `48.52469361225269, 72.26886762838888, -12.592370752117404...` etc
+3. **latitude :** Generates a random `latitude` value such as `48.52469361225269, 72.26886762838888, -12.592370752117404...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
 
     *syntax*:
     ```json
-    {"field_name":  "lat", "type" :  "location.latitude"}
+    {"field_name":  "lat", "type" :  "location.latitude", "completness":"60%"}
     ```    
-4. **longitude :** Generates a random `longitude` value such as `-45.15259533671917, 115.70563293321999, 81.9426325226724...` etc
+4. **longitude :** Generates a random `longitude` value such as `-45.15259533671917, 115.70563293321999, 81.9426325226724...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
     
     *syntax*:
     ```json
-    {"field_name":  "long", "type" :  "location.longitude"}
+    {"field_name":  "long", "type" :  "location.longitude", "completeness":"30%"}
     ```
 5. **phone_number :** Generates a random `phone` number, based on the format value specified. phone numbers generated can be atmost 15 digit
-    long. you can specify the format value using `#` (hashs) few format options are listed below for your reference. 
-
+    long. you can specify the format value using `#` (hashs) few format options are listed below for your reference.You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
     + *format* : takes a string of `#` as a value each `#` will be replaced by positive integer to generate a phone number.
     
     example format strings:
@@ -255,40 +300,50 @@ Each provider has a collection of generator functions available that can be used
     - `#-(###)-###-####`
     - `##########`
     
+    + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
     *syntax*:
     ```json
-    {"field_name" :  "mobile", "type" :  "location.phone_number", "format" :  "###-###-####"}
+    {"field_name" :  "mobile", "type" :  "location.phone_number", "format" :  "###-###-####", "completeness":"40%"}
     ```
     
-6. **state :** Generates a random state or province name such as `Stockholm, Quebec, New York...` etc
+6. **state :** Generates a random state or province name such as `Stockholm, Quebec, New York...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "state", "type" :  "location.state"}
+    {"field_name" :  "state", "type" :  "location.state", "completeness":"50%"}
     ```
 7. **country_code :** Generates a random country code, by `default` it will generate `2-DIGIT-ISO-CODES` such as `AF, AQ, IN...` etc.
     But you can generate `3-DIGIT-ISO-CODES` such as `AFG, ATA, IND..` etc or numeric country codes such as `93, 672, 91...` etc.
-    by set the value to the attribute `category`
+    by set the value to the attribute `category`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     + *category* : takes one of the three values `numeric` or `2-digit-iso-code` or `3-digit-iso-code`
     
     *syntax*:
     ```json
-    {"field_name" :  "code", "type" :  "location.country_code", "category" :  "numeric"}
+    {"field_name" :  "code", "type" :  "location.country_code", "category" :  "numeric", "completeness":"50%"}
     ```
     
-8. **postal_code :** Generates a random postal code. such as `56273, 40741...` etc
+8. **postal_code :** Generates a random postal code. such as `56273, 40741...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "p_code", "type" :  "location.postal_code"}
+    {"field_name" :  "p_code", "type" :  "location.postal_code", "completeness":"40%"}
     ```
     
-9. **address :** Generates a random address such as `78 Saint Paul Road, 836 Gale Road...` etc
+9. **address :** Generates a random address such as `78 Saint Paul Road, 836 Gale Road...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "address", "type" :  "location.address"}
+    {"field_name" :  "address", "type" :  "location.address", "completeness":"40%"}
     ```
 10. **timezone :** Generates a timezone value
     
@@ -296,17 +351,21 @@ Each provider has a collection of generator functions available that can be used
     ```json
     {"field_name" :  "tz", "type" :  "location.timezone"}
     ```
-11. **airport :** Generates a random airport name.
+11. **airport :** Generates a random airport name. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "airport", "type" :  "location.airport"}
+    {"field_name" :  "airport", "type" :  "location.airport", "completeness":"90%"}
     ```
-12. **municipality :** Generates  a random municipality name
+12. **municipality :** Generates  a random municipality name. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "municipality", "type" :  "location.municipality"}
+    {"field_name" :  "municipality", "type" :  "location.municipality", "completeness":"40%"}
     ```
     
    
@@ -324,97 +383,122 @@ Each provider has a collection of generator functions available that can be used
 
 - ### Company
 
-1. **company_name :** Generates a random company name.
+1. **company_name :** Generates a random company name. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "cname", "type" :  "company.company_name"}
+    {"field_name" :  "cname", "type" :  "company.company_name", "completeness":"60%"}
     ```
     
 2. **department :** Generates a department type such as `Human Resource, Accounting, Engineering, Grocery, Books ...` etc
     department names can be either of `retail` category or `coporate` category. You can specify the category type by add a value
-    to `category` attribute.
+    to `category` attribute. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     + *`category`* : used to specify the category type, can take two values `retail` and `corporate`, by `default` the category
     has `all` value which will generate a randomly any name out of the two categories.
     
     *syntax*:
     ```json
-    {"field_name" :  "dept", "type" :  "company.department", "category" :  "corporate"}
+    {"field_name" :  "dept", "type" :  "company.department", "category" :  "corporate", "completeness":"80%"}
     ```  
- 3. **duns_number :** Generates random 9 digit Data Universal Numbering System (DUNS) number such as `31-300-8468, 34-230-3150...` etc.
+ 3. **duns_number :** Generates random 9 digit Data Universal Numbering System (DUNS) number such as `31-300-8468, 34-230-3150...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
  
     *syntax*:
     ```json
-    {"field_name":  "duns_id", "type" :  "company.duns_number"}
+    {"field_name":  "duns_id", "type" :  "company.duns_number", "completeness":"40%"}
     ```
   **```The `company` provider currently supports `en_GB` locale. ```**
 
 - ### Commerce
 
-1. **credit_card :** Generates a random credit card number.
+1. **credit_card :** Generates a random credit card number. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     *syntax*:
     ```json
-    {"field_name" :  "card", "type" :  "commerce.credit_card"}
+    {"field_name" :  "card", "type" :  "commerce.credit_card","completeness":"80%"}
     ```
    
-2. **credit_card_type :** Generates credit card type such as `AmericanExpress, MasterCard...` etc
+2. **credit_card_type :** Generates credit card type such as `AmericanExpress, MasterCard...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "ctype", "type" :  "commerce.credit_card_type"}
+    {"field_name" :  "ctype", "type" :  "commerce.credit_card_type", "completeness":"40%"}
     ``` 
-3. **currency :** Generates a random currency name such as `Dollar, Rupee, Euro ...` etc
+3. **currency :** Generates a random currency name such as `Dollar, Rupee, Euro ...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "money", "type" :  "commerce.currency"}
+    {"field_name" :  "money", "type" :  "commerce.currency", "completeness":"20%"}
     ```
-4. **currency_code :** Generates a random currency code such as `USD, EUR, INR ...` etc.
+4. **currency_code :** Generates a random currency code such as `USD, EUR, INR ...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "ccode", "type" :  "commerce.currency_code"}
+    {"field_name" :  "ccode", "type" :  "commerce.currency_code", "completeness":"60%"}
     ```
 
 - ### IT
 
 1. **ip_address :** Generates an IP address. such as `192.168.0.1, 251.150.202.132... `etc for `v4` category, 
     `43de:c4ea:7529:ebbc:754b:81a:be18:d2a1, 10d0:c44:63d:401a:440b:538f:8afc:fb0f...` etc for `v6` category
+    You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     + *category* : takes value either `v4` or `v6`
     
     *syntax*:
     ```json
-    {"field_name" :  "ip", "type" :  "it.ip_address", "category" :  "v6"}
+    {"field_name" :  "ip", "type" :  "it.ip_address", "category" :  "v6", "completeness":"40%"}
     ```
 
-2. **mac_address :** Generates a random `MAC address` such as `69:9b:fd:f0:c8:38, f4:d0:0c:d6:b8:b4 ...` etc
+2. **mac_address :** Generates a random `MAC address` such as `69:9b:fd:f0:c8:38, f4:d0:0c:d6:b8:b4 ...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "mac", "type" :  "it.mac_address"}
+    {"field_name" :  "mac", "type" :  "it.mac_address", "completeness":"70%"}
     ```
 
-3. **sha1 :** Generates a random `SHA1` hex code string such as `f4fead60f28167de02e53c68d5fc3689a8d648ea`
+3. **sha1 :** Generates a random `SHA1` hex code string such as `f4fead60f28167de02e53c68d5fc3689a8d648ea`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "sha1", "type" :  "it.sha1"}
+    {"field_name" :  "sha1", "type" :  "it.sha1", "completeness":"60%"}
     ```
 
-4. **sha256 :** Generates a random `SHA256` hex code string such as `ca7adf64d8112bddcb0c55ff6e92a5b553c0fc92117e494230b27afddb048ebe`
+4. **sha256 :** Generates a random `SHA256` hex code string such as `ca7adf64d8112bddcb0c55ff6e92a5b553c0fc92117e494230b27afddb048ebe`. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "sha256", "type" :  "it.sha256"}
+    {"field_name" :  "sha256", "type" :  "it.sha256", "completeness":"40%"}
     ```
-5. **domain_name :** Generates a random domain name such as `apache.org, google.com ...` etc
+5. **domain_name :** Generates a random domain name such as `apache.org, google.com ...` etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
 
     *syntax*:
     ```json
-    {"field_name" :  "domain", "type" :  "it.domain_name"}
+    {"field_name" :  "domain", "type" :  "it.domain_name", "completeness":"70%"}
     ```
 - ### Dates
 
@@ -434,29 +518,39 @@ Each provider has a collection of generator functions available that can be used
     - `mm-dd-YYYY`
     - `mm.dd.YYYY`
     
+    You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
+    
     *syntax*:
     ```json
-    {"field_name" :  "date", "type" :  "dates.date","format":"mm-dd-YYYY","start":"12-07-2020","end":"12-08-2023"}
+    {"field_name" :  "date", "type" :  "dates.date","format":"mm-dd-YYYY","start":"12-07-2020","end":"12-08-2023", "completeness":"50%"}
     ```
   
-2. **day :** Generates a list of weekdays. Such as `Fri, Sat, Thu... `etc.
+2. **day :** Generates a list of weekdays. Such as `Fri, Sat, Thu... `etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
    
     *syntax*:
     ```json
-    {"field_name" :  "day", "type" :  "dates.day"}
+    {"field_name" :  "day", "type" :  "dates.day", "completeness":"40%"}
     ```
-3.  **month :** Generates a list of months. Such as `September, November, February... `etc.
+3.  **month :** Generates a list of months. Such as `September, November, February... `etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
    
     *syntax*:
     ```json
-    {"field_name" :  "month", "type" :  "dates.month"}
+    {"field_name" :  "month", "type" :  "dates.month", "completeness":"50%"}
     ```
    
-4. **time :** Generates a list of time. Such as `19:30:24, 13:44:13, 20:56:28... `etc.
+4. **time :** Generates a list of time. Such as `19:30:24, 13:44:13, 20:56:28... `etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
    
     *syntax*:
     ```json
-    {"field_name" :  "time", "type" :  "dates.time"}
+    {"field_name" :  "time", "type" :  "dates.time", "completeness":"80%"}
     ```
    
  5. **timestamp :** Generates a list of timestamps based on format value specified. Such as `17/08/2017 02:11`,`2007-09-30 06:15:22, 2011-04-26 11:23:21... `etc.
@@ -483,36 +577,44 @@ Each provider has a collection of generator functions available that can be used
     - `dd/mm/YYYY HH:MM`
     - `dd/mm/yy HH:MM:SS`
     - `dd/mm/yy HH:MM`
+    
+    You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
    
     *syntax*:
     ```json
-    {"field_name" :  "timestamp", "type" :  "dates.timestamp", "format":"mm/dd/YYYY HH:MM","start":"12/07/2020","end":"12/08/2023"}
+    {"field_name" :  "timestamp", "type" :  "dates.timestamp", "format":"mm/dd/YYYY HH:MM","start":"12/07/2020","end":"12/08/2023", "completeness":"60%"}
     ```
 
 
 - ### Advanced
 
 1. **custom_list :** Generates a random value from a user specified list. With `custom_list` you can simulate generation of
-    any finite set as per your needs.
+    any finite set as per your needs. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
          
     + *set_val* : here `set_val` takes a comma separated string, which will be used as a domain set for data generation
      
     *syntax*:
     ```json
-    {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport"}
+    {"field_name" :  "teams", "type" :  "advanced.custom_list", "set_val" :  "HR, Accounts, Development, Field, Transport", "completeness":"40%"}
     ```
    
     Based on the value provided in the `set_val` attribute function can generate any specific finite data e.q
     the schema notation above will generate data such as `HR, Field, Transport, Development, HR, Accounts ...` etc
 
-2. **concatenate :** Concatenates values from multiple columns into one.
+2. **concatenate :** Concatenates values from multiple columns into one. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     + *template* : take a template string as a value, A template string has `field_names` to be concatenated enclosed in `{}` braces.
     Besides `field_names` you can also use static strings and symbols like `$,#@..` etc
     
     *syntax*:
     ```json
-    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{synthetic.id}-{synthetic.teams}"}
+    {"field_name" :  "mixed", "type" :  "advanced.concatenate", "template" :  "{synthetic.id}-{synthetic.teams}", "completeness":"50%"}
     ```
    
    *example* :
@@ -637,7 +739,9 @@ Each provider has a collection of generator functions available that can be used
 
 - ### Statistics
     
-1. **normal :** Generates random numbers from a `normal distribution`. Such as `0.51984538, -0.01018767, -2.07595922', -0.35596830...`etc.
+1. **normal :** Generates random numbers from a `normal distribution`. Such as `0.51984538, -0.01018767, -2.07595922', -0.35596830...`etc. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
            
     + *center* : used to specify the `mean` of the distribution.
     
@@ -647,43 +751,51 @@ Each provider has a collection of generator functions available that can be used
     
    *syntax*:
     ```json
-    {"field_name" :  "normal", "type" :  "statistics.normal", "center" : 5, "std_dev" : 1, "decimals" : 2}
+    {"field_name" :  "normal", "type" :  "statistics.normal", "center" : 5, "std_dev" : 1, "decimals" : 2, "completeness":"50%"}
     ```
             
-2. **poisson :** Generates random numbers from a `poisson distribution` with a specific mean value.
+2. **poisson :** Generates random numbers from a `poisson distribution` with a specific mean value. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
                 
     + *mean* : is expectation of interval, must be >= 0. A sequence of expectation intervals must be broadcastable over
                the requested size.
     
     *syntax*:
     ```json
-    {"field_name" :  "poisson", "type" :  "statistics.poisson", "mean" : 5}
+    {"field_name" :  "poisson", "type" :  "statistics.poisson", "mean" : 5,"completeness":"80%"}
     ```
              
-3. **binomial :** Generates random numbers from a binomial distribution with a specific probability of success.
+3. **binomial :** Generates random numbers from a binomial distribution with a specific probability of success. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     + *success_rate* : is parameter of the distribution, >= 0 and <=1.
  
     *syntax*:
     ```json
-    {"field_name" :  "binomial", "type" :  "statistics.binomial", "success_rate" : 0.5}
+    {"field_name" :  "binomial", "type" :  "statistics.binomial", "success_rate" : 0.5, "completeness":"90%"}
     ```
             
-4. **exponential :** Generates random numbers based on an exponential distribution with a specific `λ` rate.        
+4. **exponential :** Generates random numbers based on an exponential distribution with a specific `λ` rate. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.       
     
     + *scale* : must be non-negative.
     
     *syntax*:
     ```json
-    {"field_name" :  "exponential", "type" :  "statistics.exponential", "scale" : 4}
+    {"field_name" :  "exponential", "type" :  "statistics.exponential", "scale" : 4, "completeness":"80%"}
     ```
             
- 5. **geometric :** Generates numbers based from a `geometric distribution` with a specific probability of success.
+ 5. **geometric :** Generates numbers based from a `geometric distribution` with a specific probability of success. You can also specify how much of the data should be present in this column by `completeness` attribute. 
+    
+     + *`completeness`* : takes the percentage value, which signifies the completeness of the data in the column. If this attribute is not mentioned it will take the global `completeness` value.
     
     + *success_rate* : is the probability of success of an individual trial, >= 0 and <=1.
     
     *syntax*:
     ```json
-    {"field_name" :  "geometric", "type" :  "statistics.geometric", "success_rate" : 0.4}
+    {"field_name" :  "geometric", "type" :  "statistics.geometric", "success_rate" : 0.4, "completeness":"70%"}
     ```
    

@@ -4,7 +4,9 @@ import base64
 import itertools
 import os
 
-import pymssql as ms
+import psycopg2
+import psycopg2.extras
+import psycopg2 as pg
 import sqlalchemy
 import yaml
 from sqlalchemy.pool import NullPool
@@ -14,23 +16,39 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 import pandas as pd
 from sqlalchemy import create_engine
 from pandas.io import sql
-import pymssql
 from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT
+import numpy
+from psycopg2.extensions import register_adapter, AsIs
 
 valid_dbs = {}
 
 
-def get_mssql_config_default():
+def addapt_numpy_float64(numpy_float64):
+    return AsIs(numpy_float64)
+
+def addapt_numpy_int64(numpy_int64):
+    return AsIs(numpy_int64)
+
+def addapt_numpy_bool(numpy_bool):
+    return AsIs(numpy_bool)
+
+register_adapter(numpy.float64, addapt_numpy_float64)
+
+register_adapter(numpy.int64, addapt_numpy_int64)
+
+register_adapter(numpy.bool_, addapt_numpy_bool)
+
+def get_redshift_config_default():
     config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
-    if config is not None and config.get('mssql', None) is not None:
-        return config.get('mssql')
+    if config is not None and config.get('redshift', None) is not None:
+        return config.get('redshift')
     else:
-        raise KeyError('config_default.yaml has no mssql entry')
+        raise KeyError('config_default.yaml has no redshift entry')
 
 
 # [{'connection': 'mssql_dev', 'table': 'incident'}, {'connection': 'mssql_prod', 'table': 'incident2'}]
 def validate_mysql_credentials(database_list):
-    mssql_config = get_mssql_config_default()
+    mssql_config = get_redshift_config_default()
     for db in database_list:
         if db['connection'] not in mssql_config:
             raise AttributeError(f"{db['connection']} not found in config_default.yaml")
@@ -48,6 +66,8 @@ def decode_(field):
 
 
 def get_new_columns(schema_columns, csv_file_cols):
+    schema_columns=list(map(lambda  x:x.lower(), schema_columns))
+    csv_file_cols=list(map(lambda  x:x.lower(), csv_file_cols))
     s1s2 = set(schema_columns) - set(csv_file_cols)
     s2s1 = set(csv_file_cols) - set(schema_columns)
     new_cols = s1s2.union(s2s1)
@@ -58,18 +78,20 @@ def get_new_columns(schema_columns, csv_file_cols):
 def get_sub_query(column_names):
     """This method returns a query """
     # 'CREATE TABLE ABC (name varchar(50), address varchar(50))'
-    query = 'id INT NOT NULL IDENTITY PRIMARY KEY, '
+    query = 'id INT identity(1, 1), '
     dtype = 'VARCHAR(255), '
     for col in column_names:
         table_column = col + ' ' + dtype
         query += table_column
 
     query = query.strip().strip(',')
+    query += ', PRIMARY KEY (id)'
     return query
 
 
+
 # MAIN FUNCTION #
-def mssql_upload(**kwargs):
+def redshift_upload(**kwargs):
     connection_name = kwargs['connection']
     prefix = kwargs['prefix']
     execution_date = kwargs['execution_date']
@@ -78,55 +100,58 @@ def mssql_upload(**kwargs):
 
     # validate_mysql_credentials(kwargs['database'])
 
-    connection_in_yaml = get_mssql_config_default()
+    connection_in_yaml = get_redshift_config_default()
+
+    print(f"REDSHIFT CONNECTION in yaml {connection_in_yaml}")
 
     # read latest modified csv file
     latest_file_path = get_output_data_home() + '/' + kwargs['prefix'] + '/' + file_name
+    # latest_file_path = '/home/muhammad/Desktop/redshift_test_file.csv'
     LoggingMixin().log.info(f" LATEST FILE PATH : {latest_file_path}")
     csv_file = pd.read_csv(latest_file_path)
+    csv_file.drop(csv_file.columns[csv_file.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
+
+    # replace all Nan with None
+    csv_file.fillna("NULL", inplace=True)
 
     is_available = True if connection_name in connection_in_yaml else False
-
+    print(f"IS_AVAILABLE {is_available}")
     if is_available:
         database = connection_in_yaml.get(connection_name).get('database')
         user = decode_(connection_in_yaml.get(connection_name).get('username')).replace('\n', '')
         password = decode_(connection_in_yaml.get(connection_name).get('password')).replace('\n', '')
         host = connection_in_yaml.get(connection_name).get('host').replace(' ', '')
         port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
-            'port') else 1433
+            'port') else 5432
+
+        print("2")
+        print(f"host: {host}")
+        print(f"username: {user}")
+        print(f"password: {password}")
+        print(f"database: {database}")
+        print(f"port: {port}")
 
         LoggingMixin().log.info(f'Inserting data in {database}, {table_name}')
-        engine = create_engine(f"mssql+pymssql://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
-
-        #replace nan in df with Null if present.
-        # REASON: mssql throws exception on nan values: "Invalid column name 'nan'"
-        csv_file.fillna('null', inplace=True)
-
-        # change column datatype numpy.int64 to string, mssql throws exception
-        new_dtype={}
-        unexpected_dtype_cols= list((csv_file.select_dtypes(include=['int64','int32','float64','float32','bool'])).columns)
-        for col in unexpected_dtype_cols:
-            new_dtype[col] = 'str'
-
-        csv_file = csv_file.astype(new_dtype)
+        print(f"postgresql://{user}:{password}@{host}:{port}/{database}")
+        engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}", poolclass=NullPool)
 
         # store the data in the database
         n_objects = Converter.df_to_gen(csv_file)
         storage = Storage(user, password, host, database, table_name, port)
 
-        if storage.has_table(table_name, engine):
+        if storage.has_table(str(table_name).lower(), engine):
             LoggingMixin().log.info(f"Table {table_name} already existed")
             # 'check_schema'
-            schema_values = storage.is_schema_changed(table_name, engine, list(csv_file.columns))
+            schema_values = storage.is_schema_changed(str(table_name).lower(), engine, list(csv_file.columns))
             is_changed = schema_values[0]
             new_cols = schema_values[1]
             LoggingMixin().log.info(f'New cols: {new_cols}')
             if is_changed:  # schema changed
-                LoggingMixin().log.info(f"Schema of table {table_name} in {database} changed")
-                storage.modify_table(table_name, new_cols)
+                LoggingMixin().log.info(f"Schema of table {str(table_name).lower()} in {database} changed")
+                storage.modify_table(str(table_name).lower(), new_cols)
                 storage.insert_data(n_objects)
             else:
-                LoggingMixin().log.info(f"Schema of table {table_name} not changed, appending new records")
+                LoggingMixin().log.info(f"Schema of table {str(table_name).lower()} not changed, appending new records")
                 storage.insert_data(n_objects)
         else:
             storage.create_table(list(csv_file.columns))
@@ -135,7 +160,8 @@ def mssql_upload(**kwargs):
         raise AttributeError(f"{connection_name} not found in config_default.yaml")
 
 
-def mssql_download(**kwargs):
+
+def redshift_download(**kwargs):
     connection_name = kwargs['connection']
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
@@ -143,10 +169,10 @@ def mssql_download(**kwargs):
     order = kwargs['order']
     where = kwargs['where']
 
-    order = 'RAND' if str(order).strip().lower() == 'rand' else 'ASC' if str(
-        order).strip().lower() == 'asc' else 'DESC' if str(order).strip().lower() == 'desc' else 'RAND'
+    order = 'RANDOM' if str(order).strip().lower() == 'rand' else 'ASC' if str(
+        order).strip().lower() == 'asc' else 'DESC' if str(order).strip().lower() == 'desc' else 'RANDOM'
 
-    connection_in_yaml=get_mssql_config_default()
+    connection_in_yaml = get_redshift_config_default()
 
     database = connection_in_yaml.get(connection_name).get('database')
     username = decode_(connection_in_yaml.get(connection_name).get('username'))
@@ -154,10 +180,10 @@ def mssql_download(**kwargs):
     host = connection_in_yaml.get(connection_name).get('host') if connection_in_yaml.get(connection_name).get(
         'host') else None
     port = int(connection_in_yaml.get(connection_name).get('port')) if connection_in_yaml.get(connection_name).get(
-        'port') else 1433
+        'port') else 5432
 
     if host is not None:
-        connection = ms.connect(
+        connection = pg.connect(
             host=host,
             user=username.replace('\n', ''),
             password=password.replace('\n', ''),
@@ -165,34 +191,39 @@ def mssql_download(**kwargs):
             port=port
         )
 
-        file_name = f"mssql_{connection_name}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
+        file_name = f"redshift_{connection_name}_{os.path.dirname(prefix)}_{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         try:
-            with connection.cursor(as_dict=True) as cursor:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 # Get PRIMARY INDEX column
                 sql = f"""
-                        SELECT COLUMN_NAME 
-                        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-                        WHERE table_name='{table_name}'
+                     SELECT column_name
+                        FROM information_schema.table_constraints
+                             JOIN information_schema.key_column_usage
+                                 USING (constraint_catalog, constraint_schema, constraint_name,
+                                        table_catalog, table_schema, table_name)
+                        WHERE constraint_type = 'PRIMARY KEY'
+                          AND (table_schema, table_name) = ('public', '{table_name}')
                         """
                 cursor.execute(sql)
-                result = cursor.fetchone()  # result contains dict- {'COLUMN_NAME', 'id'}
-                primary_index = result.get('COLUMN_NAME') if result is not None else None
+                result = cursor.fetchone()  # result contains tuple- ('id', )
+                primary_index = result['column_name'] if result is not None else None
+
                 if primary_index is not None and (order == 'ASC' or order == 'DESC'):
-                    # sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name} ORDER BY {primary_index} DESC"
-                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} ORDER BY {primary_index} {order}" if where == '' else f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} WHERE {where} ORDER BY {primary_index} {order}"
+                    sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} {order} LIMIT {SOURCE_DOWNLOAD_LIMIT}" if where == '' else f"SELECT * FROM {table_name} WHERE {where} ORDER BY {primary_index} {order} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    # sql = f"SELECT * FROM {table_name} ORDER BY {primary_index} DESC LIMIT {SOURCE_DOWNLOAD_LIMIT}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mssql.{connection_name}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"redshift.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 else:
                     LoggingMixin().log.warn(
                         f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
-                    # sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name}"
-                    #NEWID() in mssql is like RANDOM()
-                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} ORDER BY NEWID()" if where == '' else f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} WHERE {where} ORDER BY NEWID()"
+                    # sql = f"SELECT * FROM {table_name} LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+                    sql = f"SELECT * FROM {table_name} ORDER BY RANDOM() LIMIT {SOURCE_DOWNLOAD_LIMIT}" if where == '' else f"SELECT * FROM {table_name} WHERE {where} ORDER BY RANDOM() LIMIT {SOURCE_DOWNLOAD_LIMIT}"
+
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
-                    df.columns = [f"mssql.{connection_name}.{table_name}.{f}" for f in df.columns]
+                    df.columns = [f"redshift.{connection_name}.{table_name}.{f}" for f in df.columns]
 
                 try:
                     df.to_csv(f'{get_user_data_home()}/.__temp__/{file_name}', index=False)
@@ -217,7 +248,7 @@ class Converter():
 
 class Storage():
     """
-    This class takes the MySql credentials and creates a connection with MySql database
+    This class takes the Redshift credentials and creates a connection with Redshift cluster
     """
 
     def __init__(self, login, password, host, database_name, table_name, port):
@@ -225,7 +256,7 @@ class Storage():
         self.password = password
         self.host = host
         self.database_name = database_name
-        self.table_name = table_name
+        self.table_name = str(table_name).lower()
         self.port = port
 
     def has_table(self, table, engine):
@@ -234,14 +265,14 @@ class Storage():
 
     def is_schema_changed(self, table, engine, csv_cols):
         """This methods check whether the schema of table is changed or not"""
-        table_schema = sql.read_sql(sql=f"SELECT TOP 1 * FROM {table};", con=engine)
+        table_schema = sql.read_sql(sql=f"SELECT * from {table} LIMIT 1", con=engine)
         new_cols = get_new_columns(list(table_schema.columns), csv_cols)
         new_cols = [i for i in new_cols if i != 'id']  # id column is already present in database, so remove it
         return len(new_cols) != 0, new_cols
 
     def modify_table(self, table, new_cols):
         """This methods modifies the table present in database for which schema is changed"""
-        conn = ms.connect(host=self.host, user=self.login, password=self.password,
+        conn = pg.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, database=self.database_name)
         cursor = conn.cursor()
         for col in new_cols:
@@ -250,8 +281,12 @@ class Storage():
                 LoggingMixin().log.info(f'ALTER QUERY {alter_query}')
                 cursor.execute(alter_query)
                 conn.commit()
-            except ms.OperationalError:
+            except (psycopg2.errors.DuplicateColumn):
                 LoggingMixin().log.info(f'{col} already existed, Alter command cannot be executed...')
+                conn.rollback()
+            except psycopg2.errors.InFailedSqlTransaction:
+                LoggingMixin().log.info(f'Rolling back transaction...')
+                conn.rollback()
         conn.close()
 
     def create_table(self, column_names):
@@ -260,12 +295,11 @@ class Storage():
             self.database_name )
             -create columns for all labels, including the extra one on schema
             """
-        conn = ms.connect(host=self.host, user=self.login, password=self.password,
+        conn = pg.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, database=self.database_name)
         cursor = conn.cursor()
         sub_query = get_sub_query(column_names)
-        check_if_table_exists = "if not exists (select * from sysobjects where name='{}')".format(self.table_name)
-        sql = check_if_table_exists + ' CREATE TABLE {} ({});'.format(self.table_name, sub_query)
+        sql = 'CREATE TABLE IF NOT EXISTS {} ({})'.format(self.table_name, sub_query)
         print(sql)
         cursor.execute(sql)
         conn.commit()
@@ -273,12 +307,12 @@ class Storage():
 
     def insert_data(self, n_objects):
         """
-        This method inserts the parsed data(n_objects) in the MySql database
+        This method inserts the parsed data(n_objects) in the Redshift database
         insert data only for those columns which are present in the dict i.e n_objects
         """
         lst = []
         step = 100
-        conn = ms.connect(host=self.host, user=self.login, password=self.password,
+        conn = pg.connect(host=self.host, user=self.login, password=self.password,
                           database=self.database_name)
         cursor = conn.cursor()
 
@@ -291,9 +325,8 @@ class Storage():
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
         print(f"INSERT QUERY: {sql} ")
         # insert second_record, first_record is column names
-
-        # cursor.execute(sql, next(n_objects))
-        # conn.commit()
+        cursor.execute(sql, next(n_objects))
+        conn.commit()
 
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)
@@ -306,3 +339,5 @@ class Storage():
             conn.commit()
             lst.clear()
         conn.close()
+
+

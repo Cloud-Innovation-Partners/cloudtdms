@@ -11,3 +11,4 @@ paramiko==2.7.2
 pymssql==2.1.5
 PyMySQL==0.10.1
 simple_salesforce==1.10.1
+boto3==1.16.39

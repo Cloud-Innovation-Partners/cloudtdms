@@ -3,6 +3,18 @@ This sections provides information about the supported data sources and destinat
 `sources` represent the entities that are used to feed data into the process and destinations 
 represent the entities that are used to store the resultant data. 
 
+## Pre-Requisite
+
+Creating connections within `config_default.yaml` requires credentials to be `Base64` encoded.
+
+To encode `username` and `password` to `Base64` you can use already existing `base64` utility in linux environment. Use following commands to get your encrypted string.
+
+    echo YOUR_USERNAME | base64
+    
+or
+    
+    echo YOUR_PASSWORD | base64
+
 ## Supported Sources And Destinations
 
 ### Static Files
@@ -97,36 +109,37 @@ keys such as `mysql:`, `postgres:`, `mssql:` present in `config_default.yaml` fi
 A typical instance of `config_default.yaml` file containing connection entries for databases looks something like this.
 Each database connection must have `host`, `database`, `username` , `password` and `port` defined.
 
->**Note :** values for `username` and `password` for database connections must be Base64 encoded. 
+>**Note :** Values for `username` and `password` for database connections must be Base64 encoded.
+
 
 ```yaml
 mysql:
   mysql_test_connection:
     host: "127.0.0.1"
     database: "test"
-    username: ""          
-    password: ""
+    username: ""         # MySQL username Base64 Encrypted   
+    password: ""         # MySQL password Base64 Encrypted
     port: "3306"
   mysql_dev_connection:
     host: "127.0.0.1"
     database: "dev"
-    username: ""          
-    password: ""
+    username: ""         # MySQL username Base64 Encrypted
+    password: ""         # MySQL password Base64 Encrypted
     port: "3306"
 
 postgres:
   postgres_test:
     host: "127.0.0.1"
     database: ""
-    username: ""
-    password: ""
+    username: ""        # Postgres username Base64 Encrypted
+    password: ""        # Postgres password Base64 Encrypted
     port: "5432"
 mssql:
   mssql_test:
     host: "127.0.0.1"
     database: ""
-    username: ""
-    password: ""
+    username: ""        # MSSQL username Base64 Encrypted
+    password: ""        # MSSQL password Base64 Encrypted
     port: "1433"
 ```
 The above snippet of `config_default.yaml` shows 4 database connection registered one each for Postgres and MSSQL and 2
@@ -142,7 +155,7 @@ STREAM = {
             {"connection": "mysql_dev_connection", "table": "account", "order": "rand", "where": "city='New York'"},
         ],
         "postgres": [
-            {"connection": "postgres_test", "table": "users"}
+            {"connection": "postgres_test", "table": "users","order": "rand", "where": "city='New York'"}
         ]            
     },
     "destination": {
@@ -163,7 +176,7 @@ SQL query. The `order` attribute can take one of the following values.
 - `rand` : (`default`) Fetch random records from table.
 
 
-> **Note:** credentials for a database inside `config_default.yaml` file must have requisite permissions to create tables and alter schemas.
+> **Note:** Credentials for a database inside `config_default.yaml` file must have requisite permissions to create tables and alter schemas.
 
 ### ServiceNow
 `CloudTDMS` supports data retrieval and ingestion from a servicenow instance. You can use servicenow instance both as source 
@@ -176,18 +189,18 @@ Each servicenow connection must have `host`, `username` and `password` defined. 
 name, If your servicenow instance has url `https://dev1234.service-now.com` you need to provide the instance name as
 a value to `host` not the full url.
 
->**Note :** values for `username` and `password` for servicenow connections must be Base64 encoded. 
+>**Note :** Values for `username` and `password` for servicenow connections must be Base64 encoded. 
 
 ```yaml
 servicenow:
   production:
     host: "dev1234"
-    username: ""
-    password: ""
+    username: ""        # ServiceNow username Base64 Encrypted
+    password: ""        # ServiceNow password Base64 Encrypted
   development:
     host: "dev5678"
-    username: ""
-    password: ""
+    username: ""        # ServiceNow username Base64 Encrypted
+    password: ""        # ServiceNow password Base64 Encrypted
 ```
 
 The above snippet of `config_default.yaml` shows 2 servicenow connection registered named as `production` and `development`. 
@@ -229,20 +242,20 @@ Each salesforce connection must have `host`, `username`, `password` and `securit
 name, If your salesforce instance has url `https://mn12.salesforce.com` you need to provide the instance name `mn12` as
 a value to `host` not the full url.
 
->**Note :** values for `username`, `password` and `security_token` for salesforce connections must be Base64 encoded. 
+>**Note :** Values for `username`, `password` and `security_token` for salesforce connections must be Base64 encoded. 
 
 ```yaml
 salesforce:
   production:
     host: "mn12"
-    username: ""
-    password: ""
-    security_token: ""
+    username: ""        # Salesforce username Base64 Encrypted
+    password: ""        # Salesforce password Base64 Encrypted
+    security_token: ""  # Salesforce security_token Base64 Encrypted
   development:
     host: "um12"
-    username: ""
-    password: ""
-    security_token: ""
+    username: ""        # Salesforce username Base64 Encrypted
+    password: ""        # Salesforce password Base64 Encrypted
+    security_token: ""  # Salesforce security_token Base64 Encrypted
 ```
 
 The above snippet of `config_default.yaml` shows 2 salesforce connection registered named as `production` and `development`. 
@@ -271,7 +284,52 @@ Each connection entry for salesforce must have `table` attribute value set. This
 Salesforce instance to be used as source or destination. In above configuration script `Account` Object of one instance 
 is used as a source and of another instance is used as destination
 
-> **Note:** credentials for a salesforce inside `config_default.yaml` file must have requisite permissions for reading and writing data via REST Bulk API.
+> **Note:** Credentials for a salesforce inside `config_default.yaml` file must have requisite permissions for reading and writing data via REST Bulk API.
+
+### Amazon S3
+`CloudTDMS` supports data retrieval and ingestion from amazon s3 storage. You can use amazon s3 storage both as source 
+as well as destination. Before using amazon s3 storage as a source or destination, in configuration
+you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
+key `amazons3:` present in `config_default.yaml` file.
+
+A typical instance of `config_default.yaml` file containing connection entries for amazons3 looks something like this.
+Each amazons3 connection must have `access_key`, `secret_key` and `region` defined. The `access_key` represent amazon S3 storage
+access_key_id and `secret_key` represent amazon S3 storage secret_key_id
+
+>**Note :** values for `secret_key` and `access_key` for amazon S3 connections must be Base64 encoded. 
+
+```yaml
+amazons3:
+  s3_test:
+    access_key: ""              # Base64 encrypted access_key_id
+    secret_key: ""              # Base64 encrypted secret_key_id
+    region: "ap-south-1"                  # S3 Bucket Region Name
+```
+
+You can use the connections registered inside the `config_default.yaml` file in your configuration
+scripts. Below is an example snippet of configuration file using above salesforce connections as source and destinations
+
+*Example:*
+```python
+STREAM = {
+    "source": {
+        "amazons3": [
+            {"connection": "s3_test", "uri": "s3://tdms-bucket/test_data.csv"},
+        ],         
+    },
+    "destination": {
+        "amazons3": [
+            {"connection": "s3_test", "uri": "s3://tdms-bucket"}
+        ]            
+    }   
+}
+```
+Each connection entry for amazon S3 must have `uri` attribute value set. This attribute specifies the S3 URI of Object in 
+amazon S3 storage to be used as source or destination. In above configuration script `test_data.csv` is an object stored in
+bucket `tdms-bucket` its being used as a source file. Similarly bucket `tdms-bucket` is used as destination for the output
+data generated by the system.
+
+> **Note:** Only CSV files are supported to be as source files, in amazon s3.
 
 ### Network Storages
 
@@ -284,26 +342,26 @@ key `sftp:` present in `config_default.yaml` file.
 A typical instance of `config_default.yaml` file containing connection entries for `sftp` looks something like this.
 Each `sftp` connection must have `host`, `username`, `password`, `port`, `ssh_public_key` and `passphrase`  defined.
 
->**Note :** values for `username`, `password`, `ssh_public_key` and `passphrase` for sftp connections must be Base64 encoded. 
+>**Note :** Values for `username`, `password`, `ssh_public_key` and `passphrase` for sftp connections must be Base64 encoded. 
 
 
 ```yaml
 sftp:
   production:       
     host: "10.0.1.5"          
-    username: ""     
-    password: ""      
+    username: ""        # SFTP username Base64 Encrypted     
+    password: ""        # SFTP password Base64 Encrypted
     port: "22"         
     ssh_public_key: ""  # path to ssh public key
-    passphrase: ""
+    passphrase: ""      # SFTP passphrase Base64 Encrypted
 
    development:       
     host: "10.0.1.4"          
-    username: ""     
-    password: ""      
+    username: ""        # SFTP username Base64 Encrypted     
+    password: ""        # SFTP password Base64 Encrypted      
     port: "22"         
     ssh_public_key: ""  # path to ssh public key
-    passphrase: ""
+    passphrase: ""      # SFTP passphrase Base64 Encrypted
 
 ```
 The above snippet of `config_default.yaml` shows 2 `sftp` connections registered named as `production` and `development`.
@@ -311,7 +369,7 @@ The `production` connection refers to server with ip `10.0.1.5` and the `develop
  ip `10.0.1.4`.
 
 You can use the connections registered inside the `config_default.yaml` file in your configuration
-scripts. Below is an example snippet of configuration file using above servicenow connections as source and destinations
+scripts. Below is an example snippet of configuration file using above sftp connections as source and destinations
 
 *Example:*
 ```python
@@ -333,5 +391,69 @@ sftp to be used as source or destination. The sftp destination can also have an 
 If the `overwrite` attribute is set to `True` it will overwrite the existing file on the sftp server otherwise not.
 By default it is set to `False`.
 
-> **Note:** credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
+> **Note:** Credentials for a sftp inside `config_default.yaml` file must have requisite permissions for reading and writing data.
 
+
+### REDSHIFT
+`CloudTDMS` supports data retrieval and upload data to/from `Redshift`. You can use `Redshift` both as source 
+as well as destination. Before using `Redshift` as a source or destination, in configuration
+you need to register connections for the same inside `config_default.yaml` file. Connection can be registered under respective
+key `redshift:` present in `config_default.yaml` file.
+
+A typical instance of `config_default.yaml` file containing connection entries for `Redshift` looks something like this.
+Each `Redshift` connection must have `host`,`database`, `username`, `password`, and  `port` defined.
+
+>**Note :** `host` must be the `Endpoint` of the Redshift. 
+
+
+>**Note :** Values for `username`, `password` for  redshift must be Base64 encoded. 
+
+
+```yaml
+redshift:
+  production:                         # Connection Name
+    host: "redshift-cluster-1.aaaaaaa7dddd.us-west-9.redshift.amazonaws.com"                    # Redshift endpoint  (Don't  use full url)
+    database: ""
+    username: ""                # Redshift username Base64 Encrypted
+    password: ""                # Redshift password Base64 Encrypted
+    port: "5432"
+
+
+  development:                         # Connection Name
+    host: "redshift-cluster-2.aaaaaaa7dddd.us-west-9.redshift.amazonaws.com"                    # Redshift endpoint  (Don't  use full url)
+    database: ""
+    username: ""                # Redshift username Base64 Encrypted
+    password: ""                # Redshift password Base64 Encrypted
+    port: "5432"
+
+```
+The above snippet of `config_default.yaml` shows 2 `Redshift` connections registered named as `production` and `development`.
+The `production` connection refers to cluster `redshift-cluster-1` on redshift server and the `development` connection refers to `redshift-cluster-2` on the redshift server.
+
+You can use the connections registered inside the `config_default.yaml` file in your configuration
+scripts. Below is an example snippet of configuration file using above redshift connections as source and destinations
+
+*Example:*
+```python
+STREAM = {
+    "source": {
+        "redshift": [
+            {"connection": "development", "table": "redshift_table_test", "order":"desc"}
+        ],         
+    },
+    "destination": {
+         "redshift": [
+             {"connection": "production", "table":"redshift_table_test", "order":"rand"},
+         ]           
+    }   
+}
+```
+Each connection entry for redshift must have `table` attribute value set. This attribute specifies the table name inside the 
+database to be used as source or destination. If you are using redshift as `destination` entity, the table need not to be created, but database must be created prior using it. Tables are created by `CloudTDMS` dynamically.
+
+Besides `table` you can specify the values to `order` and `where` attributes that are used to **`ORDER BY`** and apply **`WHERE`** condition on the resulting
+SQL query. The `order` attribute can take one of the following values.
+
+- `asc` : This is used to fetch initial records from the table.
+- `desc` : This is used to fetch lastest records from the table.
+- `rand` : (`default`) Fetch random records from table.
