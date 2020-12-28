@@ -1,6 +1,7 @@
 {% block destination_tasks %}
 
-{% set supported_destinations = ['csv', 'json', 'mysql', 'servicenow', 'salesforce', 'json', 'postgres', 'mssql', 'sftp', 'amazons3'] %}
+
+{% set supported_destinations = ['csv', 'json', 'mysql', 'servicenow', 'salesforce', 'json', 'postgres', 'mssql', 'sftp', 'redshift', 'amazons3'] %}
 
 {% for key, value in data.destination.items() %}
 {% if key in supported_destinations and value %}
@@ -73,6 +74,15 @@
 {{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_SalesForce_{{ item.connection }}_{{ item.table }}", python_callable=salesforce_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
 
+{% elif key == 'redshift' %}
+
+# Initialize task for Redshift Instance Upload for {{ item.connection }} and table {{ item.table }}
+{{ key }}_{{ item.connection }}_kwargs['table_name'] = "{{ item.table }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{ item.connection }}"
+{{ key }}_{{ item.connection }}_kwargs['limit'] = "{{ item.limit }}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Load_Redshift_{{ item.connection }}_{{ item.table }}", python_callable=redshift_upload, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+
 
 {% elif key == 'amazons3' %}
 # Initialize task for Amazon S3 Upload for {{ item.connection }} and bucket {{ item.bucket }}
@@ -91,9 +101,10 @@
 {% endfor %}
 
 
-{% if 'mysql' not in data.destination  and 'servicenow' not in data.destination and 'amazons3' not in data.destination and 'mssql' not in data.destination and 'postgres' not in data.destination and 'sftp' not in data.destination and 'csv' not in data.destination and 'json' not in data.destination and 'salesforce' not in data.destination %}
+
+{% if 'mysql' not in data.destination  and 'servicenow' not in data.destination and 'amazons3' not in data.destination and 'mssql' not in data.destination and 'postgres' not in data.destination and 'sftp' not in data.destination and 'csv' not in data.destination and 'json' not in data.destination and 'salesforce' not in data.destination and 'redshift' not in data.destination %}
 stream >> end
-{% elif data.destination.mysql | length == 0 and data.destination.amazons3 | length == 0 and data.destination.servicenow | length == 0 and data.destination.mssql | length == 0  and data.destination.postgres | length == 0 and data.destination.sftp | length == 0 and data.destination.csv | length == 0 and data.destination.json | length == 0 and data.destination.salesforce | length == 0 %}
+{% elif data.destination.mysql | length == 0 and data.destination.amazons3 | length == 0 and data.destination.servicenow | length == 0 and data.destination.mssql | length == 0  and data.destination.postgres | length == 0 and data.destination.sftp | length == 0 and data.destination.csv | length == 0 and data.destination.json | length == 0 and data.destination.salesforce | length == 0 and data.destination.redshift | length == 0 %}
 stream >> end
 {% endif %}
 
