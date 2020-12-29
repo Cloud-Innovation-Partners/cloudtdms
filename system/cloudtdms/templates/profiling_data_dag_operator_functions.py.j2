@@ -66,10 +66,12 @@ def generate_configuration():
         else:
             if column not in timestamp:
                 try:
-                    x = df.copy()
+                    x = df.copy().dropna()
                     x = x.astype('str')
+                    x = x[column]
+                    x = x[x != " "]
+                    td = pd.to_datetime(x)
 
-                    td = pd.to_datetime(x[column])
                     timestamp[column] = {
                         "format": get_date(list(df[column].dropna().head(1))[0]),
                         "start": datetime.strftime(min(td), '%m/%d/%Y'),
@@ -82,10 +84,12 @@ def generate_configuration():
 
             if column not in integers:
                 try:
-                    y = df.copy()
+                    y = df.copy().dropna()
                     y = y.astype('str')
+                    y = y[column]
+                    y = y[y != " "]
 
-                    td = pd.to_numeric(y[column])
+                    td = pd.to_numeric(y)
                     if td.dtype == 'int':
                         integers[column] = {
                             'end': max(td),
