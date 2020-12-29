@@ -24,10 +24,10 @@ json:
     target: "/home/user/some-other-folder"
 xml:
   my_connection_name_one:
-    source: "/home/user/csv-data-one/example-one.xml"
+    source: "/home/user/xml-data-one/example-one.xml"
     target: "/home/user/some-other-folder"
   my_connection_name_two:
-    source: "/home/user/csv-data-two/example-two.xml"
+    source: "/home/user/xml-data-two/example-two.xml"
 
 
 ```
