@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Profile report generated with CloudTDMS">
+    <meta name="author" content="CIP Opensource Team">
+    <meta name="url" content="https://github.com/Cloud-Innovation-Partners/cloudtdms">
+
+    <title>{{ title }}</title>
+
+    <style>
+    {% include 'assets/bootstrap.min.css' %}
+    {% include 'assets/bootstrap-theme.min.css' %}
+    {% include 'assets/style.css' %}
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <br/>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header"><h3> Overview </h3></div>
+                    <div class="card-body">
+
+                        <table class="table table-sm table-striped">
+                            <tbody>
+                                <p class="lead">Dataset statistics</p>
+
+                                {% for key, value in overview.items() %}
+                                <tr>
+                                    <th>{{ key | replace("_", " ") | title }}</th>
+                                    <td>{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header"><h3> Categories </h3></div>
+                    <div class="card-body">
+                        <table class="table table-sm table-striped">
+                            <tbody>
+                                <p class="lead">Variable Types</p>
+
+                                    {% for key, value in variable_types.items() %}
+                                    <tr>
+                                        <td><code>{{ key | replace("_", " ") | title | upper}}</code></td>
+                                        <td>{{ value }}</td>
+                                    </tr>
+                                    {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        </br>
+
+        <div class="row header">
+        <h1 class="page-header">Variables</h1>
+        </div>
+
+        <div class="section-items">
+        {% for key, value in variables.items() %}
+
+            <div class="row-spacing border-bottom">
+                <div class="row p-4">
+                    <div class="col-sm-4">
+                        <p class="h5" title={{key}}>
+                        <a href="#">{{key}}</a>
+                        <br/>
+                        <code>{{ value['d_type'] | upper}}</code>
+                        </p>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <table class="table table-sm table-striped">
+                            <tbody>
+
+                                <tr class="alert">
+                                    {% for s, v in value.items()%}
+                                        {% if s != 'd_type' %}
+                                            <tr>
+                                            <th>{{ s | replace("_", " ") | title }}</th>
+                                            <td>{{ v }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-sm-5">
+                        {% if value_counts[key] | length > 0 %}
+                            <p class"py3"><strong>Common Values</strong></p>
+                        {% endif %}
+                        <ul class="list-group">
+                        {% for k, c in value_counts[key].items()%}
+                          <li class="list-group-item d-flex justify-content-between align-items-center py-1" ng-repeat="i in filters">
+                            <span class="text-break">{{ k }}</span>
+                            <span class="badge badge-primary badge-pill">{{ c }}</span>
+                          </li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+
+        </br>
+        <div class="row header">
+        <h1 class="page-header">Personal Identifiable Information</h1>
+        </div>
+
+        <div class="tab-pane col-sm-12 active">
+            <table class="table table-condensed list-warnings">
+                <tbody>
+                    {% set rejected_attrs = ['match', 'basis', 'sensitivity'] %}
+                    {% set empty_flag = namespace(items=[]) %}
+                    {% for pii_key, pii_value in pii.items() %}
+                        {% if pii_value|length == 0 %}
+                            <!-- {{ empty_flag.items.append(True) }} -->
+                        {% else %}
+                            <!-- {{ empty_flag.items.append(False) }} -->
+                        {% endif %}
+                        {% for item in pii_value %}
+                                {% set variable_name = item.keys() | reject('in', rejected_attrs) | first %}
+                                <tr>
+                                    <td><code>{{ variable_name }}</code> is classified as <code>{{ item['match']}}</code> with score of <code>{{ item[variable_name] }}%</code> on  <code> pii_scale </code></td>
+                                </tr>
+                        {% endfor %}
+                    {% endfor %}
+                    {% set state = namespace(item='') %}
+                    {% for entry in empty_flag.items %}
+                        {% if state.item == '' %}
+                            {% set state.item = entry %}
+                        {% else %}
+                            {% set state.item = state.item and entry %}
+                        {% endif %}
+
+                    {% endfor %}
+                    {% if state.item == True %}
+                        <tr>
+                            <td><code>No Entry Found!</code></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="row spacing">
+        <h2 class="indent">First rows</h2>
+            <div id="sample-container" class="col-sm-12">
+            {% set table_head = head.keys() %}
+                    <table class=" dataframe sample table table-striped" border="1">
+                        <thead>
+                            <tr style="text-align: right;">
+                                {% for item in table_head %}
+                                    <th scope="col">{{ item }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                                {% for i in range(10)%}
+                                <tr>
+                                {% for k in table_head%}
+                                <td class="w-auto">{{ head[k][i] }}</td>
+                                {% endfor %}
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+
+        <div class="row spacing">
+        <h2 class="indent">Last rows</h2>
+            <div id="sample-container" class="col-sm-12">
+                    <table class=" dataframe sample table table-striped" border="1">
+                        <thead>
+                            <tr style="text-align: right;">
+                                {% for item in table_head %}
+                                    <th scope="col">{{ item }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                                {% for i in range(10)%}
+                                <tr>
+                                {% for k in table_head%}
+                                <td class="w-auto">{{ tail[k][i] }}</td>
+                                {% endfor %}
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+
+
+
+    </div>
+
+</body>
+</html>

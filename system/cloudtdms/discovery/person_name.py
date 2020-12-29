@@ -4,16 +4,23 @@
 # Contains Search Rules for Identifying Person Name in User Data
 
 import pandas as pd
+import re
 from system.dags import get_providers_home
 
 sensitive_column_headers = ['first_name', 'last_name', 'fname', 'f_name', 'lname', 'l_name', 'surname', 'middle_name',
                             'family_name', 'sname', 's_name', 'forename', 'name', 'full_name', 'given_name',
                             'maiden_name', 'mname', 'g_name', 'm_name', 'initial_name', 'initial', 'firstname', 'FirstName'
-                            'lastname', 'LastName']
+                            'lastname', 'LastName', 'customer']
+
+
+def lexeme_search(token: str, searchable: list):
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
+    mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
+    return any(mask)
 
 
 def search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 

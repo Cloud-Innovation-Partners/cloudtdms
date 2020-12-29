@@ -2,49 +2,52 @@
 #  CloudTDMS - Test Data Management Service
 
 import pandas as pd
+import numpy as np
 from system.dags import get_providers_home
 import re
 
-latitude_sensitive_column_headers = ['latitude', 'lat', 'altitude']
-longitude_sensitive_column_headers = ['longitude', 'long']
-country_sensitive_column_headers = ['country', 'homeland', 'native land', 'native_land', 'grass roots', 'grass_roots',
-                                    'land']
-city_sensitive_column_headers = ['city', 'capital', 'center', 'metropolis', 'downtown', 'place', 'port', 'polis',
-                                 'urbs']
-municipality_sensitive_column_headers = ['municipality', 'community', 'district', 'town', 'township', 'village'
-    , 'borough', 'precinct']
-postal_codes_sensitive_column_headers = ['zip', 'pincode', 'pin_code', 'pin code', 'postalcode', 'postal_code',
-                                         'postal code', 'post']
+latitude_sensitive_column_headers = ['latitude', 'altitude']
+longitude_sensitive_column_headers = ['longitude']
+country_sensitive_column_headers = ['country', 'homeland', 'state', 'nation', 'kingdom']
+city_sensitive_column_headers = ['city', 'town' 'capital', 'metropolis', 'downtown', 'village', 'megalopolis']
+municipality_sensitive_column_headers = ['municipality', 'community', 'district', 'borough', 'township', 'precinct']
+postal_codes_sensitive_column_headers = ['zip_code', 'zip', 'postal', 'post', 'postal_code', 'post_code']
 state_sensitive_column_headers = ['state']
 
 
+def lexeme_search(token: str, searchable: list):
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
+    mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
+    return any(mask)
+
+
 def latitude_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in latitude_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x,  latitude_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def longitude_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in longitude_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, longitude_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def country_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in country_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, country_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def city_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in city_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, city_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def municipality_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in municipality_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, municipality_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def state_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in state_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, state_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
@@ -105,6 +108,9 @@ def country_search_on_data_basis(data_frame):
     df = pd.read_csv(f'{get_providers_home()}/location/airport.csv', usecols=['country'])
     df['country'] = df['country'].apply(lambda x: str(x).lower())
     df.drop_duplicates(subset=['country'], inplace=True)
+    df.replace('nan', np.nan, inplace=True)
+    df.dropna(inplace=True)
+
     statistic_match = []
     for column in columns:
         if data_frame[column].dtype == 'object':
@@ -127,6 +133,9 @@ def city_search_on_data_basis(data_frame):
     df = pd.read_csv(f'{get_providers_home()}/location/airport.csv', usecols=['city'])
     df['city'] = df['city'].apply(lambda x: str(x).lower())
     df.drop_duplicates(subset=['city'], inplace=True)
+    df.replace('nan', np.nan, inplace=True)
+    df.dropna(inplace=True)
+
     statistic_match = []
 
     for column in columns:
@@ -151,6 +160,9 @@ def municipality_search_on_data_basis(data_frame):
     df = pd.read_csv(f'{get_providers_home()}/location/airport.csv', usecols=['municipality'])
     df['municipality'] = df['municipality'].apply(lambda x: str(x).lower())
     df.drop_duplicates(subset=['municipality'], inplace=True)
+    df.replace('nan', np.nan, inplace=True)
+    df.dropna(inplace=True)
+
     statistic_match = []
 
     for column in columns:
@@ -176,6 +188,9 @@ def state_search_on_data_basis(data_frame):
     df = pd.read_csv(f'{get_providers_home()}/location/airport.csv', usecols=['state'])
     df['state'] = df['state'].apply(lambda x: str(x).lower())
     df.drop_duplicates(subset=['state'], inplace=True)
+    df.replace('nan', np.nan, inplace=True)
+    df.dropna(inplace=True)
+
     statistic_match = []
 
     for column in columns:
