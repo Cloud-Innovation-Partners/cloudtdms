@@ -32,6 +32,12 @@ csv:
     source: ""        # source is usually a path to CSV data file
     target: ""        # target is usually a path to local folder where data must be saved
 
+# XML
+xml:
+  xml_test:          # Connection Name
+    source: ""        # source is usually a path to XML data file
+    target: ""
+
 # JSON
 json:
   test_data:          # Connection Name
@@ -102,3 +108,13 @@ amazons3:
     access_key: ""              # Base64 encrypted access_key_id
     secret_key: ""              # Base64 encrypted secret_key_id
     region: ""                  # S3 Bucket Region Name
+
+# Redshift
+redshift:
+  redshift_test:                # Connection Name
+    host: ""                    # Redshift instance name (Don't  use full url)
+    database: ""
+    username: ""                # Redshift username Base64 Encrypted
+    password: ""                # Redshift password Base64 Encrypted
+    port: 5432
+

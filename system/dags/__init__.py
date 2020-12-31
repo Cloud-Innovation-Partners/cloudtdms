@@ -360,7 +360,7 @@ profiling_data_files = []
 
 for profile in os.walk(get_profiling_data_home()):
     root, dirs, files = profile
-    files = list(filter(lambda x: x.endswith('.csv') or x.endswith('.json'), files))
+    files = list(filter(lambda x: x.endswith('.csv') or x.endswith('.json')  or x.endswith('.xml'), files))
     root = root.replace(f"{get_cloudtdms_home()}/", '')
     root = os.path.basename(root) if os.path.basename(root) != 'profiling_data' else 'CloudTDMS'
     list(map(create_profiling_dag, files, [f'{root}'] * len(files)))
