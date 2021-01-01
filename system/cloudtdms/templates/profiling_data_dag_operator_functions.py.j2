@@ -66,9 +66,9 @@ def generate_configuration():
         else:
             if column not in timestamp:
                 try:
-                    x = df.copy().dropna()
+                    x = df.copy()
                     x = x.astype('str')
-                    x = x[column]
+                    x = x[column].dropna()
                     x = x[x != " "]
                     td = pd.to_datetime(x)
 
@@ -84,22 +84,21 @@ def generate_configuration():
 
             if column not in integers:
                 try:
-                    y = df.copy().dropna()
+                    y = df.copy()
                     y = y.astype('str')
-                    y = y[column]
+                    y = y[column].dropna()
                     y = y[y != " "]
-
                     td = pd.to_numeric(y)
-                    if td.dtype == 'int':
-                        integers[column] = {
-                            'end': max(td),
-                            'start': min(td),
-                            "__top_10_common_values": f"""{str([f for f in df[column].value_counts().head(10).index])}"""
-                        }
+
+                    integers[column] = {
+                        'end': max(td),
+                        'start': min(td),
+                        "__top_10_common_values": f"""{str([f for f in df[column].value_counts().head(10).index])}"""
+                    }
 
                     continue
-                except ValueError:
-                    pass
+                except ValueError as e:
+                    print('Numerix', e)
 
             value_counts = df[column].value_counts()
             top_10=value_counts.index[:10]
