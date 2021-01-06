@@ -79,6 +79,7 @@ STREAM = {
     "header":"true",
     "quoting":"true",
     "frequency": "once",
+    "header_number":"0",
     "completeness":"60%",
     "synthetic": [
         {"field_name": "fname", "type": "personal.first_name"},
