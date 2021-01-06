@@ -63,6 +63,7 @@ data, mandatory attributes are the required.
 - *header*
 - *quoting*
 - *completeness*
+- *header_number*
 
 **List of Synthetic Data Attributes:**
 - *source*
@@ -170,6 +171,68 @@ STREAM = {
 STREAM = {
     "completeness" : "100%"
  }
+```
+
++ **`header_number`** : This attribute defines which line in a `csv` file will be treated as a header. While choosing the `header_number`, you have to take care           of the `output_schema` in the configuration file. Say for example your `csv` file looks like:
+
+```csv
+      id,first_name,last_name,email,gender,ip_address 
+      0,Martie,Cavilla,mcavilla0@stumbleupon.com,Male,89.3.26.219
+      1,Heinrik,Stow,hstow1@bandcamp.com,Male,129.147.183.52
+      2,Lauri,Offell,loffell2@abc.net.au,Female,134.243.128.51
+      3,Corbet,Chasmoor,cchasmoor3@google.de,Male,73.159.178.246
+      4,Emeline,Bridgland,ebridgland4@reverbnation.com,Female,67.197.180.101
+```
+In case of above `csv` the `output_schema` in the configuration will be like:
+
+```python
+         STREAM = {
+                    "number": 1000,
+                    "title": 'Header_At_Any_Row',
+                    "frequency": "once",
+                    "source": {
+                                "csv": [
+                                         {"connection": "modeling", "delimiter": ","},
+                                       ]
+                              },
+
+                    # id,first_name,last_name,email,gender,ip_address
+                   "output_schema": {
+                                       "csv.modeling.id":"ID",
+                                       "csv.modeling.first_name":"F_NAME",
+                                       "csv.modeling.last_name":"L_NAME",
+                                       "csv.modeling.email":"EMAIL",
+                                       "csv.modeling.gender":"GENDER",
+                                       "csv.modeling.ip_address":"IP_ADDRESS",
+                                    }
+                 }
+
+
+```
+> :warning: If you want any line to be a header, in that case you have to take care of the output_schema in the configuration. If line number 2 is taken as a header in the above csv file i.e " 1,Heinrik,Stow,hstow1@bandcamp.com,Male,129.147.183.52". The output schema will looks like:
+
+```python
+          STREAM = {
+                     "number": 1000,
+                    "title": 'Header_At_Any_Row',
+                    "frequency": "once",
+                    "header_number":2,
+                    "source": {
+                                "csv": [
+                                         {"connection": "modeling", "delimiter": ","},
+                                       ]
+                              },
+
+                    # " 1,Heinrik,Stow,hstow1@bandcamp.com,Male,129.147.183.52"
+                   "output_schema": {
+                                       "csv.modeling.1":"ID",
+                                       "csv.modeling.Heinrik":"F_NAME",
+                                       "csv.modeling.Stow":"L_NAME",
+                                       "csv.modeling.hstow1@bandcamp.com":"EMAIL",
+                                       "csv.modeling.Male":"GENDER",
+                                       "csv.modeling.129.147.183.52":"IP_ADDRESS",                                                        
+                                    }
+                 }
 ```
 
 
