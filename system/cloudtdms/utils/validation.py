@@ -2,7 +2,7 @@
 #  CloudTDMS - Test Data Management Service
 import os
 
-from airflow import LoggingMixin
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 def check_mandatory_field(stream, name):

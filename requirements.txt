@@ -1,4 +1,4 @@
-apache-airflow==1.10.13
+apache-airflow==2.0.0
 SQLAlchemy==1.3.20
 Faker==4.1.3
 cryptography==3.2

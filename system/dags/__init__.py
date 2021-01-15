@@ -88,11 +88,11 @@ def get_templates_home():
 
 
 def delete_dag(dag_id):
-    p = subprocess.Popen([f"airflow delete_dag -y {dag_id}"], executable="/bin/bash",
+    p = subprocess.Popen([f"airflow dags delete -y {dag_id}"], executable="/bin/bash",
                          universal_newlines=True, shell=True)
     # Remove variable
     Variable.delete(dag_id)
-    
+
     (o, e) = p.communicate()
 
 
@@ -117,7 +117,8 @@ def filter_profiling(profiling_file_path, dag_file_path, dag_delete=False, owner
     # print(f"DAG_{os.path.basename(dag_file_path).split('.')[0]}:{dag_timestamp}")
     result = profiling_timestamp > dag_timestamp
     if result:
-        LoggingMixin().log.info(f"{os.path.basename(profiling_file_path)} is modified. Creating new profiling report...")
+        LoggingMixin().log.info(
+            f"{os.path.basename(profiling_file_path)} is modified. Creating new profiling report...")
         if dag_delete and os.path.exists(dag_file_path):
             dag_id = f"profile_{os.path.basename(profiling_file_path).split('.')[0]}"
             os.remove(dag_file_path)
@@ -139,17 +140,17 @@ def create_profiling_dag(file_name, owner):
         }
     )
     dag_file = f"{get_airflow_home()}/dags/profile_{file_name}.py"
-    profile_file= f"{get_profiling_data_home()}/{file_name}{extension}"
+    profile_file = f"{get_profiling_data_home()}/{file_name}{extension}"
     # print(f"DAG FILE PATH: {dag_file}")
     # print(f"PROFILE FILE PATH: {profile_file}")
 
-    if filter_profiling(profiling_file_path=profile_file, dag_file_path= dag_file, dag_delete= True, owner=owner):
+    if filter_profiling(profiling_file_path=profile_file, dag_file_path=dag_file, dag_delete=True, owner=owner):
         with open(dag_file, 'w') as g:
             g.write(dag_output)
         LoggingMixin().log.info(f"Creating DAG: profile_{file_name}.py")
 
-def filter_updated_dag(config_file_path, dag_file_path, dag_delete=False, owner=None):
 
+def filter_updated_dag(config_file_path, dag_file_path, dag_delete=False, owner=None):
     config_stat = os.stat(config_file_path)
     config_mtime = config_stat.st_mtime
     config_timestamp = datetime.datetime.fromtimestamp(config_mtime).strftime('%Y-%m-%d-%H:%M:%S')
@@ -245,9 +246,9 @@ for (module, name, app) in modules:
         # set format to csv
         stream['format'] = 'csv'
 
-        #get header status - default value should be True
+        # get header status - default value should be True
         header = stream['header'] if 'header' in stream else True
-        header= True if str(header).strip().lower() == 'true' else False
+        header = True if str(header).strip().lower() == 'true' else False
         stream['header'] = header
 
         # get quoting status - default value should be False
@@ -255,20 +256,20 @@ for (module, name, app) in modules:
         quoting = True if str(quoting).strip().lower() == 'true' else False
         stream['quoting'] = quoting
 
-        #get completeness
-        completeness_percent= stream['completeness'] if 'completeness' in stream else '100%'
-        completeness_percent= str(completeness_percent).replace('%','')
+        # get completeness
+        completeness_percent = stream['completeness'] if 'completeness' in stream else '100%'
+        completeness_percent = str(completeness_percent).replace('%', '')
         try:
-            completeness_percent= int(completeness_percent)
-            if completeness_percent >100:
+            completeness_percent = int(completeness_percent)
+            if completeness_percent > 100:
                 completeness_percent = 100
                 LoggingMixin().log.warning(
                     f"completeness value {completeness_percent} greater than 100%. Setting to default ")
         except ValueError:
             LoggingMixin().log.warning(f"completeness value {completeness_percent} is incorrect. Setting to default ")
-            completeness_percent=100
+            completeness_percent = 100
 
-        stream['completeness']=completeness_percent
+        stream['completeness'] = completeness_percent
 
         # check 'source' attribute is present
         source = stream['source'] if 'source' in stream else None
@@ -317,7 +318,7 @@ for (module, name, app) in modules:
                     'attributes': attributes if len(attributes) != 0 else None,
                     'source': source if source is not None else {},
                     'destination': stream['destination'] if 'destination' in stream.keys() else {},
-                    'header':header
+                    'header': header
                 }
             )
             dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"
@@ -338,7 +339,7 @@ for (module, name, app) in modules:
                         'attributes': {},
                         'source': source if source is not None else [],
                         'destination': stream['destination'] if 'destination' in stream.keys() else {},
-                        'header':header
+                        'header': header
                     }
                 )
                 dag_file_path = f"{get_airflow_home()}/dags/data_{name}.py"

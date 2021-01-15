@@ -1,6 +1,6 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
-from airflow import LoggingMixin
+from airflow.utils.log.logging_mixin import LoggingMixin
 from faker import Faker
 import random
 import string

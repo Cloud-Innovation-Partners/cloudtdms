@@ -1,7 +1,7 @@
 #  Copyright (c) 2020. Cloud Innovation Partners (CIP)
 #  CloudTDMS - Test Data Management Service
 
-from airflow import LoggingMixin
+from airflow.utils.log.logging_mixin import LoggingMixin
 import numpy as np
 
 

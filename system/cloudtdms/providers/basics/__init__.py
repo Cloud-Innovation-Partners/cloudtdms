@@ -7,7 +7,7 @@ import os
 import uuid
 import math
 
-from airflow import LoggingMixin
+from airflow.utils.log.logging_mixin import LoggingMixin
 from faker import Faker
 
 

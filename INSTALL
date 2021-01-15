@@ -108,7 +108,7 @@ def set_airflow_home_as_environment():
 
 def airflow_resetdb():
     print('Resetting airflow meta-database')
-    subprocess.Popen(["airflow resetdb -y"],
+    subprocess.Popen(["airflow db reset -y"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
@@ -117,7 +117,16 @@ def airflow_initdb():
     print('Initializing airflow meta-database')
     env = os.environ
     env['AIRFLOW_HOME'] = AIRFLOW_HOME
-    subprocess.Popen(["airflow initdb"], cwd=os.getcwd(), env=env,
+    subprocess.Popen(["airflow db init"], cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+
+
+def airflow_user():
+    print('Creating airflow admin user...')
+    env = os.environ
+    env['AIRFLOW_HOME'] = AIRFLOW_HOME
+    subprocess.Popen(["airflow users create --username admin --firstname Admin --role Admin --email admin@admin.com --lastname TDMS -p CloudTDMS1234567890#"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
@@ -260,7 +269,7 @@ if __name__ == "__main__":
     import time
 
     # ensure pip 9.0.1
-    os.system("sudo -H python -m pip install pip==9.0.1")
+    # os.system("sudo -H python -m pip install pip==9.0.1")
 
     if os.path.exists('requirements.txt'):
         try:
@@ -286,6 +295,7 @@ if __name__ == "__main__":
         airflow_resetdb()
     else:
         airflow_initdb()
+    airflow_user()
     change_ownership_permissions()
     create_system_service_entries()
     reload_enable__airflow_webserver_service()
