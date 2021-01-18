@@ -6,49 +6,53 @@
 import pandas as pd
 import re
 
-age_sensitive_column_headers = ['age', 'maturity', 'seniority', 'years', 'duration', 'age_group', 'oldness']
-gender_sensitive_column_headers = ['gender', 'sex', 'kind', 'sexuality', 'male', 'female', 'identity', 'neuter']
-email_sensitive_column_headers = ['email', 'mail', 'e-mail', 'message', 'electronic_mail', 'post', 'correspondence',
-                                  'send', 'mailing', 'memo', 'mailbox', 'write']
-dob_sensitive_column_headers = ['dob', 'date_of_birth', 'birth_date', 'birth date', 'date of birth', 'D.O.B', 'DOB']
-credit_card_sensitive_column_headers = ['credit_card_num', 'credit_card_number', 'credit_card', 'credit card']
-ssn_sensitive_column_headers = ['ssn', 'social_security_number', 'social security number', 'National ID number',
-                                'National_ID_number', ' national id number', 'national_id_number']
-blood_group_sensitive_column_headers = ['bg', 'blood group', 'blood_group', 'blood Group', 'Blood_Group']
+age_sensitive_column_headers = ['age']
+gender_sensitive_column_headers = ['gender', 'sex', 'sexuality', 'male', 'female']
+email_sensitive_column_headers = ['email', 'mail', 'e-mail']
+dob_sensitive_column_headers = ['dob', 'birth', 'birthday']
+credit_card_sensitive_column_headers = ['credit', 'creditcard']
+ssn_sensitive_column_headers = ['ssn', 'socialsecuritynumber', ' nationalidnumber']
+blood_group_sensitive_column_headers = ['blood']
+
+
+def lexeme_search(token: str, searchable: list):
+    tokens = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>? ]', token)
+    mask = map(lambda x: True if str(x).lower() in searchable else False, tokens)
+    return any(mask)
 
 
 def age_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in age_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, age_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def gender_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in gender_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, gender_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def email_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in email_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, email_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def dob_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in dob_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, dob_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def cc_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in credit_card_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, credit_card_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def ssn_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in ssn_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, ssn_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 
 def blood_group_search_on_column_basis(data_frame):
-    score = map(lambda x: 50 if x in blood_group_sensitive_column_headers else 0, data_frame.columns)
+    score = map(lambda x: 50 if lexeme_search(x, blood_group_sensitive_column_headers) else 0, data_frame.columns)
     return score
 
 

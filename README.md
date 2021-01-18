@@ -36,6 +36,7 @@ With `CloudTDMS` you can?
         - [Docker Installation](docs/installation.md#docker-image)
         - [Installation Script](docs/installation.md#installation-script)
         - [Manual Installation](docs/installation.md#manual-installation)
+    - [CloudTDMS Administration](docs/administration.md)
     
 **Getting Started**
 
