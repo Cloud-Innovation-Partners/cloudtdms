@@ -121,7 +121,7 @@ Let's take an example of `boolean` generator function inside the `basics` provid
     The second last line assignes the same generated list as a column to the dataframe passed as argument to the function.
 
 
-
+**Note**: Each `__init__.py` file contains a function with name same as the provider. This means `__init__.py` file of basics will have a `basics` function similarly `__init__.py` of `location` will contain `location` function. When adding a new generator function make sure you make the entry of the new function inside its corresponding provider named function If required. Creating entry is not required for all the providers but some may need so.
 
 
 
