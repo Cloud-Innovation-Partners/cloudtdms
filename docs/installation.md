@@ -69,7 +69,9 @@ installation of `docker-engine` and `docker-compose` please refer to [Docker Sit
                   
 4. To stop the container your either press `CTRL+C` or run following command
 
-         sudo docker-compose down   
+         sudo docker-compose down
+         
+**Note :** <ins>The default username and password for Airflow is `admin` (username) & `CloudTDMS1234567890#` (password)</ins>
                         
          
 ### Installation Script
@@ -101,7 +103,11 @@ The installation script is used to install and run `CloudTDMS` as a service on U
 
          sudo service airflow-scheduler stop
    
-   and `restart` by replacing `stop` with `start` in above command                          
+   and `restart` by replacing `stop` with `start` in above command  
+   
+
+**Note :** <ins>The default username and password for Airflow is `admin` (username) & `CloudTDMS1234567890#` (password)</ins>
+   
 
 ### Manual Installation
 
@@ -149,7 +155,11 @@ The installation script is used to install and run `CloudTDMS` as a service on U
            
 5. Initialize Airflow Database
 
-        airflow initdb
+        airflow db init
+        
+6. Create Airflow admin user
+
+        airflow users create
     
 7. Start airflow scheduler
 
