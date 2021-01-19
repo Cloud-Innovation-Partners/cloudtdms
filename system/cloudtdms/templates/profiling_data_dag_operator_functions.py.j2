@@ -76,8 +76,10 @@ def generate_configuration():
                 try:
                     x = df.copy()
                     x = x.astype('str')
+                    x = x[column].dropna()
+                    x = x[x != " "]
+                    td = pd.to_datetime(x)
 
-                    td = pd.to_datetime(x[column])
                     timestamp[column] = {
                         "format": get_date(list(df[column].dropna().head(1))[0]),
                         "start": datetime.strftime(min(td), '%m/%d/%Y'),
@@ -92,18 +94,19 @@ def generate_configuration():
                 try:
                     y = df.copy()
                     y = y.astype('str')
+                    y = y[column].dropna()
+                    y = y[y != " "]
+                    td = pd.to_numeric(y)
 
-                    td = pd.to_numeric(y[column])
-                    if td.dtype == 'int':
-                        integers[column] = {
-                            'end': max(td),
-                            'start': min(td),
-                            "__top_10_common_values": f"""{str([f for f in df[column].value_counts().head(10).index])}"""
-                        }
+                    integers[column] = {
+                        'end': max(td),
+                        'start': min(td),
+                        "__top_10_common_values": f"""{str([f for f in df[column].value_counts().head(10).index])}"""
+                    }
 
                     continue
-                except ValueError:
-                    pass
+                except ValueError as e:
+                    print('Numerix', e)
 
             value_counts = df[column].value_counts()
             top_10=value_counts.index[:10]
@@ -125,6 +128,7 @@ def generate_configuration():
     STREAM['header']='True'
     STREAM['quoting']= 'False'
     STREAM['completeness']= '100%'
+    STREAM['header_number'] ='0'
     synthetic = []
     for f in df.columns:
         if f in categorical.keys():

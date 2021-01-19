@@ -58,6 +58,8 @@ class CTDMS2AmazonS3:
 
             access_key = base64.b64decode(str(self.amazon_s3_access_key_id).encode()).decode('utf-8')
             secret_key = base64.b64decode(str(self.amazon_s3_secret_key_id).encode()).decode('utf-8')
+            access_key = access_key.rstrip('\n')
+            secret_key = secret_key.rstrip('\n')
             region = self.region
             bucket = self.bucket
 
@@ -92,6 +94,8 @@ class CTDMS2AmazonS3:
         """
         access_key = base64.b64decode(str(self.amazon_s3_access_key_id).encode()).decode('utf-8')
         secret_key = base64.b64decode(str(self.amazon_s3_secret_key_id).encode()).decode('utf-8')
+        access_key = access_key.rstrip('\n')
+        secret_key = secret_key.rstrip('\n')
         region = self.region
         bucket = self.bucket
 

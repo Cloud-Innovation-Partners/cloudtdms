@@ -255,6 +255,25 @@ for (module, name, app) in modules:
         quoting = True if str(quoting).strip().lower() == 'true' else False
         stream['quoting'] = quoting
 
+        #get header_number - default header is first row
+        header_number = stream['header_number'] if 'header_number' in stream else 0
+        try:
+            header_number =int(header_number)
+            if header_number <0:
+                header_number=0
+                LoggingMixin().log.warning(
+                    f"header_number value {header_number} less than 0. Setting to default ")
+
+        except ValueError:
+            LoggingMixin().log.warning(f"header_number value {header_number} is incorrect. Setting to default ")
+            header_number = 0
+
+        if header_number >0:
+            header_number-=1
+
+        stream['header_number'] = header_number
+
+
         #get completeness
         completeness_percent= stream['completeness'] if 'completeness' in stream else '100%'
         completeness_percent= str(completeness_percent).replace('%','')
