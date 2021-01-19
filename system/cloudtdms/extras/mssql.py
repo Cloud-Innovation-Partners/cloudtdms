@@ -140,6 +140,11 @@ def mssql_download(**kwargs):
     table_name = kwargs['table_name']
     execution_date = kwargs['execution_date']
     prefix = kwargs['prefix']
+    order = kwargs['order']
+    where = kwargs['where']
+
+    order = 'RAND' if str(order).strip().lower() == 'rand' else 'ASC' if str(
+        order).strip().lower() == 'asc' else 'DESC' if str(order).strip().lower() == 'desc' else 'RAND'
 
     connection_in_yaml=get_mssql_config_default()
 
@@ -172,8 +177,9 @@ def mssql_download(**kwargs):
                 cursor.execute(sql)
                 result = cursor.fetchone()  # result contains dict- {'COLUMN_NAME', 'id'}
                 primary_index = result.get('COLUMN_NAME') if result is not None else None
-                if primary_index is not None:
-                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name} ORDER BY {primary_index} DESC"
+                if primary_index is not None and (order == 'ASC' or order == 'DESC'):
+                    # sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name} ORDER BY {primary_index} DESC"
+                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} ORDER BY {primary_index} {order}" if where == '' else f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} WHERE {where} ORDER BY {primary_index} {order}"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mssql.{connection_name}.{table_name}.{f}" for f in df.columns]
@@ -181,7 +187,9 @@ def mssql_download(**kwargs):
                 else:
                     LoggingMixin().log.warn(
                         f"Database table {database}.{table_name} has no INDEX column defined, Latest Records will not be fetched!")
-                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name}"
+                    # sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * from {table_name}"
+                    #NEWID() in mssql is like RANDOM()
+                    sql = f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} ORDER BY NEWID()" if where == '' else f"SELECT TOP {SOURCE_DOWNLOAD_LIMIT} * FROM {table_name} WHERE {where} ORDER BY NEWID()"
                     cursor.execute(sql)
                     df = pd.DataFrame(cursor.fetchall())
                     df.columns = [f"mssql.{connection_name}.{table_name}.{f}" for f in df.columns]

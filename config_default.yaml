@@ -96,3 +96,19 @@ salesforce:
     password: ""                # SalesForce password Base64 Encrypted
     security_token: ""          # SalesForce security_token Base64 Encrypted
     
+# Amazon Redshift
+
+redshift:
+  redshift_test:                # Connection Name
+    host: ""                    # Redshift instance name (Don't  use full url)
+    database: ""                # Redshift database name
+    username: ""                # Redshift username Base64 Encrypted
+    password: ""                # Redshift password Base64 Encrypted
+    port: 5432
+
+# Amazon Web Services
+amazons3:
+  s3_test:
+    access_key: ""              # Base64 encrypted access_key_id
+    secret_key: ""              # Base64 encrypted secret_key_id
+    region: ""                  # S3 Bucket Region Name
