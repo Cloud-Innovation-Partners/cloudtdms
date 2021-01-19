@@ -9,6 +9,18 @@ from system.cloudtdms.extras import SOURCE_DOWNLOAD_LIMIT, DESTINATION_UPLOAD_LI
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 
+def extract_df_header(file_path, delimiter, header_number):
+    if os.path.exists(file_path):
+        df = pd.read_csv(f"{file_path}", engine='python', error_bad_lines=False,
+                         nrows=header_number, sep=delimiter)
+    else:
+        df = pd.read_csv(f"{get_user_data_home()}/{os.path.splitext(file_path)[0]}.csv", engine='python',
+                         error_bad_lines=False,
+                         nrows=header_number, sep=delimiter)
+    header = list(df.iloc[header_number - 3])
+    return header
+
+
 class CTDMS2CSV:
     def __init__(self, connection, execution_date, prefix, source_file=None, target_file=None, delimiter=",",
                  header=True, quoting=False):
@@ -52,13 +64,17 @@ class CTDMS2CSV:
             LoggingMixin().log.error(f"No Synthetic Data Found @ {synthetic_data_path}!")
             raise FileNotFoundError
 
-    def download(self, limit=SOURCE_DOWNLOAD_LIMIT):
+    def download(self, header_number, limit=SOURCE_DOWNLOAD_LIMIT):
         file_name = f"csv_{self.connection}_{os.path.dirname(self.prefix)}_{os.path.basename(self.prefix)}_{str(self.execution_date)[:19].replace('-', '_').replace(':', '_')}.csv"
         extension = os.path.splitext(self.source_file)[1]
+
         if str(extension).lower() != '.csv':
             raise Exception(f"InvalidFileFormat: File {self.source_file} has no .csv extension")
+
+        # print(f"HEADER : {header_number}")
+
         if os.path.exists(self.source_file):
-            df = pd.read_csv(f"{self.source_file}", engine='python', error_bad_lines=False,
+            df = pd.read_csv(f"{self.source_file}", engine='python', header = header_number, error_bad_lines=False,
                              nrows=SOURCE_DOWNLOAD_LIMIT, sep=self.delimiter)
         else:
             df = pd.read_csv(f"{get_user_data_home()}/{os.path.splitext(self.source_file)[0]}.csv", engine='python', error_bad_lines=False,
@@ -93,6 +109,9 @@ def csv_upload(**kwargs):
     quoting = kwargs.get('quoting')
     quoting = True if str(quoting).lower() == 'true' else False
 
+    header_number = kwargs['header_number']
+
+
     # Get CSV target file From config_default.yaml
     csv_config = CTDMS2CSV.get_csv_config_default()
 
@@ -115,6 +134,9 @@ def csv_download(**kwargs):
     prefix = kwargs.get('prefix')  # title of the synthetic data config file
     delimiter = kwargs.get('delimiter', ',') if kwargs.get('delimiter') != "" else ','
     connection = kwargs.get('connection')
+
+    header_number = kwargs['header_number']
+
     # Get CSV source file From config_default.yaml
     csv_config = CTDMS2CSV.get_csv_config_default()
 
@@ -128,7 +150,7 @@ def csv_download(**kwargs):
             delimiter=delimiter,
             execution_date=execution_date
         )
-        csv.download()
+        csv.download(header_number=int(header_number))
     else:
         LoggingMixin().log.error(f'CSV file not available for {connection} in config_default.yaml')
         raise AttributeError(f'CSV file not available for {connection} in config_default.yaml')
