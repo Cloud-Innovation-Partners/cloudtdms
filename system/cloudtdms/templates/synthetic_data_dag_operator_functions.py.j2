@@ -7,13 +7,13 @@ def clean_up(**kwargs):
     file_name = f"{os.path.basename(prefix)}_{str(execution_date)[:19].replace('-','_').replace(':','_')}.csv"
     f_path = f"{get_output_data_home()}/{prefix}/{file_name}"
     destinations = dag.params.get('destination')
-    if 'csv' in destinations or 'json' in destinations:
+    if 'csv' in destinations or 'json' in destinations or 'xml' in destinations:
         config = yaml.load(open(get_config_default_path()), Loader=yaml.FullLoader)
         flag = True
-        for item in destinations.get('csv', []) + destinations.get('json', []):
+        for item in destinations.get('csv', []) + destinations.get('json', []) + destinations.get('xml', []):
             cname = item.get('connection')
-            if cname in config.get('csv', {}) or cname in config.get('json', {}):
-                target = config.get('csv', {}).get(cname, {}).get('target', None) or config.get('json', {}).get(cname, {}).get('target', None)
+            if cname in config.get('csv', {}) or cname in config.get('json', {})  or cname in config.get('xml', {}):
+                target = config.get('csv', {}).get(cname, {}).get('target', None) or config.get('json', {}).get(cname, {}).get('target', None) or config.get('xml', {}).get(cname, {}).get('target', None)
                 if target is  None or target == '' or target == f"{get_output_data_home()}":
                     LoggingMixin().log.warning("Skipping files deletion from `data` folder!")
                     flag = False

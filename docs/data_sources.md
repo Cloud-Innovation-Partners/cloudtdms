@@ -18,8 +18,8 @@ or
 ## Supported Sources And Destinations
 
 ### Static Files
-`CloudTDMS` provides support for CSV and JSON files to be used as a sources and destinations, This means you can use any
-CSV or JSON file to feed data to the configuration and Also save the resultant data as CSV or JSON. In order to use a CSV
+`CloudTDMS` provides support for CSV, XML and JSON files to be used as a sources and destinations, This means you can use any
+CSV or XML or JSON file to feed data to the configuration and Also save the resultant data as CSV or XML or JSON. In order to use a CSV or XML
 or JSON file as a source file, you need to create a connection entry for the same inside the `config_default.yaml`. A typical
 instance of `config_default.yaml` file containing connection entries for CSV and JSON sources looks something like this.
 ```yaml
@@ -34,12 +34,20 @@ json:
   my_connection_name:
     source: "/home/user/json-data/example.json"
     target: "/home/user/some-other-folder"
+xml:
+  my_connection_name_one:
+    source: "/home/user/xml-data-one/example-one.xml"
+    target: "/home/user/some-other-folder"
+  my_connection_name_two:
+    source: "/home/user/xml-data-two/example-two.xml"
+
+
 ```
 The `config_default.yaml` file contains entry for each source type, all connections related to CSV will be registered inside
 `csv:` key. Above example has two connections named as `my_connection_name_one` and `my_connection_name_two` registered 
 inside `csv:` key. Here `my_connection_one` and `my_connection_two` represent connection names, You can choose any name for representation
-purpose. For both `csv:` and `json:` under each connection name you have two keys `source` and `target`. `source` key takes an absolute
-path of CSV file present on your local machine to be used as a source file, While `target` key takes absolute directory path as a value
+purpose. For `csv:`, `xml:` and `json:` under each connection name you have two keys `source` and `target`. `source` key takes an absolute
+path of CSV or XML or JSON file present on your local machine to be used as a source file, While `target` key takes absolute directory path as a value
 to represent the destination folder inside which resultant masked or synthetic data file must be stored.
 
 Your connection name can act as both source as well as destination, depending upon the keys `source` and `target`. When
@@ -51,7 +59,7 @@ directory defined with the `target` key in the connection name is used as a dest
 > generated data. 
 
 *Example* :
-Below is an example snippet of configuration file using above CSV and JSON connections as source and destinations
+Below is an example snippet of configuration file using above CSV, XML and JSON connections as source and destinations
 ```python
 STREAM = {
     "source": {
@@ -59,6 +67,9 @@ STREAM = {
             {"connection": "my_connection_name_one", "delimiter": ","},
             {"connection": "my_connection_name_two", "delimiter": ","},
         ],
+        "xml": [
+                {"connection": "my_connection_name"},
+            ],
         "json": [
             {"connection": "my_connection_name", "type": "lines"}
         ]            
@@ -66,7 +77,11 @@ STREAM = {
     "destination": {
         "json": [
             {"connection": "my_connection_name", "type": "array"}
-        ]            
+        ], 
+         "xml": [
+                    {"connection": "my_connection_name","root_tag":"employees", "record_tag":"employee"},
+                ]
+           
     }   
 }
 ``` 
@@ -78,6 +93,29 @@ using `delimiter` attribute. By default `delimiter` is comma but you can specifi
 your CSV data file. 
 
 In case of destination connection, `delimiter` value will be used as a delimiting value for the result CSV file.
+
+In case of destination connection in `xml`, there are `root_tag` and `record_tag` as an additional attributes.
+`root_tag` specifies the tag name for the root in the xml file and `record_tag` specifies the tag name for each record in xml file.
+If the destination for xml looks like : 
+
+```markdown
+ "xml": [
+          {"connection": "my_connection_name","root_tag":"employees", "record_tag":"employee"},
+        ]
+```
+The XMl file looks like:
+```markdown
+<employees>
+    <employee>
+        ...
+    </employee>
+   
+    <employee>
+        ...
+    </employee>
+
+</employees>
+```
 
 `CloudTDMS` does not support all JSON types. Only two JSON formats are valid to use. You can either use a JSON Array or
 JSON lines as JSON source files. similarly, output data file can be either created in JSON Array format or as JSON Lines.

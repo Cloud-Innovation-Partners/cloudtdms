@@ -1,8 +1,7 @@
 {% block source_tasks %}
 
 
-
-{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp', 'redshift', 'amazons3'] %}
+{% set supported_sources = ['csv', 'mysql', 'servicenow', 'salesforce', 'json', 'mssql','postgres', 'sftp', 'redshift', 'amazons3', 'xml'] %}
 
 {% if data.source| length == 0 %}
 
@@ -35,6 +34,14 @@ start >> stream
 {{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
 {{ key }}_{{ item.connection }}_kwargs['header_number'] = f"{dag.params.get('stream').get('header_number')}"
 {{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_CSV_{{ item.connection }}", python_callable=csv_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
+{% elif key == 'xml' %}
+# Initialize task for XML data file {{ item.connection }}
+
+{{ key }}_{{ item.connection }}_kwargs['delimiter'] = "{{ item.delimiter }}"
+{{ key }}_{{ item.connection }}_kwargs['connection'] = "{{item.connection}}"
+{{ key }}_{{ item.connection }} = PythonOperator(task_id="Extract_XML_{{ item.connection }}", python_callable=xml_download, op_kwargs={{ key }}_{{ item.connection }}_kwargs, dag=dag)
+
 
 {% elif key == 'mysql' %}
 
