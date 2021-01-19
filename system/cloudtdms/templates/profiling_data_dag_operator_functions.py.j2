@@ -46,6 +46,14 @@ def generate_configuration():
             df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False).loc[0:1000]
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True, nrows=1000)
+    elif str(extension).lower() == '.xml':
+        print("XMLFILEPATH",source_file)
+        parser = Parser(source_file)
+        cols = parser.get_column_labels()
+        data = parser.get_data()
+        # load into df
+        df = pd.DataFrame(data=data, columns=cols)
+        df=df[:1000]
     else:
         delimiter = sniff_delimiter(source_file)
         try:
@@ -180,7 +188,7 @@ def generate_eda_profile():
         path = f"{get_reports_home()}/{dag.owner}/{file_name}"
 
     if str(extension).lower() == '.csv':
-        delimiter = sniff_delimiter(source_file)
+        delimiter = sniff_delimiter(source_file)    
         try:
             df = pd.read_csv(source_file, delimiter=delimiter, engine='python', error_bad_lines=False, nrows=10000)
         except Error:
@@ -188,6 +196,16 @@ def generate_eda_profile():
 
     elif str(extension).lower() == '.json':
         df = pd.read_json(source_file, lines=True, nrows=10000)
+
+    elif str(extension).lower() == '.xml':
+        print("XMLFILEPATH",source_file)
+        parser = Parser(source_file)
+        cols = parser.get_column_labels()
+        data = parser.get_data()
+        # load into df
+        df = pd.DataFrame(data=data, columns=cols)
+        df=df[:1000]
+
     else:
         delimiter = sniff_delimiter(source_file)
         try:
